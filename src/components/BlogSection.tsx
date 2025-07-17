@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -48,19 +49,37 @@ const blogPosts = [
   {
     id: 5,
     title: "How to Create the Perfect Study Environment",
-    excerpt: "Learn how to set up a study space that maximizes your focus and productivity for better academic performance.",
+    excerpt: "Learn how to set up a study space that boosts focus and productivity, from lighting to organization.",
     author: "Neha Singh",
-    date: "Mar 20, 2023",
+    date: "Aug 3, 2023",
     category: "Study Tips",
     image: "/placeholder.svg",
   },
   {
     id: 6,
-    title: "Understanding Mental Health During Exam Season",
-    excerpt: "Important tips for maintaining good mental health and managing stress during intensive study periods and exams.",
-    author: "Dr. Amit Joshi",
-    date: "Aug 15, 2023",
-    category: "Wellness",
+    title: "The Science Behind Effective Learning",
+    excerpt: "Understand the cognitive processes that impact learning and how to optimize your study habits accordingly.",
+    author: "Dr. Rohit Kapoor",
+    date: "Sep 5, 2023",
+    category: "Education",
+    image: "/placeholder.svg",
+  },
+  {
+    id: 7,
+    title: "Tips for Tackling Math Anxiety",
+    excerpt: "Practical strategies to overcome fear of mathematics and build confidence in solving complex problems.",
+    author: "Aditya Ranjan",
+    date: "Oct 18, 2023",
+    category: "Mathematics",
+    image: "/placeholder.svg",
+  },
+  {
+    id: 8,
+    title: "Understanding the New NEP 2020 Framework",
+    excerpt: "A comprehensive breakdown of Nepal's National Education Policy and how it will impact students and teachers.",
+    author: "Prof. Nisha Adhikari",
+    date: "Nov 22, 2023",
+    category: "Education Policy",
     image: "/placeholder.svg",
   },
 ];
@@ -69,109 +88,151 @@ const BlogSection = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 3;
-
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const postsPerPage = 4;
+  
+  // Filter posts by category if selected
+  const filteredPosts = selectedCategory 
+    ? blogPosts.filter(post => post.category === selectedCategory) 
+    : blogPosts;
+  
   // Calculate pagination
-  const totalPages = Math.ceil(blogPosts.length / postsPerPage);
-  const paginatedPosts = blogPosts.slice(
-    (currentPage - 1) * postsPerPage,
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const displayedPosts = filteredPosts.slice(
+    (currentPage - 1) * postsPerPage, 
     currentPage * postsPerPage
   );
-
-  const handleReadMore = (postId: number, postTitle: string) => {
-    toast({
-      title: "Opening Article",
-      description: `Loading "${postTitle}"...`,
-    });
-    // Navigate to blog post detail page (you would implement this route)
-    // navigate(`/blog/${postId}`);
-  };
-
+  
+  // Get unique categories for filter
+  const categories = [...new Set(blogPosts.map(post => post.category))];
+  
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCardClick = (postId: number) => {
+    navigate(`/blog/${postId}`);
+  };
+
+  const handleViewAllClick = () => {
+    toast({
+      title: "Blog Section",
+      description: "Navigating to all articles page",
+    });
+    navigate("/blog");
+  };
+  
+  const handleCategoryFilter = (category: string | null) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
   };
 
   return (
     <section id="blog" className="py-20 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Educational Blog</h2>
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Educational Articles & Tips</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Stay updated with the latest educational insights, study tips, and academic guidance from our expert contributors.
+            Stay updated with the latest educational insights, study techniques, and career guidance through our informative articles.
           </p>
         </div>
+        
+        {/* Category filters */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+          <Button 
+            variant={selectedCategory === null ? "default" : "outline"} 
+            size="sm"
+            onClick={() => handleCategoryFilter(null)}
+          >
+            All Categories
+          </Button>
+          
+          {categories.map(category => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleCategoryFilter(category)}
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {paginatedPosts.map((post) => (
-              <Card key={post.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div className="aspect-video bg-gradient-to-r from-edu-purple/20 to-edu-blue/20 relative overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {displayedPosts.map(post => (
+            <Card 
+              key={post.id} 
+              className="overflow-hidden group hover:shadow-neon transition-all duration-300 h-full cursor-pointer"
+              onClick={() => handleCardClick(post.id)}
+            >
+              <div className="block h-full">
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={post.image} 
+                    alt={post.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute top-4 left-4">
-                    <Badge variant="secondary" className="bg-white/90 text-gray-900">
+                  <div className="absolute top-4 right-4">
+                    <Badge className="bg-edu-purple/90 text-white">
                       {post.category}
                     </Badge>
                   </div>
                 </div>
-
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-edu-purple transition-colors">
-                    {post.title}
-                  </CardTitle>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      <span>{post.author}</span>
-                    </div>
+                
+                <CardHeader className="p-6 pb-2">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4 gap-4">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>{post.date}</span>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <User className="h-4 w-4" />
+                      <span>{post.author}</span>
+                    </div>
                   </div>
+                  
+                  <CardTitle className="text-xl group-hover:text-edu-purple transition-colors duration-300">
+                    {post.title}
+                  </CardTitle>
                 </CardHeader>
-
-                <CardContent className="pt-0">
-                  <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
+                
+                <CardContent className="p-6 pt-0">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                     {post.excerpt}
                   </p>
                 </CardContent>
-
-                <CardFooter className="pt-0">
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleReadMore(post.id, post.title)}
-                    className="group/button p-0 h-auto text-edu-purple hover:text-edu-blue transition-colors"
-                  >
+                
+                <CardFooter className="p-6 pt-0 mt-auto">
+                  <div className="inline-flex items-center text-edu-purple hover:text-edu-indigo font-medium transition-colors duration-300">
                     Read More
-                    <ArrowRight className="h-4 w-4 ml-1 group-hover/button:translate-x-1 transition-transform" />
-                  </Button>
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </div>
                 </CardFooter>
-              </Card>
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="mb-8">
-              <ContentPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-
-          <div className="text-center">
-            <Link to="/blog">
-              <Button className="btn-gradient">
-                View All Articles
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+        
+        {filteredPosts.length > postsPerPage && (
+          <ContentPagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalItems={filteredPosts.length}
+            itemsPerPage={postsPerPage}
+          />
+        )}
+        
+        <div className="text-center mt-12">
+          <Button 
+            className="btn-primary" 
+            onClick={handleViewAllClick}
+          >
+            View All Articles
+          </Button>
         </div>
       </div>
     </section>

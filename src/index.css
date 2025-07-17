@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -72,7 +73,7 @@
   * {
     @apply border-border;
   }
-
+  
   html {
     @apply scroll-smooth;
   }
@@ -89,53 +90,46 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/70 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl;
+    @apply bg-white/70 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-xl shadow-glass transition-all duration-300 hover:shadow-hover-elevation;
   }
-
+  
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-edu-purple to-edu-blue;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-edu-purple to-edu-blue text-white px-6 py-3 rounded-full font-medium hover:shadow-neon transition-all duration-300 hover:-translate-y-1;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-edu-orange to-edu-gold text-white px-6 py-3 rounded-full font-medium hover:shadow-neon-orange transition-all duration-300 hover:-translate-y-1;
+  }
+  
+  .floating-icon {
+    @apply animate-float;
   }
 
-  .hero-pattern {
-    background-image: radial-gradient(circle at 1px 1px, hsl(var(--primary)) 1px, transparent 0);
-    background-size: 20px 20px;
+  .interactive-card {
+    @apply transition-all duration-300 hover:shadow-hover-elevation hover:-translate-y-2;
+  }
+  
+  .shimmer-effect {
+    @apply relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-shimmer;
   }
 
-  .purple-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  .hover-link {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-edu-purple after:scale-x-0 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
 
-  .btn-gradient {
-    @apply bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground;
-  }
-}
-
-@layer utilities {
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  .scale-on-hover {
+    @apply transition-transform duration-300 hover:scale-105;
   }
 
-  .animate-bg-shift {
-    animation: bgShift 10s ease-in-out infinite;
+  .card-hover {
+    @apply transition-all duration-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-blue-50/50 dark:hover:from-purple-900/20 dark:hover:to-blue-900/20;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-
-  @keyframes bgShift {
-    0%, 100% { transform: translateX(0px); }
-    50% { transform: translateX(10px); }
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
+  .mobile-nav-link {
+    @apply block py-2 px-4 text-gray-800 dark:text-gray-200 hover:bg-edu-purple/10 hover:text-edu-purple rounded-md transition-colors;
   }
 }

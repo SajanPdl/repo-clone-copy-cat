@@ -7,144 +7,215 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
-  }
   public: {
     Tables: {
-      documents: {
+      categories: {
         Row: {
           created_at: string | null
           description: string | null
-          document_type: string
-          downloads_count: number | null
-          file_path: string | null
-          id: string
-          is_approved: boolean | null
-          is_featured: boolean | null
-          pages_count: number | null
-          preview_image: string | null
-          rating: number | null
-          subject: string
-          title: string
-          university: string
-          updated_at: string | null
-          user_id: string
+          id: number
+          name: string
         }
         Insert: {
           created_at?: string | null
           description?: string | null
-          document_type: string
-          downloads_count?: number | null
-          file_path?: string | null
-          id?: string
-          is_approved?: boolean | null
-          is_featured?: boolean | null
-          pages_count?: number | null
-          preview_image?: string | null
-          rating?: number | null
-          subject: string
-          title: string
-          university: string
-          updated_at?: string | null
-          user_id: string
+          id?: number
+          name: string
         }
         Update: {
           created_at?: string | null
           description?: string | null
-          document_type?: string
-          downloads_count?: number | null
-          file_path?: string | null
-          id?: string
-          is_approved?: boolean | null
-          is_featured?: boolean | null
-          pages_count?: number | null
-          preview_image?: string | null
-          rating?: number | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      past_papers: {
+        Row: {
+          created_at: string | null
+          difficulty: string
+          downloads: number | null
+          duration: string
+          file_url: string | null
+          grade: string
+          id: number
+          subject: string
+          title: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty: string
+          downloads?: number | null
+          duration: string
+          file_url?: string | null
+          grade: string
+          id?: number
+          subject: string
+          title: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          difficulty?: string
+          downloads?: number | null
+          duration?: string
+          file_url?: string | null
+          grade?: string
+          id?: number
           subject?: string
           title?: string
-          university?: string
           updated_at?: string | null
-          user_id?: string
+          year?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "documents_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      ratings: {
+      study_materials: {
         Row: {
-          comment: string | null
-          created_at: string | null
-          document_id: string
-          id: string
-          rating: number
-          user_id: string
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string | null
-          document_id: string
-          id?: string
-          rating: number
-          user_id: string
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string | null
-          document_id?: string
-          id?: string
-          rating?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ratings_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ratings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: string
-          role: string
+          author: string
+          category: string
+          content: string
+          date: string
+          description: string
+          download_url: string | null
+          downloads: number | null
+          grade: string | null
+          id: number
+          image_url: string | null
+          is_featured: boolean | null
+          level: string | null
+          pages: number | null
+          rating: number | null
+          read_time: string | null
+          subject: string
+          tags: string[] | null
+          title: string
+          topics: string[] | null
           updated_at: string | null
-          username: string | null
+        }
+        Insert: {
+          author: string
+          category: string
+          content: string
+          date?: string
+          description: string
+          download_url?: string | null
+          downloads?: number | null
+          grade?: string | null
+          id?: number
+          image_url?: string | null
+          is_featured?: boolean | null
+          level?: string | null
+          pages?: number | null
+          rating?: number | null
+          read_time?: string | null
+          subject: string
+          tags?: string[] | null
+          title: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string
+          category?: string
+          content?: string
+          date?: string
+          description?: string
+          download_url?: string | null
+          downloads?: number | null
+          grade?: string | null
+          id?: number
+          image_url?: string | null
+          is_featured?: boolean | null
+          level?: string | null
+          pages?: number | null
+          rating?: number | null
+          read_time?: string | null
+          subject?: string
+          tags?: string[] | null
+          title?: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string
         }
         Insert: {
           created_at?: string | null
-          email: string
-          id: string
-          role?: string
-          updated_at?: string | null
-          username?: string | null
+          description?: string | null
+          id?: number
+          name: string
         }
         Update: {
           created_at?: string | null
-          email?: string
-          id?: string
-          role?: string
-          updated_at?: string | null
-          username?: string | null
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      user_queries: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: number
+          query_text: string
+          resolved_at: string | null
+          status: string | null
+          user_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          query_text: string
+          resolved_at?: string | null
+          status?: string | null
+          user_name: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          query_text?: string
+          resolved_at?: string | null
+          status?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
+      website_stats: {
+        Row: {
+          downloads: number | null
+          id: number
+          month: string
+          queries: number | null
+          recorded_at: string
+          visits: number | null
+        }
+        Insert: {
+          downloads?: number | null
+          id?: number
+          month: string
+          queries?: number | null
+          recorded_at?: string
+          visits?: number | null
+        }
+        Update: {
+          downloads?: number | null
+          id?: number
+          month?: string
+          queries?: number | null
+          recorded_at?: string
+          visits?: number | null
         }
         Relationships: []
       }
@@ -153,10 +224,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
@@ -167,25 +235,21 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -203,16 +267,14 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -228,16 +290,14 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -253,16 +313,14 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -270,16 +328,14 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

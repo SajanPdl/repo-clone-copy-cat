@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Search, GraduationCap, User, LogOut } from 'lucide-react';
@@ -28,7 +29,7 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
+  
   const handleLogout = () => {
     localStorage.removeItem('eduUser');
     setUser(null);
@@ -51,123 +52,140 @@ const Navbar = () => {
               EduSanskriti
             </span>
           </Link>
-
+          
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex items-center space-x-6">
-              <Link to="/" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
+              <Link to="/" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple transition-colors">
                 Home
               </Link>
-              <a href="#study-materials" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
+              <Link to="/study-materials" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple transition-colors">
                 Study Materials
-              </a>
-              <a href="#past-papers" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
+              </Link>
+              <Link to="/past-papers" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple transition-colors">
                 Past Papers
-              </a>
-              <a href="#blog" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
+              </Link>
+              <Link to="/blog" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple transition-colors">
                 Blog
-              </a>
-              <a href="#contact" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
+              </Link>
+              <Link to="/contact" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple transition-colors">
                 Contact
-              </a>
+              </Link>
             </nav>
-
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-edu-purple transition-colors">
-                <Search size={20} />
-              </button>
-
-              {user ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <User size={20} className="text-gray-600 dark:text-gray-300" />
-                    <span className="text-sm text-gray-700 dark:text-gray-200">{user.name}</span>
-                  </button>
-
-                  {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                      </div>
-                      <button
+            
+            <Link to="/study-materials" className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+              <Search className="h-5 w-5" />
+            </Link>
+            
+            {user ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowUserMenu(!showUserMenu)} 
+                  className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple"
+                >
+                  <div className="w-8 h-8 rounded-full bg-edu-purple text-white flex items-center justify-center">
+                    {user.name.charAt(0)}
+                  </div>
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-20">
+                    <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+                      <p className="font-medium text-gray-800 dark:text-white">{user.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                    </div>
+                    <div className="p-2">
+                      {user.role === 'admin' && (
+                        <Link 
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </Link>
+                      )}
+                      <button 
                         onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                        className="flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
                       >
-                        <LogOut size={16} />
-                        <span>Logout</span>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
                       </button>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Link
-                    to="/login"
-                    className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="px-4 py-2 bg-gradient-to-r from-edu-purple to-edu-blue text-white text-sm rounded-lg hover:opacity-90 transition-opacity"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="btn-primary">
+                Student Login
+              </Link>
+            )}
           </div>
-
-          <button
-            className="md:hidden p-2 text-gray-600 dark:text-gray-300"
-            onClick={() => setIsOpen(!isOpen)}
+          
+          <button 
+            onClick={() => setIsOpen(!isOpen)} 
+            className="md:hidden text-gray-700 dark:text-gray-200"
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
-
-        {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-            <nav className="flex flex-col space-y-4">
-              <Link to="/" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
-                Home
-              </Link>
-              <a href="#study-materials" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
-                Study Materials
-              </a>
-              <a href="#past-papers" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
-                Past Papers
-              </a>
-              <a href="#blog" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
-                Blog
-              </a>
-              <a href="#contact" className="text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors">
-                Contact
-              </a>
-              
-              {!user && (
-                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Link
-                    to="/login"
-                    className="px-4 py-2 text-center text-gray-700 dark:text-gray-200 hover:text-edu-purple transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="px-4 py-2 bg-gradient-to-r from-edu-purple to-edu-blue text-white text-center rounded-lg hover:opacity-90 transition-opacity"
-                  >
-                    Sign Up
-                  </Link>
+      </div>
+      
+      {/* Mobile menu */}
+      <div className={`md:hidden bg-white dark:bg-gray-900 ${isOpen ? 'block' : 'hidden'}`}>
+        <div className="px-4 py-3 space-y-3">
+          <Link to="/" className="block text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple">
+            Home
+          </Link>
+          <Link to="/study-materials" className="block text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple">
+            Study Materials
+          </Link>
+          <Link to="/past-papers" className="block text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple">
+            Past Papers
+          </Link>
+          <Link to="/blog" className="block text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple">
+            Blog
+          </Link>
+          <Link to="/contact" className="block text-gray-700 dark:text-gray-200 hover:text-edu-purple dark:hover:text-edu-purple">
+            Contact
+          </Link>
+          
+          {user ? (
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 rounded-full bg-edu-purple text-white flex items-center justify-center">
+                  {user.name.charAt(0)}
                 </div>
+                <div className="ml-2">
+                  <p className="font-medium text-gray-800 dark:text-white">{user.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                </div>
+              </div>
+              
+              {user.role === 'admin' && (
+                <Link 
+                  to="/admin"
+                  className="block px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                >
+                  <User className="h-4 w-4 inline mr-2" />
+                  Admin Panel
+                </Link>
               )}
-            </nav>
-          </div>
-        )}
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="w-full btn-primary block text-center">
+              Student Login
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

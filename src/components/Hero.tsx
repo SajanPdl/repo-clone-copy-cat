@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { NepalAdsFloater } from './ads/NepalAdsFloater';
 
 const Hero = () => {
-
+  
 
   return (
     <section className="relative pt-24 pb-40 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-hero-pattern animate-bg-shift opacity-30"></div>
-
+      
       {/* Floating icons decoration - with Nepali theme */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Educational icons */}
@@ -25,7 +25,7 @@ const Hero = () => {
         <div className="absolute top-1/2 left-1/4 animate-float opacity-20" style={{animationDelay: '1.5s'}}>
           <GraduationCap size={64} className="text-edu-orange" />
         </div>
-
+        
         {/* Nepal-themed elements */}
         <div className="absolute top-1/6 right-1/6 animate-float opacity-30" style={{animationDelay: '0.8s'}}>
           <Mountain size={80} className="text-edu-blue" />
@@ -36,77 +36,245 @@ const Hero = () => {
         <div className="absolute bottom-1/6 left-1/6 animate-float opacity-30" style={{animationDelay: '1.8s'}}>
           <Flag size={72} className="text-[#DC143C]" /> {/* Nepal flag color */}
         </div>
-
+        
         {/* Decorative gradient circles */}
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-edu-blue/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-edu-purple/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-edu-orange/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-1/3 right-1/4 animate-float opacity-20" style={{animationDelay: '2s'}}>
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-edu-purple to-edu-blue animate-pulse-slow" />
+        </div>
+        <div className="absolute bottom-1/4 right-1/3 animate-float opacity-20" style={{animationDelay: '0.5s'}}>
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-edu-orange to-edu-gold animate-pulse-slow" />
+        </div>
+        
+        {/* Triangular shape reminiscent of Nepal flag */}
+        <div className="absolute top-1/4 right-1/3 animate-float opacity-15" style={{animationDelay: '1.2s'}}>
+          <div className="w-24 h-32 bg-gradient-to-b from-[#DC143C] to-[#CC0033]" 
+               style={{clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'}} />
+        </div>
       </div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-edu-purple via-edu-blue to-edu-orange">
-              Your Gateway to
-            </span>
-            <br />
-            <span className="text-gray-900 dark:text-white">
-              Educational Excellence
-            </span>
-          </h1>
-
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Access comprehensive study materials, past papers, notes, and educational resources for grades 10-12 and bachelor's level. 
-            Learn from the comfort of your home with our curated content.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button 
-              size="lg" 
-              className="btn-gradient text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <BookOpen className="mr-2 h-5 w-5" />
-              Explore Study Materials
-            </Button>
+      
+      <div className="container mx-auto px-4 relative">
+        <div className="flex flex-col lg:flex-row items-center gap-8">
+          {/* Left content - Text and Search */}
+          <div className="lg:w-1/2 text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 gradient-text leading-tight animate-fade-in">
+              Your Gateway to Educational Excellence
+            </h1>
+            <p className="text-xl text-gray-700 dark:text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 animate-fade-in">
+              Access comprehensive study materials, past papers, notes, and educational resources to excel in your academic journey.
+            </p>
             
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-8 py-6 rounded-xl border-2 border-gray-300 dark:border-gray-600 hover:border-edu-purple dark:hover:border-edu-purple transition-all duration-300"
-            >
-              <FileText className="mr-2 h-5 w-5" />
-              Browse Past Papers
-            </Button>
+            <div className="mb-10 animate-fade-in">
+              <SearchBar className="max-w-2xl mx-auto lg:mx-0" />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in">
+              <Button asChild className="btn-primary group">
+                <Link to="/study-materials" className="flex items-center">
+                  <BookOpen className="mr-2 h-5 w-5 group-hover:animate-bounce-subtle" />
+                  Explore Resources
+                </Link>
+              </Button>
+              <Button asChild className="btn-secondary group">
+                <Link to="#app-promotion" className="flex items-center">
+                  <Download className="mr-2 h-5 w-5 group-hover:animate-bounce-subtle" />
+                  Download App
+                </Link>
+              </Button>
+            </div>
           </div>
-
-          {/* Search bar */}
-          <div className="max-w-2xl mx-auto mb-16">
-            <SearchBar />
-          </div>
-
-          {/* Quick stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="glass-card p-6 rounded-2xl text-center hover:scale-105 transition-transform duration-300">
-              <div className="text-2xl md:text-3xl font-bold text-edu-purple mb-2">500+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Study Materials</div>
-            </div>
-            <div className="glass-card p-6 rounded-2xl text-center hover:scale-105 transition-transform duration-300">
-              <div className="text-2xl md:text-3xl font-bold text-edu-blue mb-2">200+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Past Papers</div>
-            </div>
-            <div className="glass-card p-6 rounded-2xl text-center hover:scale-105 transition-transform duration-300">
-              <div className="text-2xl md:text-3xl font-bold text-edu-orange mb-2">50+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Subjects</div>
-            </div>
-            <div className="glass-card p-6 rounded-2xl text-center hover:scale-105 transition-transform duration-300">
-              <div className="text-2xl md:text-3xl font-bold text-edu-purple mb-2">10K+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Students Helped</div>
+          
+          {/* Right content - Mobile App Preview */}
+          <div className="lg:w-1/2 mt-10 lg:mt-0 animate-fade-in">
+            <div className="relative mx-auto" style={{ maxWidth: '380px' }}>
+              {/* Phone frame */}
+              <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
+                {/* Phone top notch */}
+                <div className="w-[148px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
+                
+                {/* Phone screen */}
+                <div className="h-[572px] w-[272px] bg-white dark:bg-gray-900 overflow-hidden">
+                  {/* App UI - updated with Nepal-themed colors */}
+                  <div className="flex flex-col h-full">
+                    {/* App header - updated to Nepal flag colors */}
+                    <div className="bg-gradient-to-r from-[#DC143C] to-[#003893] p-4 text-white">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold">EduSanskriti</h3>
+                        <div className="flex space-x-2">
+                          <Search className="h-5 w-5" />
+                          <Bell className="h-5 w-5" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* App content */}
+                    <div className="flex-1 overflow-auto">
+                      {/* Featured banner */}
+                      <div className="bg-gradient-to-r from-[#DC143C] to-[#003893] m-3 rounded-xl p-4 text-white">
+                        <h4 className="font-bold mb-1">New Update Available!</h4>
+                        <p className="text-xs mb-2">Download our latest version with new features.</p>
+                        <button className="bg-white text-[#003893] text-xs px-3 py-1 rounded-full font-medium">
+                          Update Now
+                        </button>
+                      </div>
+                      
+                      {/* Categories */}
+                      <div className="p-3">
+                        <h4 className="font-bold text-sm mb-2">Categories</h4>
+                        <div className="grid grid-cols-4 gap-2">
+                          {['Notes', 'Papers', 'Quizzes', 'Books'].map((cat, index) => (
+                            <div key={index} className="flex flex-col items-center">
+                              <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-1 ${
+                                index % 4 === 0 ? 'bg-[#DC143C]/10 text-[#DC143C]' :
+                                index % 4 === 1 ? 'bg-[#003893]/10 text-[#003893]' :
+                                index % 4 === 2 ? 'bg-orange-100 text-edu-orange' :
+                                'bg-green-100 text-green-600'
+                              }`}>
+                                {index % 4 === 0 && <BookOpen className="h-5 w-5" />}
+                                {index % 4 === 1 && <FileText className="h-5 w-5" />}
+                                {index % 4 === 2 && <Clipboard className="h-5 w-5" />}
+                                {index % 4 === 3 && <Book className="h-5 w-5" />}
+                              </div>
+                              <span className="text-xs">{cat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Popular materials */}
+                      <div className="p-3">
+                        <h4 className="font-bold text-sm mb-2">Popular Materials</h4>
+                        <div className="space-y-2">
+                          {[
+                            'Mathematics for Grade 10', 
+                            'Physics Notes - Mechanics', 
+                            'Chemistry Formulas Handbook'
+                          ].map((title, index) => (
+                            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                              <div className="flex gap-2">
+                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                                  index % 3 === 0 ? 'bg-[#DC143C]/10 text-[#DC143C]' :
+                                  index % 3 === 1 ? 'bg-[#003893]/10 text-[#003893]' :
+                                  'bg-orange-100 text-edu-orange'
+                                }`}>
+                                  {index % 3 === 0 && <FileText className="h-5 w-5" />}
+                                  {index % 3 === 1 && <BookOpen className="h-5 w-5" />}
+                                  {index % 3 === 2 && <Beaker className="h-5 w-5" />}
+                                </div>
+                                <div>
+                                  <h5 className="text-sm font-medium">{title}</h5>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                                      4.8 ★
+                                    </span>
+                                    <span className="text-[10px] text-gray-500">
+                                      {Math.floor(Math.random() * 1000) + 500} downloads
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Recent Materials */}
+                      <div className="p-3">
+                        <h4 className="font-bold text-sm mb-2">Recent Materials</h4>
+                        <div className="overflow-x-auto">
+                          <div className="flex gap-3 w-max pb-2">
+                            {['English Grammar', 'Computer Science', 'Biology Notes'].map((title, index) => (
+                              <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 w-36 shrink-0 shadow-sm">
+                                <div className={`h-20 rounded-lg mb-2 ${
+                                  index % 3 === 0 ? 'bg-[#DC143C]/10' :
+                                  index % 3 === 1 ? 'bg-[#003893]/10' :
+                                  'bg-orange-100'
+                                } flex items-center justify-center`}>
+                                  {index % 3 === 0 && <BookOpen className={`h-8 w-8 ${
+                                    index % 3 === 0 ? 'text-[#DC143C]' :
+                                    index % 3 === 1 ? 'text-[#003893]' :
+                                    'text-edu-orange'
+                                  }`} />}
+                                  {index % 3 === 1 && <Laptop className={`h-8 w-8 ${
+                                    index % 3 === 0 ? 'text-[#DC143C]' :
+                                    index % 3 === 1 ? 'text-[#003893]' :
+                                    'text-edu-orange'
+                                  }`} />}
+                                  {index % 3 === 2 && <Microscope className={`h-8 w-8 ${
+                                    index % 3 === 0 ? 'text-[#DC143C]' :
+                                    index % 3 === 1 ? 'text-[#003893]' :
+                                    'text-edu-orange'
+                                  }`} />}
+                                </div>
+                                <h5 className="text-sm font-medium truncate">{title}</h5>
+                                <p className="text-xs text-gray-500 mt-1">Added today</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* App navigation */}
+                    <div className="border-t border-gray-200 dark:border-gray-700 p-2 bg-white dark:bg-gray-900">
+                      <div className="flex justify-around">
+                        {['Home', 'Search', 'Saved', 'Profile'].map((item, index) => (
+                          <div key={index} className={`flex flex-col items-center p-1 ${index === 0 ? 'text-[#DC143C]' : 'text-gray-500'}`}>
+                            {index === 0 && <Home className="h-5 w-5" />}
+                            {index === 1 && <Search className="h-5 w-5" />}
+                            {index === 2 && <Bookmark className="h-5 w-5" />}
+                            {index === 3 && <User className="h-5 w-5" />}
+                            <span className="text-[10px] mt-1">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Device shine effect */}
+              <div className="absolute inset-0 rounded-[2.5rem] pointer-events-none overflow-hidden">
+                <div className="absolute left-0 top-0 w-full h-full bg-gradient-to-tr from-white/0 via-white/20 to-white/0 animate-shimmer opacity-40"></div>
+              </div>
+              
+              {/* Download badge - updated with Nepal flag colors */}
+              <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-[#DC143C] to-[#003893] text-white px-4 py-2 rounded-full shadow-lg animate-bounce-subtle">
+                <div className="flex items-center gap-1 text-sm font-bold">
+                  <Download className="h-4 w-4" />
+                  Get the App
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Nepal Ads Floater */}
+      
+      {/* Stats/featured numbers */}
+      <div className="container mx-auto px-4 mt-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          <div className="glass-card interactive-card p-6 text-center">
+            <h3 className="text-3xl md:text-4xl font-bold text-[#DC143C] mb-2">10K+</h3>
+            <p className="text-gray-600 dark:text-gray-400">Study Materials</p>
+          </div>
+          
+          <div className="glass-card interactive-card p-6 text-center">
+            <h3 className="text-3xl md:text-4xl font-bold text-[#003893] mb-2">5K+</h3>
+            <p className="text-gray-600 dark:text-gray-400">Past Papers</p>
+          </div>
+          
+          <div className="glass-card interactive-card p-6 text-center">
+            <h3 className="text-3xl md:text-4xl font-bold text-edu-orange mb-2">100+</h3>
+            <p className="text-gray-600 dark:text-gray-400">Subjects</p>
+          </div>
+          
+          <div className="glass-card interactive-card p-6 text-center">
+            <h3 className="text-3xl md:text-4xl font-bold text-edu-gold mb-2">50K+</h3>
+            <p className="text-gray-600 dark:text-gray-400">Students</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Show Nepal-themed floating ad */}
       <NepalAdsFloater />
     </section>
   );

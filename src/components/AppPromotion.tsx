@@ -7,7 +7,7 @@ const AppPromotion = () => {
       <div className="absolute inset-0 bg-purple-gradient opacity-5 pointer-events-none"></div>
       <div className="absolute -right-20 top-20 w-64 h-64 bg-edu-orange/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -left-20 bottom-20 w-64 h-64 bg-edu-blue/10 rounded-full blur-3xl pointer-events-none"></div>
-
+      
       <div className="container mx-auto px-4 relative">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* App info */}
@@ -15,11 +15,11 @@ const AppPromotion = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-6 gradient-text">
               Study Anytime, Anywhere with Our Mobile App
             </h2>
-
+            
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
               Download the EduSanskriti mobile app and access all study materials, past papers, and educational resources on the go. Study offline, set reminders, and track your progress.
             </p>
-
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
               <div className="flex items-start gap-4">
                 <div className="bg-edu-purple/10 p-3 rounded-lg">
@@ -30,108 +30,111 @@ const AppPromotion = () => {
                   <p className="text-gray-600 dark:text-gray-400">Create and organize notes while studying materials</p>
                 </div>
               </div>
-
+              
               <div className="flex items-start gap-4">
                 <div className="bg-edu-blue/10 p-3 rounded-lg">
                   <BookOpen className="h-6 w-6 text-edu-blue" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Offline Access</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Download materials for offline studying</p>
+                  <p className="text-gray-600 dark:text-gray-400">Download materials to study without internet access</p>
                 </div>
               </div>
-
+              
               <div className="flex items-start gap-4">
                 <div className="bg-edu-orange/10 p-3 rounded-lg">
-                  <Search className="h-6 w-6 text-edu-orange" />
+                  <Download className="h-6 w-6 text-edu-orange" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Smart Search</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Quickly find relevant study materials</p>
+                  <h3 className="text-lg font-semibold mb-2">Quick Downloads</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Fast download of study materials and papers</p>
                 </div>
               </div>
-
+              
               <div className="flex items-start gap-4">
-                <div className="bg-edu-purple/10 p-3 rounded-lg">
-                  <User className="h-6 w-6 text-edu-purple" />
+                <div className="bg-edu-gold/10 p-3 rounded-lg">
+                  <Smartphone className="h-6 w-6 text-edu-gold" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Progress Tracking</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Monitor your learning progress and achievements</p>
+                  <h3 className="text-lg font-semibold mb-2">Mobile Friendly</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Optimized interface for all mobile devices</p>
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                <Apple className="h-6 w-6" />
-                <div className="text-left">
-                  <div className="text-xs">Download on the</div>
-                  <div className="text-sm font-semibold">App Store</div>
-                </div>
+            
+            <div className="flex flex-wrap gap-4">
+              <button className="btn-primary inline-flex items-center gap-2">
+                <Apple className="h-5 w-5" />
+                App Store
               </button>
-
-              <button className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                <div className="h-6 w-6 bg-white rounded text-black flex items-center justify-center text-xs font-bold">
-                  ▶
-                </div>
-                <div className="text-left">
-                  <div className="text-xs">Get it on</div>
-                  <div className="text-sm font-semibold">Google Play</div>
-                </div>
+              
+              <button className="btn-secondary inline-flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                Google Play
               </button>
             </div>
           </div>
-
+          
           {/* App mockup */}
-          <div className="w-full lg:w-1/2 relative">
-            <div className="relative mx-auto w-64 h-96 bg-gray-900 rounded-3xl p-2 shadow-2xl">
-              <div className="w-full h-full bg-white rounded-2xl overflow-hidden relative">
-                {/* Phone screen content */}
-                <div className="h-full bg-gradient-to-b from-edu-purple/10 to-edu-blue/10 p-4">
-                  <div className="text-center mb-6">
-                    <h3 className="text-lg font-bold text-gray-900">EduSanskriti</h3>
-                    <p className="text-sm text-gray-600">Mobile App</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="bg-white p-3 rounded-lg shadow-sm flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-edu-purple" />
-                      <div>
-                        <div className="text-sm font-semibold">Study Materials</div>
-                        <div className="text-xs text-gray-500">500+ resources</div>
+          <div className="w-full lg:w-1/2 flex justify-center">
+            <div className="relative w-64 md:w-80">
+              {/* Phone frame */}
+              <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-gray-800 dark:border-gray-900 shadow-2xl">
+                {/* Screen content */}
+                <div className="aspect-[9/19] bg-white dark:bg-gray-900 overflow-hidden">
+                  {/* App screenshot placeholder */}
+                  <div className="h-full w-full">
+                    {/* App header */}
+                    <div className="bg-purple-gradient p-4">
+                      <div className="flex items-center justify-between text-white">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-5 w-5" />
+                          <span className="font-semibold">EduSanskriti</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Search className="h-4 w-4" />
+                          <User className="h-4 w-4" />
+                        </div>
                       </div>
                     </div>
-
-                    <div className="bg-white p-3 rounded-lg shadow-sm flex items-center gap-3">
-                      <BookOpen className="h-5 w-5 text-edu-blue" />
-                      <div>
-                        <div className="text-sm font-semibold">Past Papers</div>
-                        <div className="text-xs text-gray-500">200+ papers</div>
+                    
+                    {/* App content */}
+                    <div className="p-4">
+                      <h4 className="text-sm font-semibold mb-3">Recent Materials</h4>
+                      
+                      {/* Material cards */}
+                      <div className="space-y-3 mb-4">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <FileText className="h-4 w-4 text-edu-purple mt-0.5" />
+                              <div>
+                                <h5 className="text-xs font-medium">Physics Notes {i}</h5>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Mechanics - Chapter {i}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-
-                    <div className="bg-white p-3 rounded-lg shadow-sm flex items-center gap-3">
-                      <PenTool className="h-5 w-5 text-edu-orange" />
-                      <div>
-                        <div className="text-sm font-semibold">My Notes</div>
-                        <div className="text-xs text-gray-500">Personal collection</div>
+                      
+                      <h4 className="text-sm font-semibold mb-3">Quick Access</h4>
+                      
+                      {/* Quick access buttons */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Study', 'Papers', 'Notes', 'Exams', 'Blog', 'Profile'].map(item => (
+                          <div key={item} className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
+                            <p className="text-xs">{item}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Phone notch */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-gray-900 rounded-b-2xl"></div>
               </div>
-            </div>
-
-            {/* Floating elements */}
-            <div className="absolute -top-8 -left-8 w-16 h-16 bg-edu-purple/20 rounded-full flex items-center justify-center animate-float">
-              <Download className="h-8 w-8 text-edu-purple" />
-            </div>
-            <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-edu-blue/20 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '1s'}}>
-              <Smartphone className="h-8 w-8 text-edu-blue" />
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-6 -left-6 w-24 h-24 bg-edu-purple/20 rounded-full blur-xl animate-float"></div>
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-edu-orange/20 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }}></div>
             </div>
           </div>
         </div>

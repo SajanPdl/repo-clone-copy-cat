@@ -1,28 +1,29 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, FileText, Award } from 'lucide-react';
 
 const GradeSection = () => {
   const grades = [
-    {
-      id: 'grade10',
-      name: 'Grade 10',
+    { 
+      id: 'grade10', 
+      name: 'Grade 10', 
       icon: BookOpen,
       description: 'Foundation materials covering key subjects for 10th grade students.',
       materials: 48,
       papers: 24
     },
-    {
-      id: 'grade11',
-      name: 'Grade 11',
+    { 
+      id: 'grade11', 
+      name: 'Grade 11', 
       icon: FileText,
       description: 'Advanced study resources and past papers for 11th grade preparation.',
-      materials: 56,
+      materials: 56, 
       papers: 32
     },
-    {
-      id: 'grade12',
-      name: 'Grade 12',
+    { 
+      id: 'grade12', 
+      name: 'Grade 12', 
       icon: Award,
       description: 'Comprehensive exam preparation materials for 12th grade students.',
       materials: 64,
@@ -49,36 +50,35 @@ const GradeSection = () => {
                   <grade.icon className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
               </div>
-
-              <h3 className="text-xl font-semibold text-center mb-3 text-gray-900 dark:text-gray-100">
-                {grade.name}
-              </h3>
-
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-6 flex-grow">
-                {grade.description}
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                    {grade.materials}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Materials</div>
+              
+              <h3 className="text-xl font-bold text-center mb-3">{grade.name}</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 text-center">{grade.description}</p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6 mt-auto">
+                <div className="text-center p-3 bg-indigo-50 dark:bg-gray-700 rounded">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Study Materials</p>
+                  <p className="font-bold text-indigo-600 dark:text-indigo-400">{grade.materials}</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                    {grade.papers}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Past Papers</div>
+                <div className="text-center p-3 bg-indigo-50 dark:bg-gray-700 rounded">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Past Papers</p>
+                  <p className="font-bold text-indigo-600 dark:text-indigo-400">{grade.papers}</p>
                 </div>
               </div>
-
-              <Link
-                to={`/grade/${grade.id}`}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg text-center font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105"
-              >
-                Explore {grade.name}
-              </Link>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Link 
+                  to={`/study-materials?grade=${grade.name}`}
+                  className="text-center py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded transition-colors"
+                >
+                  Materials
+                </Link>
+                <Link 
+                  to={`/past-papers?grade=${grade.name}`}
+                  className="text-center py-2 px-4 bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-indigo-600 dark:text-indigo-400 text-sm font-medium rounded border border-indigo-600 dark:border-indigo-400 transition-colors"
+                >
+                  Past Papers
+                </Link>
+              </div>
             </div>
           ))}
         </div>
