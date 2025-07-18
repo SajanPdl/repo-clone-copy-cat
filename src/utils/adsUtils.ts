@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 // Types
 export interface Ad {
@@ -13,11 +13,6 @@ export interface Ad {
   position?: 'sidebar' | 'content' | 'footer' | 'header';
   description?: string;
 }
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || '',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-);
 
 // Fetch ads by position from the database
 export const fetchAdsByPosition = async (position: string): Promise<Ad[]> => {
