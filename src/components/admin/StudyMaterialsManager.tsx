@@ -44,11 +44,8 @@ type StudyMaterial = Tables<'study_materials'>;
 interface FormData {
   title: string;
   description: string;
-  content: string;
   subject: string;
   category: string;
-  author: string;
-  tags: string;
   grade: string;
   file: File | null;
 }
@@ -65,11 +62,8 @@ const StudyMaterialsManager = () => {
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
-    content: '',
     subject: '',
     category: '',
-    author: '',
-    tags: '',
     grade: '',
     file: null
   });
@@ -194,11 +188,8 @@ const StudyMaterialsManager = () => {
     setFormData({
       title: '',
       description: '',
-      content: '',
       subject: '',
       category: '',
-      author: '',
-      tags: '',
       grade: '',
       file: null
     });
@@ -210,23 +201,16 @@ const StudyMaterialsManager = () => {
     const newMaterial: Omit<StudyMaterial, 'id'> = {
       title: formData.title,
       description: formData.description,
-      content: formData.content,
       subject: formData.subject,
       category: formData.category,
-      author: formData.author,
-      tags: formData.tags.split(',').map(tag => tag.trim()),
       grade: formData.grade,
       date: new Date().toISOString().split('T')[0],
       downloads: 0,
       is_featured: false,
-      download_url: formData.file ? URL.createObjectURL(formData.file) : null,
-      image_url: null,
-      updated_at: new Date().toISOString(),
-      level: null,
-      pages: null,
-      rating: null,
-      read_time: null,
-      topics: null
+      file_url: formData.file ? URL.createObjectURL(formData.file) : null,
+      file_type: 'pdf',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
     createMutation.mutate(newMaterial);
@@ -238,11 +222,8 @@ const StudyMaterialsManager = () => {
     const updatedMaterial: Partial<StudyMaterial> = {
       title: formData.title,
       description: formData.description,
-      content: formData.content,
       subject: formData.subject,
       category: formData.category,
-      author: formData.author,
-      tags: formData.tags.split(',').map(tag => tag.trim()),
       grade: formData.grade,
       updated_at: new Date().toISOString()
     };
@@ -261,11 +242,8 @@ const StudyMaterialsManager = () => {
     setFormData({
       title: material.title,
       description: material.description || '',
-      content: material.content || '',
       subject: material.subject,
       category: material.category,
-      author: material.author,
-      tags: material.tags ? material.tags.join(', ') : '',
       grade: material.grade || '',
       file: null
     });
@@ -291,8 +269,8 @@ const StudyMaterialsManager = () => {
     });
     
     // Simulate download link click
-    if (material.download_url) {
-      window.open(material.download_url, '_blank');
+    if (material.file_url) {
+      window.open(material.file_url, '_blank');
     }
   };
   
@@ -525,28 +503,6 @@ const StudyMaterialsManager = () => {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="author" className="text-sm font-medium">Author</label>
-              <Input
-                id="author"
-                name="author"
-                value={formData.author}
-                onChange={handleInputChange}
-                placeholder="e.g., Dr. Jane Smith"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="tags" className="text-sm font-medium">Tags (comma-separated)</label>
-              <Input
-                id="tags"
-                name="tags"
-                value={formData.tags}
-                onChange={handleInputChange}
-                placeholder="e.g., calculus, mathematics, advanced"
-              />
-            </div>
-            
             <div className="space-y-2 col-span-2">
               <label htmlFor="description" className="text-sm font-medium">Description</label>
               <Textarea
@@ -555,18 +511,6 @@ const StudyMaterialsManager = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Brief description of the material"
-                rows={2}
-              />
-            </div>
-            
-            <div className="space-y-2 col-span-2">
-              <label htmlFor="content" className="text-sm font-medium">Content</label>
-              <Textarea
-                id="content"
-                name="content"
-                value={formData.content}
-                onChange={handleInputChange}
-                placeholder="Full content or summary"
                 rows={4}
               />
             </div>
@@ -692,28 +636,6 @@ const StudyMaterialsManager = () => {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="edit-author" className="text-sm font-medium">Author</label>
-              <Input
-                id="edit-author"
-                name="author"
-                value={formData.author}
-                onChange={handleInputChange}
-                placeholder="e.g., Dr. Jane Smith"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="edit-tags" className="text-sm font-medium">Tags (comma-separated)</label>
-              <Input
-                id="edit-tags"
-                name="tags"
-                value={formData.tags}
-                onChange={handleInputChange}
-                placeholder="e.g., calculus, mathematics, advanced"
-              />
-            </div>
-            
             <div className="space-y-2 col-span-2">
               <label htmlFor="edit-description" className="text-sm font-medium">Description</label>
               <Textarea
@@ -722,18 +644,6 @@ const StudyMaterialsManager = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Brief description of the material"
-                rows={2}
-              />
-            </div>
-            
-            <div className="space-y-2 col-span-2">
-              <label htmlFor="edit-content" className="text-sm font-medium">Content</label>
-              <Textarea
-                id="edit-content"
-                name="content"
-                value={formData.content}
-                onChange={handleInputChange}
-                placeholder="Full content or summary"
                 rows={4}
               />
             </div>
@@ -766,7 +676,7 @@ const StudyMaterialsManager = () => {
             <div className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-500">
-                {selectedMaterial?.tags?.join(', ') || 'No tags'}
+                {selectedMaterial?.category || 'No category'}
               </span>
             </div>
             
@@ -778,13 +688,13 @@ const StudyMaterialsManager = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Content Preview</h4>
               <div className="bg-gray-50 p-4 rounded-md max-h-[200px] overflow-y-auto">
-                <p className="text-sm whitespace-pre-line">{selectedMaterial?.content}</p>
+                <p className="text-sm whitespace-pre-line">{selectedMaterial?.description}</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium">Author:</span> {selectedMaterial?.author}
+                <span className="font-medium">Subject:</span> {selectedMaterial?.subject}
               </div>
               <div>
                 <span className="font-medium">Downloads:</span> {selectedMaterial?.downloads ?? 0}

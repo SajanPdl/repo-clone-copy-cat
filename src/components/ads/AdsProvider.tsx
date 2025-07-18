@@ -94,7 +94,7 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!ad) return;
     
     const newStatus = !ad.active;
-    const success = await toggleAdStatus(id, newStatus);
+    const success = await toggleAdStatus(id);
     
     if (success) {
       setAds(currentAds => 
@@ -113,9 +113,9 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Add a new ad
   const addAd = async (ad: Omit<Ad, 'id'>) => {
-    const newAd = await createAd(ad);
-    if (newAd) {
-      setAds(currentAds => [...currentAds, newAd]);
+    const newAdResults = await createAd([ad]);
+    if (newAdResults.length > 0) {
+      setAds(currentAds => [...currentAds, ...newAdResults]);
       toast({
         title: "Success",
         description: "Advertisement created successfully."

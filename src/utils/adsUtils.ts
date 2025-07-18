@@ -7,9 +7,11 @@ export interface Ad {
   content?: string;
   image?: string;
   url?: string;
-  type: 'text' | 'image' | 'display';
+  type: 'sponsor' | 'adsterra' | 'adsense';
   adCode?: string;
   active: boolean;
+  position?: 'sidebar' | 'content' | 'footer' | 'header';
+  description?: string;
 }
 
 const supabase = createClient(
@@ -38,7 +40,8 @@ export const fetchAdsByPosition = async (position: string): Promise<Ad[]> => {
       content: ad.content || '',
       image: ad.image_url || '',
       url: ad.link_url || '',
-      type: 'display' as const,
+      type: 'sponsor' as const,
+      position: ad.position as 'sidebar' | 'content' | 'footer' | 'header',
       adCode: '',
       active: ad.is_active
     }));
@@ -78,7 +81,8 @@ export const createAd = async (ads: Omit<Ad, "id">[]): Promise<Ad[]> => {
       content: ad.content || '',
       image: ad.image_url || '',
       url: ad.link_url || '',
-      type: 'display' as const,
+      type: 'sponsor' as const,
+      position: ad.position as 'sidebar' | 'content' | 'footer' | 'header',
       adCode: '',
       active: ad.is_active
     }));
@@ -109,7 +113,8 @@ export const getAdById = async (id: string): Promise<Ad | null> => {
       content: data.content || '',
       image: data.image_url || '',
       url: data.link_url || '',
-      type: 'display' as const,
+      type: 'sponsor' as const,
+      position: data.position as 'sidebar' | 'content' | 'footer' | 'header',
       adCode: '',
       active: data.is_active
     };
@@ -149,13 +154,63 @@ export const updateAd = async (id: string, updates: Partial<Ad>): Promise<Ad | n
       content: data.content || '',
       image: data.image_url || '',
       url: data.link_url || '',
-      type: 'display' as const,
+      type: 'sponsor' as const,
+      position: data.position as 'sidebar' | 'content' | 'footer' | 'header',
       adCode: '',
       active: data.is_active
     };
   } catch (error) {
     console.error('Failed to update ad:', error);
     return null;
+  }
+};
+
+// Fetch all ads from the database
+export const fetchAds = async (): Promise<Ad[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('advertisements')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (error) {
+      console.error('Failed to fetch ads:', error);
+      return [];
+    }
+    
+    // Convert database format to expected format
+    return (data || []).map((ad): Ad => ({
+      id: ad.id.toString(),
+      title: ad.title,
+      content: ad.content || '',
+      image: ad.image_url || '',
+      url: ad.link_url || '',
+      type: 'sponsor' as const,
+      adCode: '',
+      active: ad.is_active,
+      position: ad.position as 'sidebar' | 'content' | 'footer' | 'header',
+    }));
+  } catch (error) {
+    console.error('Failed to fetch ads:', error);
+    return [];
+  }
+};
+
+// Toggle ad status
+export const toggleAdStatus = async (id: string): Promise<boolean> => {
+  try {
+    const current = await getAdById(id);
+    if (!current) return false;
+    
+    const { error } = await supabase
+      .from('advertisements')
+      .update({ is_active: !current.active })
+      .eq('id', parseInt(id));
+      
+    return !error;
+  } catch (error) {
+    console.error('Failed to toggle ad status:', error);
+    return false;
   }
 };
 
