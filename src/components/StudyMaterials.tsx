@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import MaterialCard from './study-materials/MaterialCard';
 import MaterialsFilter from './study-materials/MaterialsFilter';
 import ContentPagination from './common/ContentPagination';
-import { studyMaterialsData } from '@/data/studyMaterialsData';
+import { fetchStudyMaterials, StudyMaterial } from '@/utils/queryUtils';
 import { filterMaterials } from '@/utils/studyMaterialsUtils';
-import { StudyMaterial } from '@/utils/queryUtils';
 import AdPlacement from './ads/AdPlacement';
 
 const StudyMaterials = () => {
@@ -16,18 +15,36 @@ const StudyMaterials = () => {
   const [selectedSubject, setSelectedSubject] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 8;
+
+  // Load materials from database
+  useEffect(() => {
+    const loadMaterials = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchStudyMaterials();
+        setMaterials(data);
+      } catch (error) {
+        console.error('Error loading study materials:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadMaterials();
+  }, []);
 
   // Filter options
   const filterOptions = {
-    grades: ['All', 'Grade 10', 'Grade 11', 'Grade 12', "Bachelor's"],
-    subjects: ['All', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography'],
-    categories: ['All', 'Notes', 'Worksheets', 'Practice Tests', 'Guides']
+    grades: ['All', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', "Undergraduate"],
+    subjects: ['All', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'English', 'Computer Science'],
+    categories: ['All', 'Notes', 'Question Banks', 'Lab Manuals', 'Reference Books', 'Worksheets']
   };
 
   // Get filtered materials
   const filteredMaterials = filterMaterials(
-    studyMaterialsData,
+    materials,
     selectedCategory,
     selectedSubject,
     searchTerm
@@ -79,12 +96,18 @@ const StudyMaterials = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main content area */}
           <div className="lg:w-3/4">
-            {paginatedMaterials.length > 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 h-64 rounded-lg" />
+                ))}
+              </div>
+            ) : paginatedMaterials.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {paginatedMaterials.map((material) => (
                   <MaterialCard 
                     key={material.id}
-                    material={material as unknown as StudyMaterial}
+                    material={material}
                     linkTo={`/content/${material.id}`}
                   />
                 ))}

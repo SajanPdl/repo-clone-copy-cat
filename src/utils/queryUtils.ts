@@ -39,9 +39,14 @@ export interface RecentQuery {
   created_at: string;
 }
 
-// Study material and past paper interfaces
+// Database types
 export type StudyMaterial = Tables<'study_materials'>;
 export type PastPaper = Tables<'past_papers'>;
+export type BlogPost = Tables<'blog_posts'>;
+export type Category = Tables<'categories'>;
+export type Grade = Tables<'grades'>;
+export type Advertisement = Tables<'advertisements'>;
+export type UserQuery = Tables<'user_queries'>;
 
 // Fetch dashboard stats
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
