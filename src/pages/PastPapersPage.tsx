@@ -213,7 +213,7 @@ const PastPapersPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.subject}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.grade}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.year}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.difficulty}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.board}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   {(isPremium || !paper.isPremiumPaper) ? (
                                     <Link 

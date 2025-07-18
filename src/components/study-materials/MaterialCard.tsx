@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Download, BookOpen } from 'lucide-react';
 import { StudyMaterial } from '@/utils/queryUtils';
@@ -17,25 +16,21 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, linkTo }) => {
   return (
     <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">
       <div className="relative">
-        {material.image_url ? (
-          <img 
-            src={material.image_url} 
-            alt={material.title} 
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-            <BookOpen className="h-16 w-16 text-indigo-500 dark:text-indigo-400" />
-          </div>
-        )}
+        <img 
+          src="/placeholder.svg"
+          alt={material.title} 
+          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+        />
         
         <div className="absolute top-2 right-2 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded">
           {material.category}
         </div>
         
-        {material.subject && (
-          <div className="absolute top-2 left-2 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-xs font-medium px-2 py-1 rounded border border-indigo-100 dark:border-indigo-800">
-            {material.subject}
+        {material.is_featured && (
+          <div className="absolute top-2 left-2">
+            <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium">
+              Featured
+            </span>
           </div>
         )}
       </div>
