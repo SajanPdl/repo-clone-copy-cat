@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -56,7 +55,7 @@ const QueriesManager = () => {
       }
       
       if (searchTerm) {
-        query = query.or(`query_text.ilike.%${searchTerm}%,user_name.ilike.%${searchTerm}%`);
+        query = query.or(`message.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`);
       }
       
       const { data, error } = await query;
@@ -76,8 +75,7 @@ const QueriesManager = () => {
       const { error } = await supabase
         .from('user_queries')
         .update({ 
-          status: 'Closed',
-          resolved_at: new Date().toISOString()
+          status: 'closed'
         })
         .eq('id', id);
       
@@ -116,8 +114,7 @@ const QueriesManager = () => {
       const { error } = await supabase
         .from('user_queries')
         .update({ 
-          status: 'Closed',
-          resolved_at: new Date().toISOString()
+          status: 'closed'
         })
         .eq('id', selectedQuery.id);
       
@@ -125,7 +122,7 @@ const QueriesManager = () => {
       
       toast({
         title: "Reply sent",
-        description: `Your reply has been sent to ${selectedQuery.user_name}.`,
+        description: `Your reply has been sent to ${selectedQuery.name}.`,
       });
       
       setIsDialogOpen(false);
@@ -164,8 +161,8 @@ const QueriesManager = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="All">All Statuses</option>
-              <option value="Open">Open</option>
-              <option value="Closed">Closed</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
         </div>
@@ -208,18 +205,26 @@ const QueriesManager = () => {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <MessageSquare className="h-4 w-4 text-gray-400 shrink-0" />
-                          <span className="line-clamp-1">{query.query_text}</span>
+                          <div>
+                            <p className="font-medium">{query.subject}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{query.message}</p>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell>{query.user_name}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{query.name}</p>
+                          <p className="text-xs text-gray-500">{query.email}</p>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          {query.status === 'Open' ? (
+                          {query.status === 'open' ? (
                             <Circle className="h-4 w-4 text-red-500 fill-red-500" />
                           ) : (
                             <CheckCircle className="h-4 w-4 text-green-500" />
                           )}
-                          <span>{query.status}</span>
+                          <span className="capitalize">{query.status}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -230,7 +235,7 @@ const QueriesManager = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          {query.status === 'Open' && (
+                          {query.status === 'open' && (
                             <>
                               <Button 
                                 variant="default" 
@@ -248,7 +253,7 @@ const QueriesManager = () => {
                               </Button>
                             </>
                           )}
-                          {query.status === 'Closed' && (
+                          {query.status === 'closed' && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -277,20 +282,21 @@ const QueriesManager = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedQuery?.status === 'Open' ? 'Reply to Query' : 'Query Details'}</DialogTitle>
+            <DialogTitle>{selectedQuery?.status === 'open' ? 'Reply to Query' : 'Query Details'}</DialogTitle>
             <DialogDescription>
-              From: {selectedQuery?.user_name} ({selectedQuery?.email || 'No email provided'})
+              <strong>Subject:</strong> {selectedQuery?.subject}<br />
+              <strong>From:</strong> {selectedQuery?.name} ({selectedQuery?.email || 'No email provided'})
             </DialogDescription>
           </DialogHeader>
           
           <div className="p-4 bg-gray-50 rounded-md my-4">
-            <p className="text-sm">{selectedQuery?.query_text}</p>
+            <p className="text-sm whitespace-pre-wrap">{selectedQuery?.message}</p>
             <p className="text-xs text-gray-500 mt-2">
               Submitted on {selectedQuery?.created_at && new Date(selectedQuery.created_at).toLocaleString()}
             </p>
           </div>
           
-          {selectedQuery?.status === 'Open' && (
+          {selectedQuery?.status === 'open' && (
             <>
               <Textarea
                 placeholder="Type your reply here..."
@@ -310,7 +316,7 @@ const QueriesManager = () => {
             </>
           )}
           
-          {selectedQuery?.status === 'Closed' && (
+          {selectedQuery?.status === 'closed' && (
             <DialogFooter className="sm:justify-end">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Close

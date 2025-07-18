@@ -79,7 +79,7 @@ export const deleteAd = async (id: string): Promise<boolean> => {
     const { error } = await supabase
       .from('advertisements')
       .delete()
-      .eq('id', id);
+      .eq('id', parseInt(id));
     
     if (error) {
       console.error('Error deleting ad:', error);
