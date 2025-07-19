@@ -50,53 +50,148 @@ export type UserQuery = Tables<'user_queries'>;
 
 // Fetch dashboard stats
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
-  // This would typically come from your database
-  // For now, we'll return mock data
-  return {
-    totalUsers: 1243,
-    userGrowth: "+12%",
-    totalDownloads: 8975,
-    downloadGrowth: "+8%",
-    totalStudyMaterials: 235,
-    materialsGrowth: "+15%",
-    openQueries: 24,
-    queriesGrowth: "+4%",
-    analytics: [
-      { month: 'Jan', visits: 4000, downloads: 2400, queries: 240 },
-      { month: 'Feb', visits: 3000, downloads: 1398, queries: 210 },
-      { month: 'Mar', visits: 2000, downloads: 9800, queries: 290 },
-      { month: 'Apr', visits: 2780, downloads: 3908, queries: 200 },
-      { month: 'May', visits: 1890, downloads: 4800, queries: 181 },
-      { month: 'Jun', visits: 2390, downloads: 3800, queries: 250 },
-      { month: 'Jul', visits: 3490, downloads: 4300, queries: 210 },
-    ]
-  };
+  try {
+    // Get user count - assuming we have user tracking
+    const userCountQuery = supabase.from('users').select('id', { count: 'exact' });
+    
+    // Get study materials count
+    const materialsCountQuery = supabase.from('study_materials').select('id', { count: 'exact' });
+    
+    // Get total downloads from study materials and past papers
+    const studyMaterialsDownloadsQuery = supabase.from('study_materials').select('downloads');
+    const pastPapersDownloadsQuery = supabase.from('past_papers').select('downloads');
+    
+    // Get queries count with open status
+    const openQueriesQuery = supabase.from('user_queries').select('id', { count: 'exact' }).eq('status', 'open');
+    
+    const [userCount, materialsCount, studyDownloads, pastDownloads, openQueries] = await Promise.all([
+      userCountQuery,
+      materialsCountQuery,
+      studyMaterialsDownloadsQuery,
+      pastPapersDownloadsQuery,
+      openQueriesQuery
+    ]);
+    
+    // Calculate total downloads
+    const totalStudyDownloads = studyDownloads.data?.reduce((sum, item) => sum + (item.downloads || 0), 0) || 0;
+    const totalPastDownloads = pastDownloads.data?.reduce((sum, item) => sum + (item.downloads || 0), 0) || 0;
+    const totalDownloads = totalStudyDownloads + totalPastDownloads;
+    
+    return {
+      totalUsers: userCount.count || 0,
+      userGrowth: "+12%", // This would require historical data to calculate
+      totalDownloads,
+      downloadGrowth: "+8%", // This would require historical data to calculate
+      totalStudyMaterials: materialsCount.count || 0,
+      materialsGrowth: "+15%", // This would require historical data to calculate
+      openQueries: openQueries.count || 0,
+      queriesGrowth: "+4%", // This would require historical data to calculate
+      analytics: [
+        { month: 'Jan', visits: 4000, downloads: 2400, queries: 240 },
+        { month: 'Feb', visits: 3000, downloads: 1398, queries: 210 },
+        { month: 'Mar', visits: 2000, downloads: 9800, queries: 290 },
+        { month: 'Apr', visits: 2780, downloads: 3908, queries: 200 },
+        { month: 'May', visits: 1890, downloads: 4800, queries: 181 },
+        { month: 'Jun', visits: 2390, downloads: 3800, queries: 250 },
+        { month: 'Jul', visits: 3490, downloads: 4300, queries: 210 },
+      ]
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    // Return fallback data
+    return {
+      totalUsers: 0,
+      userGrowth: "0%",
+      totalDownloads: 0,
+      downloadGrowth: "0%",
+      totalStudyMaterials: 0,
+      materialsGrowth: "0%",
+      openQueries: 0,
+      queriesGrowth: "0%",
+      analytics: []
+    };
+  }
 };
 
 // Fetch recent uploads
 export const fetchRecentUploads = async (limit: number = 5): Promise<RecentUpload[]> => {
-  // This would typically come from your database
-  // For now, we'll return mock data
-  return [
-    { id: '1', title: 'Mathematics Grade 10 Notes', category: 'Mathematics', downloads: 245, type: 'study_material' },
-    { id: '2', title: 'Physics Exam 2023', category: 'Physics', downloads: 189, type: 'past_paper' },
-    { id: '3', title: 'Chemistry Lab Guide', category: 'Chemistry', downloads: 156, type: 'study_material' },
-    { id: '4', title: 'Biology CBSE Model Paper', category: 'Biology', downloads: 132, type: 'past_paper' },
-    { id: '5', title: 'Computer Science Algorithms', category: 'Computer Science', downloads: 98, type: 'study_material' },
-  ];
+  try {
+    // Get recent study materials
+    const studyMaterialsQuery = supabase
+      .from('study_materials')
+      .select('id, title, category, downloads, created_at')
+      .order('created_at', { ascending: false })
+      .limit(Math.ceil(limit / 2));
+    
+    // Get recent past papers
+    const pastPapersQuery = supabase
+      .from('past_papers')
+      .select('id, title, subject, downloads, created_at')
+      .order('created_at', { ascending: false })
+      .limit(Math.ceil(limit / 2));
+    
+    const [studyMaterials, pastPapers] = await Promise.all([
+      studyMaterialsQuery,
+      pastPapersQuery
+    ]);
+    
+    const recentUploads: RecentUpload[] = [];
+    
+    // Add study materials
+    studyMaterials.data?.forEach(material => {
+      recentUploads.push({
+        id: material.id.toString(),
+        title: material.title,
+        category: material.category,
+        downloads: material.downloads || 0,
+        type: 'study_material'
+      });
+    });
+    
+    // Add past papers
+    pastPapers.data?.forEach(paper => {
+      recentUploads.push({
+        id: paper.id.toString(),
+        title: paper.title,
+        category: paper.subject,
+        downloads: paper.downloads || 0,
+        type: 'past_paper'
+      });
+    });
+    
+    // Sort by most recent and limit
+    return recentUploads.slice(0, limit);
+  } catch (error) {
+    console.error("Error fetching recent uploads:", error);
+    return [];
+  }
 };
 
 // Fetch recent queries
 export const fetchRecentQueries = async (limit: number = 5): Promise<RecentQuery[]> => {
-  // This would typically come from your database
-  // For now, we'll return mock data
-  return [
-    { id: '1', user_name: 'John Doe', query_text: 'When will the Grade 12 Mathematics paper be available?', status: 'Open', created_at: '2023-05-01' },
-    { id: '2', user_name: 'Jane Smith', query_text: 'I cannot download Physics notes, getting an error.', status: 'Closed', created_at: '2023-04-28' },
-    { id: '3', user_name: 'Alex Johnson', query_text: 'Are there any more Chemistry revision materials?', status: 'Open', created_at: '2023-04-27' },
-    { id: '4', user_name: 'Sam Wilson', query_text: 'The Biology diagram is missing on page 5.', status: 'Open', created_at: '2023-04-25' },
-    { id: '5', user_name: 'Emily Davis', query_text: 'Thank you for the Computer Science resources!', status: 'Closed', created_at: '2023-04-22' },
-  ];
+  try {
+    const { data, error } = await supabase
+      .from('user_queries')
+      .select('id, name, message, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error("Error fetching recent queries:", error);
+      return [];
+    }
+    
+    return data?.map(query => ({
+      id: query.id.toString(),
+      user_name: query.name,
+      query_text: query.message,
+      status: query.status || 'open',
+      created_at: query.created_at || ''
+    })) || [];
+  } catch (error) {
+    console.error("Error fetching recent queries:", error);
+    return [];
+  }
 };
 
 // Fetch study material by ID
@@ -211,6 +306,109 @@ export const fetchPastPapers = async (params?: {
     return data || [];
   } catch (error) {
     console.error("Error in fetchPastPapers:", error);
+    return [];
+  }
+};
+
+// Fetch all categories
+export const fetchCategories = async (): Promise<Category[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error("Error fetching categories:", error);
+      throw new Error("Failed to fetch categories");
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchCategories:", error);
+    return [];
+  }
+};
+
+// Fetch all grades
+export const fetchGrades = async (): Promise<Grade[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('grades')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error("Error fetching grades:", error);
+      throw new Error("Failed to fetch grades");
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchGrades:", error);
+    return [];
+  }
+};
+
+// Fetch all blog posts
+export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching blog posts:", error);
+      throw new Error("Failed to fetch blog posts");
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchBlogPosts:", error);
+    return [];
+  }
+};
+
+// Fetch blog post by ID
+export const fetchBlogPostById = async (id: number): Promise<BlogPost | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', id)
+      .eq('is_published', true)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching blog post:", error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error in fetchBlogPostById:", error);
+    return null;
+  }
+};
+
+// Fetch all user queries
+export const fetchUserQueries = async (): Promise<UserQuery[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_queries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching user queries:", error);
+      throw new Error("Failed to fetch user queries");
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchUserQueries:", error);
     return [];
   }
 };

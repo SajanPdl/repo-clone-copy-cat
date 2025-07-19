@@ -4,18 +4,38 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MaterialCard from '@/components/study-materials/MaterialCard';
 import MaterialsFilter from '@/components/study-materials/MaterialsFilter';
-import { fetchStudyMaterials } from '@/utils/queryUtils';
+import { fetchStudyMaterials, fetchCategories, fetchGrades } from '@/utils/queryUtils';
 import { Button } from '@/components/ui/button';
-import { StudyMaterial } from '@/utils/queryUtils';
+import { StudyMaterial, Category, Grade } from '@/utils/queryUtils';
 import { Book, FileText } from 'lucide-react';
 
 const StudyMaterialsPage = () => {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  useEffect(() => {
+    // Load categories and grades on mount
+    const loadFilterOptions = async () => {
+      try {
+        const [categoriesData, gradesData] = await Promise.all([
+          fetchCategories(),
+          fetchGrades()
+        ]);
+        setCategories(categoriesData);
+        setGrades(gradesData);
+      } catch (error) {
+        console.error("Error loading filter options:", error);
+      }
+    };
+    
+    loadFilterOptions();
+  }, []);
   
   useEffect(() => {
     const loadMaterials = async () => {
@@ -57,11 +77,14 @@ const StudyMaterialsPage = () => {
     setSelectedCategory(category);
   };
   
+  // Get unique subjects from materials for filter
+  const uniqueSubjects = ['All', ...new Set(materials.map(m => m.subject))];
+  
   // Filter options for the MaterialsFilter component
   const filterOptions = {
-    grades: ['All', 'Grade 10', 'Grade 11', 'Grade 12', "Bachelor's"],
-    subjects: ['All', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography'],
-    categories: ['All', 'Notes', 'Worksheets', 'Practice Tests', 'Guides']
+    grades: ['All', ...grades.map(g => g.name)],
+    subjects: uniqueSubjects,
+    categories: ['All', ...categories.map(c => c.name)]
   };
   
   return (
