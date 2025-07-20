@@ -32,51 +32,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-// Sample blog posts data for demo
-const initialBlogPosts = [
-  {
-    id: 1,
-    title: "10 Effective Study Techniques for Better Retention",
-    excerpt: "Discover scientifically-proven study methods that can help you remember information longer and perform better in exams.",
-    content: "Learning how to study effectively is crucial for academic success. This article explores evidence-based study techniques including spaced repetition, active recall, the Pomodoro technique, and mind mapping. We'll dive into the science behind each method and provide practical tips for implementation.",
-    author: "Dr. Ananya Sharma",
-    date: "May 15, 2023",
-    category: "Study Tips",
-    tags: ["study methods", "memory", "exam preparation"],
-    image: "/placeholder.svg",
-    status: "published",
-    featured: true,
-    readTime: "7 min read"
-  },
-  {
-    id: 2,
-    title: "How to Prepare for Competitive Exams While in School",
-    excerpt: "Balance your school studies with competitive exam preparation using these time-management and productivity strategies.",
-    content: "Preparing for competitive exams alongside regular schoolwork can be challenging. This comprehensive guide provides practical strategies for time management, creating effective study schedules, prioritizing topics, and maintaining mental health during intensive preparation periods.",
-    author: "Rajat Verma",
-    date: "Jun 2, 2023",
-    category: "Exam Preparation",
-    tags: ["competitive exams", "time management", "study plan"],
-    image: "/placeholder.svg",
-    status: "published",
-    featured: false,
-    readTime: "9 min read"
-  },
-  {
-    id: 3,
-    title: "The Ultimate Guide to Choosing Your College Major",
-    excerpt: "Confused about which subject to pursue in college? This comprehensive guide will help you make an informed decision.",
-    content: "Selecting a college major is one of the most important decisions in a student's academic journey. This guide helps you evaluate your interests, strengths, career goals, and market demand to make an informed choice. We also discuss common myths about certain majors and provide resources for further exploration.",
-    author: "Priya Malhotra",
-    date: "Apr 12, 2023",
-    category: "Career Guidance",
-    tags: ["college", "career planning", "majors"],
-    image: "/placeholder.svg",
-    status: "draft",
-    featured: false,
-    readTime: "8 min read"
-  }
-];
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+
+type BlogPost = Tables<'blog_posts'>;
 
 // Available categories and tags for selection
 const availableCategories = [
@@ -92,30 +52,93 @@ const availableTags = [
 ];
 
 const BlogEditor = () => {
-  const [posts, setPosts] = useState(initialBlogPosts);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  
+  const queryClient = useQueryClient();
+  
+  // Fetch blog posts from database
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ['blog_posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+  
+  // Mutations for CRUD operations
+  const createMutation = useMutation({
+    mutationFn: async (newPost: Omit<BlogPost, 'id'>) => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert([newPost])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog_posts'] });
+      toast('New post created successfully');
+    }
+  });
+  
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<BlogPost> & { id: number }) => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog_posts'] });
+      toast('Post updated successfully');
+    }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog_posts'] });
+      toast('Post deleted successfully');
+    }
+  });
 
   // New post template
-  const newPostTemplate = {
-    id: 0,
+  const newPostTemplate: Omit<BlogPost, 'id'> = {
     title: "",
     excerpt: "",
     content: "",
     author: "Admin User",
-    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
     category: "",
-    tags: [],
-    image: "/placeholder.svg",
-    status: "draft",
-    featured: false,
-    readTime: "0 min read"
+    featured_image: "/placeholder.svg",
+    is_published: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 
   const calculateReadTime = (content: string) => {
@@ -126,7 +149,10 @@ const BlogEditor = () => {
   };
 
   const handleAddNewPost = () => {
-    setSelectedPost({...newPostTemplate, id: Math.max(0, ...posts.map(post => post.id)) + 1});
+    setSelectedPost({
+      ...newPostTemplate,
+      id: 0 // Temporary ID for new posts
+    } as BlogPost);
     setEditMode(true);
     setIsDialogOpen(true);
     setIsPreviewMode(false);
@@ -134,51 +160,47 @@ const BlogEditor = () => {
     setSelectedCategory('');
   };
 
-  const handleEditPost = (post: any) => {
-    setSelectedPost({...post});
+  const handleEditPost = (post: BlogPost) => {
+    setSelectedPost(post);
     setEditMode(true);
     setIsDialogOpen(true);
     setIsPreviewMode(false);
-    setSelectedTags(post.tags);
-    setSelectedCategory(post.category);
+    setSelectedTags([]);
+    setSelectedCategory(post.category || '');
   };
 
-  const handleViewPost = (post: any) => {
-    setSelectedPost({...post});
+  const handleViewPost = (post: BlogPost) => {
+    setSelectedPost(post);
     setEditMode(false);
     setIsDialogOpen(true);
     setIsPreviewMode(true);
-    setSelectedTags(post.tags);
-    setSelectedCategory(post.category);
+    setSelectedTags([]);
+    setSelectedCategory(post.category || '');
   };
 
   const handleDeletePost = (id: number) => {
-    setPosts(posts.filter(post => post.id !== id));
-    toast('Post deleted successfully');
+    deleteMutation.mutate(id);
   };
 
   const handleSavePost = () => {
-    if (!selectedPost.title || !selectedPost.excerpt || !selectedPost.content) {
+    if (!selectedPost?.title || !selectedPost?.excerpt || !selectedPost?.content) {
       toast('Please fill in all required fields');
       return;
     }
 
-    // Update read time based on content length
-    const updatedPost = {
+    const postData = {
       ...selectedPost,
-      readTime: calculateReadTime(selectedPost.content),
-      tags: selectedTags,
-      category: selectedCategory
+      category: selectedCategory,
+      updated_at: new Date().toISOString()
     };
 
-    if (posts.some(post => post.id === selectedPost.id)) {
+    if ('id' in selectedPost && selectedPost.id) {
       // Update existing post
-      setPosts(posts.map(post => post.id === selectedPost.id ? updatedPost : post));
-      toast('Post updated successfully');
+      updateMutation.mutate(postData as BlogPost);
     } else {
-      // Add new post
-      setPosts([...posts, updatedPost]);
-      toast('New post created successfully');
+      // Create new post
+      const { id, ...newPostData } = postData as any;
+      createMutation.mutate(newPostData);
     }
 
     setIsDialogOpen(false);
@@ -189,25 +211,23 @@ const BlogEditor = () => {
   };
 
   const handlePublishPost = (id: number) => {
-    setPosts(posts.map(post => 
-      post.id === id ? { ...post, status: post.status === 'published' ? 'draft' : 'published' } : post
-    ));
-    toast(`Post ${posts.find(p => p.id === id)?.status === 'published' ? 'unpublished' : 'published'} successfully`);
-  };
-
-  const handleToggleFeatured = (id: number) => {
-    setPosts(posts.map(post => 
-      post.id === id ? { ...post, featured: !post.featured } : post
-    ));
-    toast(`Post ${posts.find(p => p.id === id)?.featured ? 'removed from' : 'marked as'} featured`);
+    const post = posts.find(p => p.id === id);
+    if (post) {
+      updateMutation.mutate({
+        id,
+        is_published: !post.is_published
+      });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setSelectedPost({
-      ...selectedPost,
-      [name]: value
-    });
+    if (selectedPost) {
+      setSelectedPost({
+        ...selectedPost,
+        [name]: value
+      });
+    }
   };
 
   const handleTagToggle = (tag: string) => {
@@ -221,15 +241,14 @@ const BlogEditor = () => {
   const filteredPosts = posts.filter(post => {
     const matchesSearch = 
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchQuery.toLowerCase());
+      (post.excerpt || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.author || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesTab = 
       activeTab === 'all' || 
-      (activeTab === 'published' && post.status === 'published') ||
-      (activeTab === 'drafts' && post.status === 'draft') ||
-      (activeTab === 'featured' && post.featured);
+      (activeTab === 'published' && post.is_published) ||
+      (activeTab === 'drafts' && !post.is_published);
     
     return matchesSearch && matchesTab;
   });
@@ -270,7 +289,11 @@ const BlogEditor = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredPosts.length > 0 ? (
+        {isLoading ? (
+          <div className="col-span-full flex justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
+          </div>
+        ) : filteredPosts.length > 0 ? (
           filteredPosts.map(post => (
             <Card key={post.id} className="overflow-hidden transition-all hover:shadow-md">
               <div 
@@ -278,32 +301,29 @@ const BlogEditor = () => {
                 onClick={() => handleViewPost(post)}
               >
                 <img 
-                  src={post.image} 
+                  src={post.featured_image || "/placeholder.svg"} 
                   alt={post.title} 
                   className="w-full h-full object-cover transition-transform hover:scale-105"
                 />
                 <div className="absolute top-2 right-2 flex flex-col gap-2">
                   <Badge 
                     className={
-                      post.status === 'published' 
+                      post.is_published 
                         ? 'bg-green-100 text-green-800 hover:bg-green-200' 
                         : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                     }
                   >
-                    {post.status === 'published' ? 'Published' : 'Draft'}
+                    {post.is_published ? 'Published' : 'Draft'}
                   </Badge>
-                  {post.featured && (
-                    <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
-                      Featured
-                    </Badge>
-                  )}
                 </div>
               </div>
               
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
                   <Badge variant="outline">{post.category}</Badge>
-                  <span className="text-xs text-gray-500">{post.readTime}</span>
+                  <span className="text-xs text-gray-500">
+                    {calculateReadTime(post.content)}
+                  </span>
                 </div>
                 <CardTitle 
                   className="line-clamp-2 hover:text-primary cursor-pointer"
@@ -321,12 +341,14 @@ const BlogEditor = () => {
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={`https://ui-avatars.com/api/?name=${post.author.replace(/\s+/g, '+')}&background=random`} alt={post.author} />
-                      <AvatarFallback>{post.author.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={`https://ui-avatars.com/api/?name=${(post.author || '').replace(/\s+/g, '+')}&background=random`} alt={post.author || ''} />
+                      <AvatarFallback>{(post.author || 'A').split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="ml-2">
                       <p className="text-xs font-medium">{post.author}</p>
-                      <p className="text-xs text-gray-500">{post.date}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                   
@@ -445,36 +467,24 @@ const BlogEditor = () => {
                     <label htmlFor="status" className="block text-sm font-medium mb-1">
                       Status
                     </label>
-                    <div className="flex items-center gap-4 mt-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={selectedPost?.status === 'draft' ? 'default' : 'outline'}
-                        onClick={() => setSelectedPost({...selectedPost, status: 'draft'})}
-                      >
-                        Draft
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={selectedPost?.status === 'published' ? 'default' : 'outline'}
-                        onClick={() => setSelectedPost({...selectedPost, status: 'published'})}
-                      >
-                        Published
-                      </Button>
-                      <div className="flex items-center gap-2 ml-4">
-                        <input
-                          type="checkbox"
-                          id="featured"
-                          checked={selectedPost?.featured || false}
-                          onChange={() => setSelectedPost({...selectedPost, featured: !selectedPost?.featured})}
-                          className="rounded"
-                        />
-                        <label htmlFor="featured" className="text-sm">
-                          Featured post
-                        </label>
+                      <div className="flex items-center gap-4 mt-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={!selectedPost?.is_published ? 'default' : 'outline'}
+                          onClick={() => selectedPost && setSelectedPost({...selectedPost, is_published: false})}
+                        >
+                          Draft
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={selectedPost?.is_published ? 'default' : 'outline'}
+                          onClick={() => selectedPost && setSelectedPost({...selectedPost, is_published: true})}
+                        >
+                          Published
+                        </Button>
                       </div>
-                    </div>
                   </div>
                 </div>
                 
@@ -554,24 +564,19 @@ const BlogEditor = () => {
               <div className="space-y-6">
                 <div className="relative h-60 mb-6 overflow-hidden rounded-lg">
                   <img 
-                    src={selectedPost?.image || '/placeholder.svg'} 
+                    src={selectedPost?.featured_image || '/placeholder.svg'} 
                     alt={selectedPost?.title} 
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-4 right-4 flex gap-2">
-                    {selectedPost?.featured && (
-                      <Badge className="bg-purple-100 text-purple-800">
-                        Featured
-                      </Badge>
-                    )}
                     <Badge 
                       className={
-                        selectedPost?.status === 'published' 
+                        selectedPost?.is_published 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-amber-100 text-amber-800'
                       }
                     >
-                      {selectedPost?.status === 'published' ? 'Published' : 'Draft'}
+                      {selectedPost?.is_published ? 'Published' : 'Draft'}
                     </Badge>
                   </div>
                 </div>
@@ -580,28 +585,19 @@ const BlogEditor = () => {
                   <Badge variant="outline">{selectedPost?.category}</Badge>
                   <div className="flex items-center text-gray-500 text-sm">
                     <Calendar className="h-4 w-4 mr-1" />
-                    {selectedPost?.date}
+                    {new Date(selectedPost?.created_at || '').toLocaleDateString()}
                   </div>
                   <div className="flex items-center text-gray-500 text-sm">
                     <User className="h-4 w-4 mr-1" />
                     {selectedPost?.author}
                   </div>
                   <div className="text-gray-500 text-sm">
-                    {selectedPost?.readTime}
+                    {calculateReadTime(selectedPost?.content || '')}
                   </div>
                 </div>
                 
                 <h1 className="text-2xl font-bold mb-2">{selectedPost?.title}</h1>
                 <p className="text-gray-600 dark:text-gray-400 font-medium mb-8">{selectedPost?.excerpt}</p>
-                
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {selectedPost?.tags.map((tag: string) => (
-                    <Badge key={tag} variant="secondary" className="bg-gray-100">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
                 
                 <div className="prose dark:prose-invert max-w-none">
                   {selectedPost?.content.split('\n').map((paragraph: string, idx: number) => (

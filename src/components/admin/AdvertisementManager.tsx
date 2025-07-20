@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAds } from '../ads/AdsProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,30 +26,100 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
 import { BadgePercent, DollarSign, Megaphone } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
-import AdManager from '../ads/AdManager';
-import { Ad } from '@/utils/adsUtils';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+
+type Advertisement = Tables<'advertisements'>;
 
 const AdvertisementManager = () => {
-  const { ads, addAd, removeAd, toggleAd, isLoading, refreshAds } = useAds();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [newAdOpen, setNewAdOpen] = useState(false);
   const [previewAdOpen, setPreviewAdOpen] = useState(false);
-  const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
+  
+  // Fetch advertisements
+  const { data: ads = [], isLoading } = useQuery({
+    queryKey: ['advertisements'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('advertisements')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+  
+  // Mutations for CRUD operations
+  const createMutation = useMutation({
+    mutationFn: async (newAd: Omit<Advertisement, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase
+        .from('advertisements')
+        .insert([newAd])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['advertisements'] });
+      toast({
+        title: "Success",
+        description: "Advertisement created successfully"
+      });
+    }
+  });
+  
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Advertisement> & { id: number }) => {
+      const { data, error } = await supabase
+        .from('advertisements')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['advertisements'] });
+    }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from('advertisements')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['advertisements'] });
+      toast({
+        title: "Success",
+        description: "Advertisement deleted successfully"
+      });
+    }
+  });
   
   const [formData, setFormData] = useState({
     title: '',
-    type: 'sponsor' as 'sponsor' | 'adsterra' | 'adsense',
     position: 'sidebar' as 'sidebar' | 'content' | 'footer' | 'header',
-    adCode: '',
-    description: ''
+    content: '',
+    image_url: '',
+    link_url: ''
   });
   
-  // Load ads on mount
-  useEffect(() => {
-    refreshAds();
-  }, []);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -68,58 +137,56 @@ const AdvertisementManager = () => {
   };
   
   const handleSubmit = () => {
-    if (!formData.title || !formData.adCode) {
+    if (!formData.title) {
       toast({
         title: "Error",
-        description: "Title and Ad Code are required.",
+        description: "Title is required.",
         variant: "destructive"
       });
       return;
     }
     
-    addAd({
-      ...formData,
-      active: true
+    createMutation.mutate({
+      title: formData.title,
+      content: formData.content,
+      image_url: formData.image_url,
+      link_url: formData.link_url,
+      position: formData.position,
+      is_active: true
     });
     
     setFormData({
       title: '',
-      type: 'sponsor',
       position: 'sidebar',
-      adCode: '',
-      description: ''
+      content: '',
+      image_url: '',
+      link_url: ''
     });
     
     setNewAdOpen(false);
   };
   
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this advertisement?")) {
-      removeAd(id);
+      deleteMutation.mutate(id);
     }
   };
   
-  const handleToggleActive = (id: string) => {
-    toggleAd(id);
+  const handleToggleActive = (id: number) => {
+    const ad = ads.find(a => a.id === id);
+    if (ad) {
+      updateMutation.mutate({
+        id,
+        is_active: !ad.is_active
+      });
+    }
   };
   
-  const handlePreview = (ad: Ad) => {
+  const handlePreview = (ad: Advertisement) => {
     setSelectedAd(ad);
     setPreviewAdOpen(true);
   };
   
-  const getAdTypeIcon = (type: string) => {
-    switch (type) {
-      case 'sponsor':
-        return <Badge className="h-5 w-5 text-indigo-600" />;
-      case 'adsense':
-        return <DollarSign className="h-5 w-5 text-green-600" />;
-      case 'adsterra':
-        return <BadgePercent className="h-5 w-5 text-orange-600" />;
-      default:
-        return <Megaphone className="h-5 w-5 text-gray-600" />;
-    }
-  };
   
   return (
     <div className="space-y-6">
@@ -130,14 +197,9 @@ const AdvertisementManager = () => {
             Manage advertisements displayed across the website
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => refreshAds()} variant="outline">
-            Refresh
-          </Button>
-          <Button onClick={() => setNewAdOpen(true)}>
-            <Megaphone className="mr-2 h-4 w-4" /> Add New Advertisement
-          </Button>
-        </div>
+        <Button onClick={() => setNewAdOpen(true)}>
+          <Megaphone className="mr-2 h-4 w-4" /> Add New Advertisement
+        </Button>
       </div>
       
       {isLoading ? (
@@ -152,31 +214,35 @@ const AdvertisementManager = () => {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {getAdTypeIcon(ad.type)}
-                      <CardTitle className="text-lg">{ad.title || `${ad.type} (${ad.position})`}</CardTitle>
+                      <Megaphone className="h-5 w-5 text-indigo-600" />
+                      <CardTitle className="text-lg">{ad.title}</CardTitle>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={`px-2 py-1 ${ad.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {ad.active ? 'Active' : 'Inactive'}
+                      <Badge className={`px-2 py-1 ${ad.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {ad.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                       <Badge className="capitalize px-2 py-1 bg-blue-100 text-blue-800">
                         {ad.position}
                       </Badge>
-                      <Badge className="capitalize px-2 py-1 bg-purple-100 text-purple-800">
-                        {ad.type}
-                      </Badge>
                     </div>
                   </div>
-                  <CardDescription>{ad.description || 'No description provided'}</CardDescription>
+                  <CardDescription>{ad.content || 'No description provided'}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xs overflow-hidden text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
-                    <code className="line-clamp-2">{ad.adCode}</code>
-                  </div>
+                  {ad.image_url && (
+                    <div className="mb-2">
+                      <img src={ad.image_url} alt={ad.title} className="w-full h-32 object-cover rounded" />
+                    </div>
+                  )}
+                  {ad.link_url && (
+                    <div className="text-xs text-blue-600 mb-2">
+                      Link: {ad.link_url}
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2 pt-2">
                   <Button onClick={() => handleToggleActive(ad.id)} variant="outline" size="sm">
-                    {ad.active ? 'Deactivate' : 'Activate'}
+                    {ad.is_active ? 'Deactivate' : 'Activate'}
                   </Button>
                   <Button onClick={() => handlePreview(ad)} variant="outline" size="sm">
                     Preview
@@ -221,62 +287,50 @@ const AdvertisementManager = () => {
                 placeholder="Advertisement Title" 
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Type</label>
-                <Select 
-                  value={formData.type} 
-                  onValueChange={(value) => handleSelectChange('type', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sponsor">Sponsor</SelectItem>
-                    <SelectItem value="adsense">Google AdSense</SelectItem>
-                    <SelectItem value="adsterra">Adsterra</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Position</label>
-                <Select 
-                  value={formData.position} 
-                  onValueChange={(value) => handleSelectChange('position', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sidebar">Sidebar</SelectItem>
-                    <SelectItem value="content">Content</SelectItem>
-                    <SelectItem value="footer">Footer</SelectItem>
-                    <SelectItem value="header">Header</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Position</label>
+              <Select 
+                value={formData.position} 
+                onValueChange={(value) => handleSelectChange('position', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sidebar">Sidebar</SelectItem>
+                  <SelectItem value="content">Content</SelectItem>
+                  <SelectItem value="footer">Footer</SelectItem>
+                  <SelectItem value="header">Header</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description (optional)</label>
-              <Input 
-                name="description" 
-                value={formData.description} 
-                onChange={handleInputChange} 
-                placeholder="Brief description of the advertisement" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ad Code</label>
+              <label className="text-sm font-medium">Content</label>
               <Textarea 
-                name="adCode" 
-                value={formData.adCode} 
+                name="content" 
+                value={formData.content} 
                 onChange={handleInputChange} 
-                placeholder="Paste HTML, JS or custom advertisement code here" 
-                className="h-24 font-mono text-xs"
+                placeholder="Advertisement content or description" 
+                className="h-24"
               />
-              <p className="text-xs text-gray-500">
-                For sponsor ads, you can use HTML. For third-party ads, paste their provided code.
-              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Image URL (optional)</label>
+              <Input 
+                name="image_url" 
+                value={formData.image_url} 
+                onChange={handleInputChange} 
+                placeholder="https://example.com/image.jpg" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Link URL (optional)</label>
+              <Input 
+                name="link_url" 
+                value={formData.link_url} 
+                onChange={handleInputChange} 
+                placeholder="https://example.com" 
+              />
             </div>
           </div>
           <DialogFooter>
@@ -302,12 +356,18 @@ const AdvertisementManager = () => {
           <div className="py-4">
             {selectedAd && (
               <div className="border rounded-md p-4">
-                <AdManager
-                  position={selectedAd.position}
-                  type={selectedAd.type}
-                  adCode={selectedAd.adCode}
-                  visible={true}
-                />
+                <div className="space-y-4">
+                  <h3 className="font-semibold">{selectedAd.title}</h3>
+                  {selectedAd.image_url && (
+                    <img src={selectedAd.image_url} alt={selectedAd.title} className="w-full h-48 object-cover rounded" />
+                  )}
+                  <p className="text-gray-600">{selectedAd.content}</p>
+                  {selectedAd.link_url && (
+                    <a href={selectedAd.link_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {selectedAd.link_url}
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>

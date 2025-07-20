@@ -272,7 +272,7 @@ const AdminPanel = () => {
             ) : recentUploads?.length ? (
               <div className="space-y-4">
                 {recentUploads.map((upload) => (
-                  <div key={upload.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group">
+                  <div key={`upload-${upload.id}`} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-indigo-100 rounded-md">
                         <BookText className="h-5 w-5 text-indigo-600" />
@@ -341,7 +341,7 @@ const AdminPanel = () => {
             ) : recentQueries?.length ? (
               <div className="space-y-4">
                 {recentQueries.map((query) => (
-                  <div key={query.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group">
+                  <div key={`query-${query.id}`} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group">
                     <div className="flex items-start gap-3">
                       <Avatar className="h-10 w-10 border">
                         <AvatarFallback className="bg-indigo-100 text-indigo-600">
