@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAds } from './AdsProvider';
 import AdManager from './AdManager';
 
@@ -9,8 +10,14 @@ interface AdPlacementProps {
 }
 
 const AdPlacement: React.FC<AdPlacementProps> = ({ position, className = '' }) => {
+  const location = useLocation();
   const { getAdsByPosition, toggleAd } = useAds();
   const adsForPosition = getAdsByPosition(position);
+  
+  // Don't show ads on admin routes
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
   
   if (adsForPosition.length === 0) {
     return null;
