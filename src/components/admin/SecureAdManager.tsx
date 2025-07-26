@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { validateAndSanitizeFormData, sanitizeHTML } from '@/utils/inputValidation';
-import { Shield, AlertTriangle } from 'lucide-react';
+import { validateAndSanitizeFormData } from '@/utils/inputValidation';
+import { securityUtils } from '@/utils/securityUtils';
+import { Shield, AlertTriangle, Lock } from 'lucide-react';
 
 interface Advertisement {
   id: number;
@@ -23,7 +24,7 @@ interface Advertisement {
 }
 
 const SecureAdManager = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,18 @@ const SecureAdManager = () => {
     position: 'sidebar',
     ad_type: 'banner'
   });
+
+  // Security check - only admins can access
+  useEffect(() => {
+    if (user && !isAdmin) {
+      toast({
+        title: 'Access Denied',
+        description: 'You do not have permission to access this feature',
+        variant: 'destructive'
+      });
+      return;
+    }
+  }, [user, isAdmin, toast]);
 
   const fetchAds = async () => {
     try {
@@ -58,17 +71,25 @@ const SecureAdManager = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && isAdmin) {
       fetchAds();
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) return;
+    if (!user || !isAdmin) {
+      toast({
+        title: 'Access Denied',
+        description: 'Admin privileges required',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     try {
+      // Enhanced security validation
       const sanitizedData = validateAndSanitizeFormData(formData);
       
       if (!sanitizedData.title || !sanitizedData.content) {
@@ -80,12 +101,33 @@ const SecureAdManager = () => {
         return;
       }
 
-      const sanitizedContent = sanitizeHTML(sanitizedData.content);
+      // Validate URLs
+      if (sanitizedData.image_url && !isValidUrl(sanitizedData.image_url)) {
+        toast({
+          title: 'Validation Error',
+          description: 'Invalid image URL',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (sanitizedData.link_url && !isValidUrl(sanitizedData.link_url)) {
+        toast({
+          title: 'Validation Error',
+          description: 'Invalid link URL',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Strict content sanitization
+      const sanitizedContent = securityUtils.sanitizeHTML(sanitizedData.content);
+      const sanitizedTitle = securityUtils.validateInput(sanitizedData.title, 200);
 
       const { error } = await supabase
         .from('advertisements')
         .insert({
-          title: sanitizedData.title,
+          title: sanitizedTitle,
           content: sanitizedContent,
           image_url: sanitizedData.image_url,
           link_url: sanitizedData.link_url,
@@ -121,7 +163,25 @@ const SecureAdManager = () => {
     }
   };
 
+  const isValidUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const toggleAdStatus = async (id: number, currentStatus: boolean) => {
+    if (!isAdmin) {
+      toast({
+        title: 'Access Denied',
+        description: 'Admin privileges required',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('advertisements')
@@ -146,6 +206,18 @@ const SecureAdManager = () => {
     }
   };
 
+  if (!user || !isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Lock className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900">Access Restricted</h3>
+          <p className="text-gray-600">Admin privileges required to access this feature.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -160,13 +232,13 @@ const SecureAdManager = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 text-yellow-800">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 text-red-800">
               <AlertTriangle className="h-4 w-4" />
-              <span className="font-medium">Security Notice</span>
+              <span className="font-medium">Security Enhanced</span>
             </div>
-            <p className="text-yellow-700 text-sm mt-1">
-              All content is automatically sanitized to prevent XSS attacks. HTML tags are limited to safe formatting only.
+            <p className="text-red-700 text-sm mt-1">
+              All content is strictly sanitized and validated. URLs are validated for security. Only admins can manage advertisements.
             </p>
           </div>
 
@@ -175,21 +247,32 @@ const SecureAdManager = () => {
               <label className="block text-sm font-medium mb-1">Title</label>
               <Input
                 value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  title: securityUtils.validateInput(e.target.value, 200)
+                }))}
                 placeholder="Advertisement title"
                 required
+                maxLength={200}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Content</label>
+              <label className="block text-sm font-medium mb-1">Content (HTML will be sanitized)</label>
               <Textarea
                 value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Advertisement content (HTML allowed but will be sanitized)"
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  content: securityUtils.validateInput(e.target.value, 2000)
+                }))}
+                placeholder="Advertisement content (limited HTML allowed)"
                 rows={4}
                 required
+                maxLength={2000}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Allowed tags: b, i, em, strong, p, br, ul, ol, li
+              </p>
             </div>
 
             <div>
@@ -259,10 +342,10 @@ const SecureAdManager = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">{ad.title}</h3>
-                    <div 
-                      className="text-gray-600 text-sm mt-1"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(ad.content) }}
-                    />
+                    <div className="text-gray-600 text-sm mt-1">
+                      {securityUtils.sanitizeHTML(ad.content).substring(0, 100)}
+                      {ad.content.length > 100 && '...'}
+                    </div>
                     <div className="flex gap-2 mt-2">
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded">{ad.position}</span>
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded">{ad.ad_type}</span>
