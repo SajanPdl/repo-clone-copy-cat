@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { BadgePercent, DollarSign, Megaphone, Eye } from 'lucide-react';
+import { BadgePercent, DollarSign, Megaphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -251,7 +251,6 @@ const AdvertisementManager = () => {
                     {ad.is_active ? 'Deactivate' : 'Activate'}
                   </Button>
                   <Button onClick={() => handlePreview(ad)} variant="outline" size="sm">
-                    <Eye className="mr-1 h-3 w-3" />
                     Preview
                   </Button>
                   <Button onClick={() => handleDelete(ad.id)} variant="destructive" size="sm">
@@ -371,7 +370,7 @@ const AdvertisementManager = () => {
       
       {/* Ad Preview Dialog */}
       <Dialog open={previewAdOpen} onOpenChange={setPreviewAdOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Advertisement Preview</DialogTitle>
             <DialogDescription>
@@ -380,58 +379,25 @@ const AdvertisementManager = () => {
           </DialogHeader>
           <div className="py-4">
             {selectedAd && (
-              <div className="border rounded-md p-6 bg-white">
+              <div className="border rounded-md p-4">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold">{selectedAd.title}</h3>
-                    <Badge variant="secondary">{selectedAd.position}</Badge>
-                  </div>
-                  
+                  <h3 className="font-semibold">{selectedAd.title}</h3>
                   {selectedAd.image_url && (
-                    <div className="w-full">
-                      <img 
-                        src={selectedAd.image_url} 
-                        alt={selectedAd.title} 
-                        className="w-full max-h-64 object-cover rounded-lg border"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    </div>
+                    <img src={selectedAd.image_url} alt={selectedAd.title} className="w-full h-48 object-cover rounded" />
                   )}
-                  
-                  {selectedAd.content && (
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed">{selectedAd.content}</p>
-                    </div>
-                  )}
-                  
+                  <p className="text-gray-600">{selectedAd.content}</p>
                   {selectedAd.link_url && (
-                    <div className="pt-4 border-t">
-                      <Button asChild className="w-full">
-                        <a 
-                          href={selectedAd.link_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center"
-                        >
-                          Visit Link
-                        </a>
-                      </Button>
-                    </div>
+                    <a href={selectedAd.link_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {selectedAd.link_url}
+                    </a>
                   )}
-                  
-                  <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
-                    <span>Type: {selectedAd.ad_type}</span>
-                    <span>Created: {new Date(selectedAd.created_at || '').toLocaleDateString()}</span>
-                  </div>
                 </div>
               </div>
             )}
           </div>
           <DialogFooter>
             <Button onClick={() => setPreviewAdOpen(false)}>
-              Close Preview
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

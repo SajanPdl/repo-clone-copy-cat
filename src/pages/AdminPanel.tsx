@@ -11,13 +11,14 @@ import CategoriesManager from '@/components/admin/CategoriesManager';
 import GradesManager from '@/components/admin/GradesManager';
 import QueriesManager from '@/components/admin/QueriesManager';
 import AnalyticsPage from '@/components/admin/AnalyticsPage';
+import AdminSettings from '@/components/admin/AdminSettings';
 import UserStatsManager from '@/components/admin/UserStatsManager';
 import AchievementManager from '@/components/admin/AchievementManager';
-import AdvertisementManager from '@/components/admin/AdvertisementManager';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('materials');
 
   if (loading) {
     return (
@@ -32,13 +33,12 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminLayout>
       <div className="p-6">
         <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-12 mb-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-10 mb-6">
             <TabsTrigger value="materials">Materials</TabsTrigger>
             <TabsTrigger value="papers">Papers</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -49,12 +49,7 @@ const AdminPanel = () => {
             <TabsTrigger value="grades">Grades</TabsTrigger>
             <TabsTrigger value="queries">Queries</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="ads">Ads</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="dashboard">
-            <AnalyticsPage />
-          </TabsContent>
 
           <TabsContent value="materials">
             <StudyMaterialsManager />
@@ -95,13 +90,9 @@ const AdminPanel = () => {
           <TabsContent value="analytics">
             <AnalyticsPage />
           </TabsContent>
-
-          <TabsContent value="ads">
-            <AdvertisementManager />
-          </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
