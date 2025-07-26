@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +25,7 @@ import AnalyticsPage from '@/components/admin/AnalyticsPage';
 import GradesManager from '@/components/admin/GradesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
 import AdPlacementManager from '@/components/admin/AdPlacementManager';
+import MarketplaceManager from '@/components/admin/MarketplaceManager';
 import AnimatedWrapper from '@/components/ui/animated-wrapper';
 
 const AdminPanel = () => {
@@ -36,6 +36,7 @@ const AdminPanel = () => {
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, color: 'from-blue-500 to-blue-600' },
     { id: 'materials', label: 'Study Materials', icon: BookOpen, color: 'from-green-500 to-green-600' },
     { id: 'pastpapers', label: 'Past Papers', icon: ClipboardList, color: 'from-purple-500 to-purple-600' },
+    { id: 'marketplace', label: 'Marketplace', icon: Users, color: 'from-emerald-500 to-emerald-600' },
     { id: 'queries', label: 'User Queries', icon: MessageSquare, color: 'from-orange-500 to-orange-600' },
     { id: 'ads', label: 'Advertisements', icon: Megaphone, color: 'from-red-500 to-red-600' },
     { id: 'ad-placements', label: 'Ad Placements', icon: MapPin, color: 'from-pink-500 to-pink-600' },
@@ -112,6 +113,7 @@ const AdminPanel = () => {
       ),
       materials: () => <StudyMaterialsManager />,
       pastpapers: () => <PastPapersManager />,
+      marketplace: () => <MarketplaceManager />,
       queries: () => <QueriesManager />,
       ads: () => <AdvertisementManager />,
       'ad-placements': () => <AdPlacementManager />,
