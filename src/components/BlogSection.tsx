@@ -35,43 +35,63 @@ const BlogSection = () => {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      if (error) throw error;
-      setPosts(data || []);
+      if (error) {
+        console.error('Error fetching blog posts:', error);
+        // Fallback to dummy data if database fetch fails
+        setPosts([
+          {
+            id: 1,
+            title: "Effective Study Techniques for Better Learning",
+            excerpt: "Discover proven study methods that can help you retain information better and improve your academic performance.",
+            author: "Dr. Sarah Johnson",
+            category: "Study Tips",
+            featured_image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=500&h=300&fit=crop",
+            content: "",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            title: "Digital Note-Taking: Tools and Strategies",
+            excerpt: "Explore the best digital tools for note-taking and learn strategies to organize your study materials effectively.",
+            author: "Mark Thompson",
+            category: "Technology",
+            featured_image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&h=300&fit=crop",
+            content: "",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            title: "Preparing for Competitive Exams: A Complete Guide",
+            excerpt: "A comprehensive guide to help you prepare for competitive exams with confidence and achieve your goals.",
+            author: "Priya Sharma",
+            category: "Exam Prep",
+            featured_image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=500&h=300&fit=crop",
+            content: "",
+            created_at: new Date().toISOString()
+          }
+        ]);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setPosts(data);
+      } else {
+        // Use fallback data if no posts in database
+        setPosts([
+          {
+            id: 1,
+            title: "Welcome to EduSanskriti Blog",
+            excerpt: "Stay updated with the latest educational insights, study tips, and academic resources.",
+            author: "EduSanskriti Team",
+            category: "Announcements",
+            featured_image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=300&fit=crop",
+            content: "Welcome to our educational platform!",
+            created_at: new Date().toISOString()
+          }
+        ]);
+      }
     } catch (error) {
       console.error('Error fetching blog posts:', error);
-      // Fallback to dummy data if database fetch fails
-      setPosts([
-        {
-          id: 1,
-          title: "Effective Study Techniques for Better Learning",
-          excerpt: "Discover proven study methods that can help you retain information better and improve your academic performance.",
-          author: "Dr. Sarah Johnson",
-          category: "Study Tips",
-          featured_image: "/placeholder.svg",
-          content: "",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          title: "Digital Note-Taking: Tools and Strategies",
-          excerpt: "Explore the best digital tools for note-taking and learn strategies to organize your study materials effectively.",
-          author: "Mark Thompson",
-          category: "Technology",
-          featured_image: "/placeholder.svg",
-          content: "",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 3,
-          title: "Preparing for Competitive Exams: A Complete Guide",
-          excerpt: "A comprehensive guide to help you prepare for competitive exams with confidence and achieve your goals.",
-          author: "Priya Sharma",
-          category: "Exam Prep",
-          featured_image: "/placeholder.svg",
-          content: "",
-          created_at: new Date().toISOString()
-        }
-      ]);
     } finally {
       setLoading(false);
     }
@@ -79,7 +99,9 @@ const BlogSection = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
+    // Convert to Nepali time (UTC+5:45)
+    const nepaliTime = new Date(date.getTime() + (5 * 60 + 45) * 60 * 1000);
+    return nepaliTime.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
@@ -128,13 +150,16 @@ const BlogSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {posts.map((post) => (
-            <Link key={post.id} to={`/blog/${post.id}`} className="block group">
-              <Card className="h-full hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 cursor-pointer">
+            <Card key={post.id} className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer">
+              <Link to={`/blog/post/${post.id}`} className="block h-full">
                 <div className="aspect-video overflow-hidden rounded-t-lg">
                   <img 
-                    src={post.featured_image || "/placeholder.svg"} 
+                    src={post.featured_image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=300&fit=crop"} 
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=300&fit=crop";
+                    }}
                   />
                 </div>
                 <CardHeader>
@@ -162,8 +187,8 @@ const BlogSection = () => {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </Link>
+            </Card>
           ))}
         </div>
 

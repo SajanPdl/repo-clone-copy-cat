@@ -29,16 +29,16 @@ import {
 
 const mainItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Overview', url: '/dashboard/overview', icon: BarChart3 },
-  { title: 'My Notes', url: '/study-materials', icon: BookOpen },
+  { title: 'Study Materials', url: '/study-materials', icon: BookOpen },
+  { title: 'Past Papers', url: '/past-papers', icon: Upload },
   { title: 'Marketplace', url: '/marketplace', icon: ShoppingCart },
-  { title: 'Saved Items', url: '/dashboard/saved', icon: Heart },
-  { title: 'Messages', url: '/dashboard/inbox', icon: MessageSquare },
+  { title: 'Blog', url: '/blog', icon: MessageSquare },
 ];
 
 const profileItems = [
   { title: 'Profile', url: '/profile', icon: User },
   { title: 'Achievements', url: '/dashboard/achievements', icon: Trophy },
+  { title: 'Bookmarks', url: '/dashboard/bookmarks', icon: Heart },
   { title: 'Rewards', url: '/dashboard/rewards', icon: Wallet },
   { title: 'Settings', url: '/dashboard/settings', icon: Settings },
 ];
