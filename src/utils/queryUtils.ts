@@ -412,3 +412,36 @@ export const fetchUserQueries = async (): Promise<UserQuery[]> => {
     return [];
   }
 };
+
+// Fetch marketplace stats for dashboard
+export const fetchMarketplaceStats = async () => {
+  try {
+    const { data: totalListings } = await supabase
+      .from('marketplace_listings')
+      .select('id', { count: 'exact' });
+
+    const { data: activeListings } = await supabase
+      .from('marketplace_listings')
+      .select('id', { count: 'exact' })
+      .eq('status', 'active')
+      .eq('is_approved', true);
+
+    const { data: pendingListings } = await supabase
+      .from('marketplace_listings')
+      .select('id', { count: 'exact' })
+      .eq('is_approved', false);
+
+    return {
+      totalListings: totalListings?.length || 0,
+      activeListings: activeListings?.length || 0,
+      pendingListings: pendingListings?.length || 0
+    };
+  } catch (error) {
+    console.error("Error fetching marketplace stats:", error);
+    return {
+      totalListings: 0,
+      activeListings: 0,
+      pendingListings: 0
+    };
+  }
+};

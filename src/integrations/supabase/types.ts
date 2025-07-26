@@ -196,6 +196,142 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_favorites_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_inquiries: {
+        Row: {
+          contact_info: Json | null
+          created_at: string
+          id: string
+          inquirer_id: string
+          listing_id: string | null
+          message: string
+          status: string | null
+        }
+        Insert: {
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          inquirer_id: string
+          listing_id?: string | null
+          message: string
+          status?: string | null
+        }
+        Update: {
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          inquirer_id?: string
+          listing_id?: string | null
+          message?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_inquiries_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_listings: {
+        Row: {
+          category: string
+          condition: string | null
+          contact_info: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          images: string[] | null
+          interest_count: number | null
+          is_approved: boolean | null
+          is_featured: boolean | null
+          is_free: boolean | null
+          location: string | null
+          price: number | null
+          status: string | null
+          subject: string | null
+          title: string
+          university: string | null
+          updated_at: string
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          category: string
+          condition?: string | null
+          contact_info?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          interest_count?: number | null
+          is_approved?: boolean | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          location?: string | null
+          price?: number | null
+          status?: string | null
+          subject?: string | null
+          title: string
+          university?: string | null
+          updated_at?: string
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          category?: string
+          condition?: string | null
+          contact_info?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          interest_count?: number | null
+          is_approved?: boolean | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          location?: string | null
+          price?: number | null
+          status?: string | null
+          subject?: string | null
+          title?: string
+          university?: string | null
+          updated_at?: string
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       past_papers: {
         Row: {
           board: string | null
@@ -273,6 +409,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_ratings: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          listing_id: string | null
+          rating: number | null
+          review: string | null
+          seller_id: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          rating?: number | null
+          review?: string | null
+          seller_id: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          rating?: number | null
+          review?: string | null
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_ratings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -389,6 +563,14 @@ export type Database = {
     Functions: {
       increment_download_count: {
         Args: { material_id: number; table_name: string }
+        Returns: undefined
+      }
+      increment_listing_interest: {
+        Args: { listing_uuid: string }
+        Returns: undefined
+      }
+      increment_listing_views: {
+        Args: { listing_uuid: string }
         Returns: undefined
       }
       is_admin: {
