@@ -6,7 +6,16 @@ import { Button } from '@/components/ui/button';
 
 export const NepalAdsFloater = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const { isUserPremium } = useAds();
+  
+  // Use a try-catch to handle cases where AdsProvider is not available
+  let isUserPremium = false;
+  try {
+    const { isUserPremium: premium } = useAds();
+    isUserPremium = premium;
+  } catch (error) {
+    // If AdsProvider is not available, don't show the ad
+    return null;
+  }
   
   // Check if the ad was previously closed in this session
   useEffect(() => {

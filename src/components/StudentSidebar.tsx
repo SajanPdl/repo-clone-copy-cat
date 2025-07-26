@@ -32,7 +32,7 @@ const mainItems = [
   { title: 'Overview', url: '/dashboard/overview', icon: BarChart3 },
   { title: 'My Notes', url: '/study-materials', icon: BookOpen },
   { title: 'Marketplace', url: '/marketplace', icon: ShoppingCart },
-  { title: 'Saved Items', url: '/dashboard/saved', icon: Heart },
+  { title: 'Saved Items', url: '/dashboard', icon: Heart }, // This will show saved tab in dashboard
   { title: 'Messages', url: '/dashboard/inbox', icon: MessageSquare },
 ];
 

@@ -18,6 +18,11 @@ import MarketplacePage from "./pages/MarketplacePage";
 import ContentViewPage from "./pages/ContentViewPage";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
+import DashboardOverview from "./pages/DashboardOverview";
+import DashboardAchievements from "./pages/DashboardAchievements";
+import DashboardRewards from "./pages/DashboardRewards";
+import DashboardInbox from "./pages/DashboardInbox";
+import DashboardSettings from "./pages/DashboardSettings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import AnalyticsPage from "./components/admin/AnalyticsPage";
@@ -33,6 +38,7 @@ import AdminSettings from "./components/admin/AdminSettings";
 import MarketplaceManager from "./components/admin/MarketplaceManager";
 import AdvertisementManager from "./components/admin/AdvertisementManager";
 import AdPlacementManager from "./components/admin/AdPlacementManager";
+import GlobalHeader from "./components/GlobalHeader";
 import { AdsProvider } from "./components/ads/AdsProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 
@@ -47,6 +53,7 @@ function App() {
             <AdsProvider>
               <Toaster />
               <BrowserRouter>
+                <GlobalHeader />
                 <Suspense fallback={<div>Loading...</div>}>
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -65,6 +72,46 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <StudentDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard/overview" 
+                      element={
+                        <ProtectedRoute>
+                          <DashboardOverview />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard/achievements" 
+                      element={
+                        <ProtectedRoute>
+                          <DashboardAchievements />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard/rewards" 
+                      element={
+                        <ProtectedRoute>
+                          <DashboardRewards />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard/inbox" 
+                      element={
+                        <ProtectedRoute>
+                          <DashboardInbox />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard/settings" 
+                      element={
+                        <ProtectedRoute>
+                          <DashboardSettings />
                         </ProtectedRoute>
                       } 
                     />

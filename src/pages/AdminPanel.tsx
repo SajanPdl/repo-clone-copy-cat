@@ -14,7 +14,6 @@ import AnalyticsPage from '@/components/admin/AnalyticsPage';
 import AdminSettings from '@/components/admin/AdminSettings';
 import UserStatsManager from '@/components/admin/UserStatsManager';
 import AchievementManager from '@/components/admin/AchievementManager';
-import AdminLayout from '@/components/admin/AdminLayout';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -33,66 +32,64 @@ const AdminPanel = () => {
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-10 mb-6">
-            <TabsTrigger value="materials">Materials</TabsTrigger>
-            <TabsTrigger value="papers">Papers</TabsTrigger>
-            <TabsTrigger value="blog">Blog</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="stats">User Stats</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="grades">Grades</TabsTrigger>
-            <TabsTrigger value="queries">Queries</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-10 mb-6">
+          <TabsTrigger value="materials">Materials</TabsTrigger>
+          <TabsTrigger value="papers">Papers</TabsTrigger>
+          <TabsTrigger value="blog">Blog</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="stats">User Stats</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="grades">Grades</TabsTrigger>
+          <TabsTrigger value="queries">Queries</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="materials">
-            <StudyMaterialsManager />
-          </TabsContent>
+        <TabsContent value="materials">
+          <StudyMaterialsManager />
+        </TabsContent>
 
-          <TabsContent value="papers">
-            <PastPapersManager />
-          </TabsContent>
+        <TabsContent value="papers">
+          <PastPapersManager />
+        </TabsContent>
 
-          <TabsContent value="blog">
-            <BlogEditor />
-          </TabsContent>
+        <TabsContent value="blog">
+          <BlogEditor />
+        </TabsContent>
 
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
 
-          <TabsContent value="stats">
-            <UserStatsManager />
-          </TabsContent>
+        <TabsContent value="stats">
+          <UserStatsManager />
+        </TabsContent>
 
-          <TabsContent value="achievements">
-            <AchievementManager />
-          </TabsContent>
+        <TabsContent value="achievements">
+          <AchievementManager />
+        </TabsContent>
 
-          <TabsContent value="categories">
-            <CategoriesManager />
-          </TabsContent>
+        <TabsContent value="categories">
+          <CategoriesManager />
+        </TabsContent>
 
-          <TabsContent value="grades">
-            <GradesManager />
-          </TabsContent>
+        <TabsContent value="grades">
+          <GradesManager />
+        </TabsContent>
 
-          <TabsContent value="queries">
-            <QueriesManager />
-          </TabsContent>
+        <TabsContent value="queries">
+          <QueriesManager />
+        </TabsContent>
 
-          <TabsContent value="analytics">
-            <AnalyticsPage />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AdminLayout>
+        <TabsContent value="analytics">
+          <AnalyticsPage />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
