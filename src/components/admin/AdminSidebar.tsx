@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -25,17 +25,18 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AdminSidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   collapsed?: boolean;
   setCollapsed?: (collapsed: boolean) => void;
 }
 
-const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed }: AdminSidebarProps) => {
+const AdminSidebar = ({ collapsed = false, setCollapsed }: AdminSidebarProps) => {
   const { toast } = useToast();
+  const { signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   
@@ -126,17 +127,33 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
     return () => clearInterval(interval);
   }, []);
   
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out of the admin panel.",
-    });
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out of the admin panel.",
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const toggleSidebar = () => {
     if (setCollapsed) {
       setCollapsed(!collapsed);
     }
+  };
+
+  const isActiveRoute = (path: string) => {
+    if (path === '/admin' && location.pathname === '/admin') return true;
+    if (path !== '/admin' && location.pathname.startsWith(path)) return true;
+    return false;
   };
   
   return (
@@ -190,10 +207,9 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
                       variant="ghost"
                       className={cn(
                         "w-full justify-start text-indigo-100 hover:text-white hover:bg-indigo-800 transition-all duration-200",
-                        (activeTab === item.id || location.pathname === item.path) && "bg-indigo-700 text-white shadow-lg",
+                        isActiveRoute(item.path) && "bg-indigo-700 text-white shadow-lg",
                         collapsed && "justify-center px-2"
                       )}
-                      onClick={() => setActiveTab(item.id)}
                     >
                       <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-3")} />
                       {!collapsed && <span>{item.name}</span>}
@@ -230,19 +246,17 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
             <User className="h-5 w-5 text-white" />
           </div>
         )}
-        <Link to="/login">
-          <Button 
-            variant="ghost" 
-            className={cn(
-              "w-full justify-start text-red-300 hover:text-red-200 hover:bg-indigo-800",
-              collapsed && "justify-center p-2"
-            )}
-            onClick={handleLogout}
-          >
-            <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
-            {!collapsed && "Logout"}
-          </Button>
-        </Link>
+        <Button 
+          variant="ghost" 
+          className={cn(
+            "w-full justify-start text-red-300 hover:text-red-200 hover:bg-indigo-800",
+            collapsed && "justify-center p-2"
+          )}
+          onClick={handleLogout}
+        >
+          <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
+          {!collapsed && "Logout"}
+        </Button>
       </div>
     </aside>
   );
