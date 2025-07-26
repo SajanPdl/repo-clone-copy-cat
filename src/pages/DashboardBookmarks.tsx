@@ -10,8 +10,8 @@ import { Link } from 'react-router-dom';
 const DashboardBookmarks = () => {
   const { bookmarks, loading, removeBookmark } = useBookmarks();
 
-  const handleRemoveBookmark = async (bookmarkId: string) => {
-    await removeBookmark(bookmarkId);
+  const handleRemoveBookmark = async (bookmark: any) => {
+    await removeBookmark(bookmark.content_type, bookmark.content_id);
   };
 
   if (loading) {
@@ -58,7 +58,7 @@ const DashboardBookmarks = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleRemoveBookmark(bookmark.id)}
+                  onClick={() => handleRemoveBookmark(bookmark)}
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4" />
