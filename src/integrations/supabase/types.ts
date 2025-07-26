@@ -358,39 +358,51 @@ export type Database = {
       }
       past_papers: {
         Row: {
+          author_id: string | null
           board: string | null
           created_at: string | null
           downloads: number | null
           file_url: string | null
           grade: string
           id: number
+          rating: number | null
           subject: string
+          tags: string[] | null
           title: string
           updated_at: string | null
+          views: number | null
           year: number
         }
         Insert: {
+          author_id?: string | null
           board?: string | null
           created_at?: string | null
           downloads?: number | null
           file_url?: string | null
           grade: string
           id?: number
+          rating?: number | null
           subject: string
+          tags?: string[] | null
           title: string
           updated_at?: string | null
+          views?: number | null
           year: number
         }
         Update: {
+          author_id?: string | null
           board?: string | null
           created_at?: string | null
           downloads?: number | null
           file_url?: string | null
           grade?: string
           id?: number
+          rating?: number | null
           subject?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
+          views?: number | null
           year?: number
         }
         Relationships: []
@@ -558,6 +570,7 @@ export type Database = {
       }
       study_materials: {
         Row: {
+          author_id: string | null
           category: string
           created_at: string | null
           date: string | null
@@ -568,11 +581,15 @@ export type Database = {
           grade: string
           id: number
           is_featured: boolean | null
+          rating: number | null
           subject: string
+          tags: string[] | null
           title: string
           updated_at: string | null
+          views: number | null
         }
         Insert: {
+          author_id?: string | null
           category: string
           created_at?: string | null
           date?: string | null
@@ -583,11 +600,15 @@ export type Database = {
           grade: string
           id?: number
           is_featured?: boolean | null
+          rating?: number | null
           subject: string
+          tags?: string[] | null
           title: string
           updated_at?: string | null
+          views?: number | null
         }
         Update: {
+          author_id?: string | null
           category?: string
           created_at?: string | null
           date?: string | null
@@ -598,9 +619,12 @@ export type Database = {
           grade?: string
           id?: number
           is_featured?: boolean | null
+          rating?: number | null
           subject?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
+          views?: number | null
         }
         Relationships: []
       }
@@ -663,7 +687,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_dashboard_stats: {
+        Row: {
+          level: string | null
+          points: number | null
+          total_activities: number | null
+          total_bookmarks: number | null
+          total_downloads: number | null
+          total_sales: number | null
+          total_uploads: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_student_activity: {
@@ -689,6 +725,10 @@ export type Database = {
       }
       increment_listing_views: {
         Args: { listing_uuid: string }
+        Returns: undefined
+      }
+      increment_material_views: {
+        Args: { material_id: number; table_name: string }
         Returns: undefined
       }
       is_admin: {

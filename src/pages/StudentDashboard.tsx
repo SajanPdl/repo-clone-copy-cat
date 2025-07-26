@@ -1,16 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, 
-  FileText, 
-  Download, 
-  User, 
-  Settings,
   Upload,
   ShoppingCart,
   Heart,
@@ -20,50 +15,54 @@ import {
   Wallet,
   Trophy,
   Plus,
-  Edit,
-  Trash2,
-  Share2,
-  Eye,
-  MessageSquare
+  Settings,
+  Download,
+  User,
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import AnimatedWrapper from '@/components/ui/animated-wrapper';
+import { useAuth } from '@/hooks/useAuth';
+import { useBookmarks } from '@/hooks/useBookmarks';
 import { useToast } from '@/hooks/use-toast';
 import DashboardCard from '@/components/dashboard/DashboardCard';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import LevelProgress from '@/components/dashboard/LevelProgress';
-import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
-import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
+import { fetchDashboardStats } from '@/utils/studentDashboardUtils';
+import { fetchRealNepaliDate, NepaliDateInfo } from '@/utils/nepaliDate';
+import { Link } from 'react-router-dom';
 
 const StudentDashboard = () => {
+  const { user } = useAuth();
+  const { bookmarks } = useBookmarks();
   const { toast } = useToast();
-  const [user, setUser] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState('');
+  const [nepaliDate, setNepaliDate] = useState<NepaliDateInfo | null>(null);
 
+  // Fetch real Nepali date
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+    const loadNepaliDate = async () => {
+      try {
+        const dateInfo = await fetchRealNepaliDate();
+        setNepaliDate(dateInfo);
+      } catch (error) {
+        console.error('Error loading Nepali date:', error);
+      }
     };
-    getUser();
 
-    // Update time every second
-    const updateTime = () => setCurrentTime(getNepaliTime());
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
+    loadNepaliDate();
+    // Update every minute
+    const interval = setInterval(loadNepaliDate, 60000);
     return () => clearInterval(interval);
   }, []);
 
   // Fetch dashboard statistics
   const { data: dashboardStats, isLoading: statsLoading, refetch } = useQuery({
     queryKey: ['dashboardStats', user?.id],
-    queryFn: () => fetchDashboardStats(user.id),
+    queryFn: () => fetchDashboardStats(user!.id),
     enabled: !!user
   });
 
-  // Mock achievements data
   const achievements = [
     {
       id: '1',
@@ -91,6 +90,15 @@ const StudentDashboard = () => {
       maxProgress: 5,
       earned: (dashboardStats?.totalSales || 0) >= 5,
       rarity: 'epic' as const
+    },
+    {
+      id: '4',
+      title: 'Bookworm',
+      description: 'Bookmark 25 materials',
+      progress: bookmarks.length,
+      maxProgress: 25,
+      earned: bookmarks.length >= 25,
+      rarity: 'rare' as const
     }
   ];
 
@@ -106,8 +114,8 @@ const StudentDashboard = () => {
             🔐
           </motion.div>
           <h2 className="text-2xl font-bold mb-4">Please log in to access your dashboard</h2>
-          <Button onClick={() => window.location.href = '/login'} size="lg">
-            Go to Login
+          <Button asChild size="lg">
+            <Link to="/login">Go to Login</Link>
           </Button>
         </div>
       </div>
@@ -122,7 +130,7 @@ const StudentDashboard = () => {
           animate={{ opacity: 1 }}
           className="space-y-8"
         >
-          {/* Header with greeting and time */}
+          {/* Header with greeting and Nepali date */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -133,10 +141,20 @@ const StudentDashboard = () => {
                 Welcome back, {user?.user_metadata?.name || user?.email?.split('@')[0]}! 
                 <span className="text-2xl ml-2">👋</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-2 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                {getNepaliDate()} • {currentTime}
-              </p>
+              <div className="text-gray-600 dark:text-gray-300 mt-2 flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  {nepaliDate ? (
+                    <div className="flex flex-col sm:flex-row sm:gap-4">
+                      <span className="font-medium">{nepaliDate.formattedNepali}</span>
+                      <span className="text-sm">({nepaliDate.dayOfWeek})</span>
+                      <span className="text-sm">{nepaliDate.time}</span>
+                    </div>
+                  ) : (
+                    <span>Loading date...</span>
+                  )}
+                </div>
+              </div>
             </div>
             <Button variant="outline" className="flex items-center gap-2 hover:scale-105 transition-transform">
               <Settings className="h-4 w-4" />
@@ -171,12 +189,12 @@ const StudentDashboard = () => {
               trend={{ value: 25, isPositive: true }}
             />
             <DashboardCard
-              title="Saved Items"
-              value={dashboardStats?.totalBookmarks || 0}
+              title="Bookmarks"
+              value={bookmarks.length}
               icon={Heart}
               gradient="from-orange-500 to-red-600"
               delay={0.4}
-              trend={{ value: 5, isPositive: false }}
+              trend={{ value: 5, isPositive: true }}
             />
           </div>
 
@@ -211,7 +229,6 @@ const StudentDashboard = () => {
 
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Level Progress */}
                 <div className="lg:col-span-1">
                   <LevelProgress
                     level={dashboardStats?.profile?.level || 'Fresh Contributor'}
@@ -219,14 +236,11 @@ const StudentDashboard = () => {
                     nextLevelPoints={500}
                   />
                 </div>
-
-                {/* Recent Activity */}
                 <div className="lg:col-span-2">
                   <RecentActivity activities={dashboardStats?.recentActivities || []} />
                 </div>
               </div>
 
-              {/* Achievements */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -244,6 +258,63 @@ const StudentDashboard = () => {
                       />
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="saved">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="h-5 w-5" />
+                    Saved Content ({bookmarks.length})
+                  </CardTitle>
+                  <Button asChild variant="outline">
+                    <Link to="/study-materials">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Browse Materials
+                    </Link>
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {bookmarks.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {bookmarks.map((bookmark) => (
+                        <Card key={bookmark.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-medium text-sm line-clamp-2">
+                                {bookmark.materialData?.title || 'Unknown Material'}
+                              </h4>
+                              <Badge variant="outline" className="text-xs ml-2">
+                                {bookmark.content_type.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-3">
+                              {bookmark.materialData?.subject} • {bookmark.materialData?.grade}
+                            </p>
+                            <Button asChild size="sm" className="w-full">
+                              <Link to={`/content/${bookmark.content_id}`}>
+                                <ExternalLink className="h-3 w-3 mr-2" />
+                                View Material
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">💾</div>
+                      <h3 className="text-xl font-semibold mb-2">No saved items</h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4">
+                        Bookmark notes, papers, and marketplace items for quick access!
+                      </p>
+                      <Button asChild>
+                        <Link to="/study-materials">Browse Content</Link>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -292,29 +363,6 @@ const StudentDashboard = () => {
                     </p>
                     <Button variant="outline">
                       Create First Listing
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="saved">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="h-5 w-5" />
-                    Saved Content
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">💾</div>
-                    <h3 className="text-xl font-semibold mb-2">No saved items</h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      Bookmark notes, papers, and marketplace items for quick access!
-                    </p>
-                    <Button variant="outline">
-                      Browse Content
                     </Button>
                   </div>
                 </CardContent>
