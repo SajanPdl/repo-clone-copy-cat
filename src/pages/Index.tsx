@@ -47,6 +47,9 @@ const Index = () => {
       {/* Header Ad Placement */}
       <AdPlacement position="header" className="sticky top-0 z-40" />
       
+      {/* Fixed Sidebar Ad Placement */}
+      <AdPlacement position="sidebar" />
+      
       <motion.main 
         variants={sectionVariants}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -54,41 +57,34 @@ const Index = () => {
         <Hero />
       </motion.main>
 
-      <div className="flex">
-        {/* Sidebar Ad Placement */}
-        <div className="hidden lg:block w-80 sticky top-20 h-fit">
-          <AdPlacement position="sidebar" className="p-4" />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1">
-          <AnimatedWrapper animation="slideUp" delay={0.2}>
-            <GradeSection />
-          </AnimatedWrapper>
-          
-          {/* Content Ad Placement */}
-          <AdPlacement position="content" className="my-8" />
-          
-          <AnimatedWrapper animation="slideUp" delay={0.4}>
-            <StudyMaterials />
-          </AnimatedWrapper>
-          
-          <AnimatedWrapper animation="slideUp" delay={0.6}>
-            <PastPapers />
-          </AnimatedWrapper>
-          
-          <AnimatedWrapper animation="slideUp" delay={0.8}>
-            <BlogSection />
-          </AnimatedWrapper>
-          
-          <AnimatedWrapper animation="slideUp" delay={1.0}>
-            <AppPromotion />
-          </AnimatedWrapper>
-          
-          <AnimatedWrapper animation="slideUp" delay={1.2}>
-            <ContactSection />
-          </AnimatedWrapper>
-        </div>
+      {/* Main Content */}
+      <div className="w-full">
+        <AnimatedWrapper animation="slideUp" delay={0.2}>
+          <GradeSection />
+        </AnimatedWrapper>
+        
+        {/* Content Ad Placement */}
+        <AdPlacement position="content" className="my-8" />
+        
+        <AnimatedWrapper animation="slideUp" delay={0.4}>
+          <StudyMaterials />
+        </AnimatedWrapper>
+        
+        <AnimatedWrapper animation="slideUp" delay={0.6}>
+          <PastPapers />
+        </AnimatedWrapper>
+        
+        <AnimatedWrapper animation="slideUp" delay={0.8}>
+          <BlogSection />
+        </AnimatedWrapper>
+        
+        <AnimatedWrapper animation="slideUp" delay={1.0}>
+          <AppPromotion />
+        </AnimatedWrapper>
+        
+        <AnimatedWrapper animation="slideUp" delay={1.2}>
+          <ContactSection />
+        </AnimatedWrapper>
       </div>
 
       {/* Footer Ad Placement */}

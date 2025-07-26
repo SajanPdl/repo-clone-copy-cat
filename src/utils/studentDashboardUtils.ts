@@ -49,7 +49,12 @@ export const fetchStudentProfile = async (userId: string): Promise<StudentProfil
     return null;
   }
 
-  return data;
+  // Convert JSON achievements to array if needed
+  if (data && data.achievements) {
+    data.achievements = Array.isArray(data.achievements) ? data.achievements : [];
+  }
+
+  return data as StudentProfile;
 };
 
 export const createStudentProfile = async (userId: string, profileData: Partial<StudentProfile>) => {
@@ -93,12 +98,18 @@ export const fetchDashboardStats = async (userId: string): Promise<DashboardStat
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
 
+  // Type-safe activities mapping
+  const typedActivities: StudentActivity[] = (activities || []).map(activity => ({
+    ...activity,
+    activity_type: activity.activity_type as StudentActivity['activity_type']
+  }));
+
   return {
     totalUploads: profile?.total_uploads || 0,
     totalDownloads: profile?.total_downloads || 0,
     totalSales: profile?.total_sales || 0,
     totalBookmarks: bookmarksCount || 0,
-    recentActivities: activities || [],
+    recentActivities: typedActivities,
     profile: profile
   };
 };

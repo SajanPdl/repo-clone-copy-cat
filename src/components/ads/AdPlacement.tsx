@@ -23,8 +23,16 @@ const AdPlacement: React.FC<AdPlacementProps> = ({ position, className = '' }) =
     return null;
   }
   
+  // Apply fixed positioning for sidebar ads
+  const getPositionClasses = () => {
+    if (position === 'sidebar') {
+      return 'fixed top-20 right-4 z-30 w-80';
+    }
+    return '';
+  };
+  
   return (
-    <div className={`ad-placement ${className}`}>
+    <div className={`ad-placement ${getPositionClasses()} ${className}`}>
       {adsForPosition.map(ad => (
         <AdManager
           key={ad.id}
