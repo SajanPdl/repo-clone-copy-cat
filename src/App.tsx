@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
 import BlogPage from '@/pages/BlogPage';
-import BlogPostView from '@/pages/BlogPostView';
+import { AuthProvider } from '@/hooks/useAuth';
 import ContactPage from '@/pages/ContactPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
@@ -38,71 +38,72 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <AdsProvider>
-          <Toaster />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:id" element={<BlogPostView />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/study-materials" element={<StudyMaterialsPage />} />
-            <Route path="/study-materials/:id" element={<ContentViewPage />} />
-            <Route path="/past-papers" element={<PastPapersPage />} />
-            <Route path="/past-papers/:id" element={<ContentViewPage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            
-            {/* Student Dashboard Routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <StudentDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/student/*" element={
-              <ProtectedRoute>
-                <Routes>
-                  <Route path="/" element={<StudentDashboard />} />
-                  <Route path="/dashboard" element={<StudentDashboard />} />
-                  <Route path="/overview" element={<DashboardOverview />} />
-                  <Route path="/achievements" element={<DashboardAchievements />} />
-                  <Route path="/rewards" element={<DashboardRewards />} />
-                  <Route path="/inbox" element={<DashboardInbox />} />
-                  <Route path="/settings" element={<DashboardSettings />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                </Routes>
-              </ProtectedRoute>
-            } />
+        <AuthProvider>
+          <AdsProvider>
+            <Toaster />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/study-materials" element={<StudyMaterialsPage />} />
+              <Route path="/study-materials/:id" element={<ContentViewPage />} />
+              <Route path="/past-papers" element={<PastPapersPage />} />
+              <Route path="/past-papers/:id" element={<ContentViewPage />} />
+              <Route path="/marketplace" element={<MarketplacePage />} />
+              
+              {/* Student Dashboard Routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/*" element={
+                <ProtectedRoute>
+                  <Routes>
+                    <Route path="/" element={<StudentDashboard />} />
+                    <Route path="/dashboard" element={<StudentDashboard />} />
+                    <Route path="/overview" element={<DashboardOverview />} />
+                    <Route path="/achievements" element={<DashboardAchievements />} />
+                    <Route path="/rewards" element={<DashboardRewards />} />
+                    <Route path="/inbox" element={<DashboardInbox />} />
+                    <Route path="/settings" element={<DashboardSettings />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                  </Routes>
+                </ProtectedRoute>
+              } />
 
-            {/* Admin Routes */}
-            <Route path="/admin/*" element={
-              <ProtectedRoute adminOnly>
-                <Routes>
-                  <Route path="/" element={<AdminPanel />} />
-                  <Route path="/dashboard" element={<AdminPanel />} />
-                  <Route path="/materials" element={<AdminPanel />} />
-                  <Route path="/papers" element={<AdminPanel />} />
-                  <Route path="/blog" element={<AdminPanel />} />
-                  <Route path="/users" element={<AdminPanel />} />
-                  <Route path="/stats" element={<AdminPanel />} />
-                  <Route path="/achievements" element={<AdminPanel />} />
-                  <Route path="/categories" element={<AdminPanel />} />
-                  <Route path="/grades" element={<AdminPanel />} />
-                  <Route path="/marketplace" element={<AdminPanel />} />
-                  <Route path="/queries" element={<AdminPanel />} />
-                  <Route path="/analytics" element={<AdminPanel />} />
-                  <Route path="/ads" element={<AdminPanel />} />
-                  <Route path="/ad-placements" element={<AdminPanel />} />
-                  <Route path="/settings" element={<AdminPanel />} />
-                </Routes>
-              </ProtectedRoute>
-            } />
+              {/* Admin Routes */}
+              <Route path="/admin/*" element={
+                <ProtectedRoute adminOnly>
+                  <Routes>
+                    <Route path="/" element={<AdminPanel />} />
+                    <Route path="/dashboard" element={<AdminPanel />} />
+                    <Route path="/materials" element={<AdminPanel />} />
+                    <Route path="/papers" element={<AdminPanel />} />
+                    <Route path="/blog" element={<AdminPanel />} />
+                    <Route path="/users" element={<AdminPanel />} />
+                    <Route path="/stats" element={<AdminPanel />} />
+                    <Route path="/achievements" element={<AdminPanel />} />
+                    <Route path="/categories" element={<AdminPanel />} />
+                    <Route path="/grades" element={<AdminPanel />} />
+                    <Route path="/marketplace" element={<AdminPanel />} />
+                    <Route path="/queries" element={<AdminPanel />} />
+                    <Route path="/analytics" element={<AdminPanel />} />
+                    <Route path="/ads" element={<AdminPanel />} />
+                    <Route path="/ad-placements" element={<AdminPanel />} />
+                    <Route path="/settings" element={<AdminPanel />} />
+                  </Routes>
+                </ProtectedRoute>
+              } />
 
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AdsProvider>
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AdsProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );
