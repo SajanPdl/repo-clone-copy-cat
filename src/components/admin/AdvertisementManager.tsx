@@ -117,8 +117,7 @@ const AdvertisementManager = () => {
     position: 'sidebar' as 'sidebar' | 'content' | 'footer' | 'header',
     content: '',
     image_url: '',
-    link_url: '',
-    ad_type: 'banner'
+    link_url: ''
   });
   
   
@@ -153,7 +152,6 @@ const AdvertisementManager = () => {
       image_url: formData.image_url,
       link_url: formData.link_url,
       position: formData.position,
-      ad_type: formData.ad_type,
       is_active: true
     });
     
@@ -162,8 +160,7 @@ const AdvertisementManager = () => {
       position: 'sidebar',
       content: '',
       image_url: '',
-      link_url: '',
-      ad_type: 'banner'
+      link_url: ''
     });
     
     setNewAdOpen(false);
@@ -226,9 +223,6 @@ const AdvertisementManager = () => {
                       </Badge>
                       <Badge className="capitalize px-2 py-1 bg-blue-100 text-blue-800">
                         {ad.position}
-                      </Badge>
-                      <Badge className="capitalize px-2 py-1 bg-purple-100 text-purple-800">
-                        {ad.ad_type}
                       </Badge>
                     </div>
                   </div>
@@ -307,24 +301,6 @@ const AdvertisementManager = () => {
                   <SelectItem value="content">Content</SelectItem>
                   <SelectItem value="footer">Footer</SelectItem>
                   <SelectItem value="header">Header</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ad Type</label>
-              <Select 
-                value={formData.ad_type} 
-                onValueChange={(value) => handleSelectChange('ad_type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select ad type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="banner">Banner</SelectItem>
-                  <SelectItem value="adsterra">Adsterra</SelectItem>
-                  <SelectItem value="adsense">Google AdSense</SelectItem>
-                  <SelectItem value="popunder">Popunder</SelectItem>
-                  <SelectItem value="native">Native Ad</SelectItem>
                 </SelectContent>
               </Select>
             </div>

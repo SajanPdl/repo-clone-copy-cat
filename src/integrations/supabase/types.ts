@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       advertisements: {
         Row: {
-          ad_type: string | null
           content: string | null
           created_at: string | null
           id: number
@@ -27,7 +26,6 @@ export type Database = {
           title: string
         }
         Insert: {
-          ad_type?: string | null
           content?: string | null
           created_at?: string | null
           id?: number
@@ -38,7 +36,6 @@ export type Database = {
           title: string
         }
         Update: {
-          ad_type?: string | null
           content?: string | null
           created_at?: string | null
           id?: number
@@ -86,30 +83,6 @@ export type Database = {
           is_published?: boolean | null
           title?: string
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      bookmarks: {
-        Row: {
-          content_id: string
-          content_type: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          content_id: string
-          content_type: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          content_id?: string
-          content_type?: string
-          created_at?: string
-          id?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -220,142 +193,6 @@ export type Database = {
         }
         Relationships: []
       }
-      marketplace_favorites: {
-        Row: {
-          created_at: string
-          id: string
-          listing_id: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          listing_id?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          listing_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "marketplace_favorites_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      marketplace_inquiries: {
-        Row: {
-          contact_info: Json | null
-          created_at: string
-          id: string
-          inquirer_id: string
-          listing_id: string | null
-          message: string
-          status: string | null
-        }
-        Insert: {
-          contact_info?: Json | null
-          created_at?: string
-          id?: string
-          inquirer_id: string
-          listing_id?: string | null
-          message: string
-          status?: string | null
-        }
-        Update: {
-          contact_info?: Json | null
-          created_at?: string
-          id?: string
-          inquirer_id?: string
-          listing_id?: string | null
-          message?: string
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "marketplace_inquiries_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      marketplace_listings: {
-        Row: {
-          category: string
-          condition: string | null
-          contact_info: Json | null
-          created_at: string
-          description: string | null
-          id: string
-          images: string[] | null
-          interest_count: number | null
-          is_approved: boolean | null
-          is_featured: boolean | null
-          is_free: boolean | null
-          location: string | null
-          price: number | null
-          status: string | null
-          subject: string | null
-          title: string
-          university: string | null
-          updated_at: string
-          user_id: string
-          views_count: number | null
-        }
-        Insert: {
-          category: string
-          condition?: string | null
-          contact_info?: Json | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          images?: string[] | null
-          interest_count?: number | null
-          is_approved?: boolean | null
-          is_featured?: boolean | null
-          is_free?: boolean | null
-          location?: string | null
-          price?: number | null
-          status?: string | null
-          subject?: string | null
-          title: string
-          university?: string | null
-          updated_at?: string
-          user_id: string
-          views_count?: number | null
-        }
-        Update: {
-          category?: string
-          condition?: string | null
-          contact_info?: Json | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          images?: string[] | null
-          interest_count?: number | null
-          is_approved?: boolean | null
-          is_featured?: boolean | null
-          is_free?: boolean | null
-          location?: string | null
-          price?: number | null
-          status?: string | null
-          subject?: string | null
-          title?: string
-          university?: string | null
-          updated_at?: string
-          user_id?: string
-          views_count?: number | null
-        }
-        Relationships: []
-      }
       past_papers: {
         Row: {
           board: string | null
@@ -436,125 +273,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      seller_ratings: {
-        Row: {
-          buyer_id: string
-          created_at: string
-          id: string
-          listing_id: string | null
-          rating: number | null
-          review: string | null
-          seller_id: string
-        }
-        Insert: {
-          buyer_id: string
-          created_at?: string
-          id?: string
-          listing_id?: string | null
-          rating?: number | null
-          review?: string | null
-          seller_id: string
-        }
-        Update: {
-          buyer_id?: string
-          created_at?: string
-          id?: string
-          listing_id?: string | null
-          rating?: number | null
-          review?: string | null
-          seller_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "seller_ratings_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      student_activities: {
-        Row: {
-          activity_type: string
-          created_at: string
-          description: string | null
-          id: string
-          points_earned: number | null
-          user_id: string
-        }
-        Insert: {
-          activity_type: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          points_earned?: number | null
-          user_id: string
-        }
-        Update: {
-          activity_type?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          points_earned?: number | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      student_profiles: {
-        Row: {
-          achievements: Json | null
-          bio: string | null
-          course: string | null
-          created_at: string
-          id: string
-          level: string | null
-          points: number | null
-          profile_image: string | null
-          total_downloads: number | null
-          total_sales: number | null
-          total_uploads: number | null
-          university: string | null
-          updated_at: string
-          user_id: string
-          year_of_study: number | null
-        }
-        Insert: {
-          achievements?: Json | null
-          bio?: string | null
-          course?: string | null
-          created_at?: string
-          id?: string
-          level?: string | null
-          points?: number | null
-          profile_image?: string | null
-          total_downloads?: number | null
-          total_sales?: number | null
-          total_uploads?: number | null
-          university?: string | null
-          updated_at?: string
-          user_id: string
-          year_of_study?: number | null
-        }
-        Update: {
-          achievements?: Json | null
-          bio?: string | null
-          course?: string | null
-          created_at?: string
-          id?: string
-          level?: string | null
-          points?: number | null
-          profile_image?: string | null
-          total_downloads?: number | null
-          total_sales?: number | null
-          total_uploads?: number | null
-          university?: string | null
-          updated_at?: string
-          user_id?: string
-          year_of_study?: number | null
-        }
-        Relationships: []
       }
       study_materials: {
         Row: {
@@ -666,29 +384,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_student_activity: {
-        Args: {
-          p_user_id: string
-          p_activity_type: string
-          p_points?: number
-          p_description?: string
-        }
-        Returns: undefined
-      }
-      calculate_user_level: {
-        Args: { points: number }
-        Returns: string
-      }
       increment_download_count: {
         Args: { material_id: number; table_name: string }
-        Returns: undefined
-      }
-      increment_listing_interest: {
-        Args: { listing_uuid: string }
-        Returns: undefined
-      }
-      increment_listing_views: {
-        Args: { listing_uuid: string }
         Returns: undefined
       }
       is_admin: {

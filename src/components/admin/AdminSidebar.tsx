@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -18,13 +18,13 @@ import {
   MessageSquare,
   Clock,
   ChevronLeft,
-  ShoppingCart,
-  MapPin
+  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
+import { AnimatePresence, motion } from "framer-motion";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -34,10 +34,9 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed }: AdminSidebarProps) => {
+  const [contentOpen, setContentOpen] = React.useState(true);
   const { toast } = useToast();
   const location = useLocation();
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
   
   const sidebarItems = [
     {
@@ -59,22 +58,10 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
       path: '/admin/papers'
     },
     {
-      name: 'Marketplace',
-      icon: ShoppingCart,
-      id: 'marketplace',
-      path: '/admin/marketplace'
-    },
-    {
       name: 'Categories',
       icon: Tag,
       id: 'categories',
       path: '/admin/categories'
-    },
-    {
-      name: 'Grades',
-      icon: GraduationCap,
-      id: 'grades',
-      path: '/admin/grades'
     },
     {
       name: 'Users',
@@ -95,12 +82,6 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
       path: '/admin/ads'
     },
     {
-      name: 'Ad Placements',
-      icon: MapPin,
-      id: 'ad-placements',
-      path: '/admin/ad-placements'
-    },
-    {
       name: 'Analytics',
       icon: BarChart2,
       id: 'analytics',
@@ -113,18 +94,6 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
       path: '/admin/settings'
     }
   ];
-  
-  useEffect(() => {
-    const updateDateTime = () => {
-      setCurrentTime(getNepaliTime());
-      setCurrentDate(getNepaliDate());
-    };
-    
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
   
   const handleLogout = () => {
     toast({
@@ -166,14 +135,13 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
         </Button>
       </div>
       
-      {/* Nepali Date & Time Display */}
       {!collapsed && (
-        <div className="p-4 border-b border-indigo-800 bg-indigo-800/50">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-indigo-300" />
-            <div className="text-sm">
-              <p className="font-semibold text-white">{currentTime}</p>
-              <p className="text-xs text-indigo-300">{currentDate}</p>
+        <div className="p-4 border-b border-indigo-800">
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-2 text-indigo-300" />
+            <div>
+              <p className="text-xs text-indigo-300">{new Date().toLocaleDateString()}</p>
+              <p className="text-sm font-medium">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
           </div>
         </div>
@@ -189,8 +157,8 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-start text-indigo-100 hover:text-white hover:bg-indigo-800 transition-all duration-200",
-                        (activeTab === item.id || location.pathname === item.path) && "bg-indigo-700 text-white shadow-lg",
+                        "w-full justify-start text-indigo-100 hover:text-white hover:bg-indigo-800",
+                        (activeTab === item.id || location.pathname === item.path) && "bg-indigo-700 text-white",
                         collapsed && "justify-center px-2"
                       )}
                       onClick={() => setActiveTab(item.id)}
@@ -216,7 +184,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
         collapsed && "flex flex-col items-center"
       )}>
         {!collapsed ? (
-          <div className="flex items-center p-2 rounded-md bg-indigo-800 mb-2">
+          <div className="flex items-center p-2 rounded-md bg-indigo-800">
             <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-3">
               <User className="h-4 w-4 text-white" />
             </div>
@@ -234,7 +202,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed
           <Button 
             variant="ghost" 
             className={cn(
-              "w-full justify-start text-red-300 hover:text-red-200 hover:bg-indigo-800",
+              "w-full mt-2 justify-start text-red-300 hover:text-red-200 hover:bg-indigo-800",
               collapsed && "justify-center p-2"
             )}
             onClick={handleLogout}

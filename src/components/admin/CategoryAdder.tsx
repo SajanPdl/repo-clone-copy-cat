@@ -6,8 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Category {
   id: number;
@@ -29,31 +27,10 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
   className = ''
 }) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isFormVisible, setIsFormVisible] = useState(showForm);
   const [categoryName, setCategoryName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const createMutation = useMutation({
-    mutationFn: async (newCategory: { name: string; description?: string }) => {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([newCategory])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast({
-        title: "Success",
-        description: "Category added successfully"
-      });
-    }
-  });
   
   const handleToggleForm = () => {
     setIsFormVisible(!isFormVisible);
@@ -64,7 +41,7 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
     }
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!categoryName.trim()) {
@@ -78,32 +55,30 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
     
     setIsSubmitting(true);
     
-    try {
-      const newCategory = {
-        name: categoryName.trim(),
-        description: categoryDescription.trim() || undefined
-      };
-      
-      await createMutation.mutateAsync(newCategory);
-      
-      // Call the onAddCategory callback if provided
-      if (onAddCategory) {
-        onAddCategory(newCategory);
-      }
-      
-      // Reset form
-      setCategoryName('');
-      setCategoryDescription('');
-      setIsFormVisible(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add category",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
+    // Create the new category
+    const newCategory = {
+      name: categoryName.trim(),
+      description: categoryDescription.trim() || undefined
+    };
+    
+    // Call the onAddCategory callback if provided
+    if (onAddCategory) {
+      onAddCategory(newCategory);
     }
+    
+    // Show success toast
+    toast({
+      title: "Category Added",
+      description: `${categoryName} has been added successfully.`
+    });
+    
+    // Reset form
+    setCategoryName('');
+    setCategoryDescription('');
+    setIsSubmitting(false);
+    
+    // Optionally close the form after submission
+    setIsFormVisible(false);
   };
   
   return (
