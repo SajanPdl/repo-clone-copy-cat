@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { addStudentActivity } from '@/utils/studentDashboardUtils';
 
 export interface BookmarkItem {
   id: string;
@@ -46,14 +47,14 @@ export const useBookmarks = () => {
             const { data: material } = await supabase
               .from('study_materials')
               .select('*')
-              .eq('id', parseInt(bookmark.content_id)) // Convert to integer
+              .eq('id', parseInt(bookmark.content_id))
               .single();
             materialData = material;
           } else if (bookmark.content_type === 'past_paper') {
             const { data: paper } = await supabase
               .from('past_papers')
               .select('*')
-              .eq('id', parseInt(bookmark.content_id)) // Convert to integer
+              .eq('id', parseInt(bookmark.content_id))
               .single();
             materialData = paper;
           }
@@ -89,12 +90,15 @@ export const useBookmarks = () => {
 
       if (error) throw error;
 
+      // Add points for bookmarking
+      await addStudentActivity(user.id, 'bookmark', 1, `Bookmarked ${contentType}`);
+
       toast({
         title: 'Bookmarked!',
-        description: 'Item added to your saved collection'
+        description: 'Item added to your saved collection (+1 point)'
       });
 
-      fetchBookmarks(); // Refresh bookmarks
+      fetchBookmarks();
       return true;
     } catch (error) {
       console.error('Error adding bookmark:', error);
@@ -125,7 +129,7 @@ export const useBookmarks = () => {
         description: 'Item removed from your saved collection'
       });
 
-      fetchBookmarks(); // Refresh bookmarks
+      fetchBookmarks();
       return true;
     } catch (error) {
       console.error('Error removing bookmark:', error);

@@ -30,14 +30,14 @@ import {
 const mainItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Overview', url: '/dashboard/overview', icon: BarChart3 },
-  { title: 'My Notes', url: '/dashboard/notes', icon: BookOpen },
-  { title: 'Marketplace', url: '/dashboard/marketplace', icon: ShoppingCart },
+  { title: 'My Notes', url: '/study-materials', icon: BookOpen },
+  { title: 'Marketplace', url: '/marketplace', icon: ShoppingCart },
   { title: 'Saved Items', url: '/dashboard/saved', icon: Heart },
   { title: 'Messages', url: '/dashboard/inbox', icon: MessageSquare },
 ];
 
 const profileItems = [
-  { title: 'Profile', url: '/dashboard/profile', icon: User },
+  { title: 'Profile', url: '/profile', icon: User },
   { title: 'Achievements', url: '/dashboard/achievements', icon: Trophy },
   { title: 'Rewards', url: '/dashboard/rewards', icon: Wallet },
   { title: 'Settings', url: '/dashboard/settings', icon: Settings },

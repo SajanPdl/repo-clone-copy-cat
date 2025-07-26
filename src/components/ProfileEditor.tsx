@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateAndSanitizeFormData, validateFileType, validateFileSize } from '@/utils/inputValidation';
+import { addStudentActivity } from '@/utils/studentDashboardUtils';
 import { Camera, Save, User, Mail, BookOpen, MapPin } from 'lucide-react';
 
 interface StudentProfile {
@@ -42,8 +43,18 @@ const ProfileEditor = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      trackActivity();
     }
   }, [user]);
+
+  const trackActivity = async () => {
+    if (!user) return;
+    try {
+      await addStudentActivity(user.id, 'activity', 1, 'Profile page visit');
+    } catch (error) {
+      console.error('Error tracking activity:', error);
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -157,10 +168,12 @@ const ProfileEditor = () => {
 
       // Update username in users table
       if (sanitizedData.username) {
-        await supabase
+        const { error: userError } = await supabase
           .from('users')
           .update({ username: sanitizedData.username })
           .eq('id', user.id);
+          
+        if (userError) throw userError;
       }
 
       // Update or insert student profile
@@ -173,11 +186,16 @@ const ProfileEditor = () => {
         profile_image: sanitizedData.profile_image
       };
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('student_profiles')
-        .upsert(profileData);
+        .upsert(profileData, {
+          onConflict: 'user_id'
+        });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Track profile update activity
+      await addStudentActivity(user.id, 'activity', 5, 'Profile updated');
 
       toast({
         title: 'Profile Updated!',
@@ -299,7 +317,7 @@ const ProfileEditor = () => {
               name="year_of_study"
               value={formData.year_of_study}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value={1}>1st Year</option>
               <option value={2}>2nd Year</option>

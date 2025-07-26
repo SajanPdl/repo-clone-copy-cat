@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -84,9 +85,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    // Clear local storage
-    localStorage.removeItem('eduUser');
+    try {
+      // Clear local state first
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      
+      // Clear local storage
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('eduUser');
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Supabase signOut error:', error);
+      }
+      
+      // Force page reload to clear any remaining state
+      window.location.href = '/';
+    } catch (error) {
+      console.error('SignOut error:', error);
+    }
   };
 
   const value: AuthContextType = {
