@@ -1,200 +1,106 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface StudentProfile {
-  id: string;
-  user_id: string;
-  university?: string;
-  course?: string;
-  year_of_study?: number;
-  profile_image?: string;
-  bio?: string;
-  points: number;
-  level: string;
-  total_uploads: number;
-  total_downloads: number;
-  total_sales: number;
-  achievements: any[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface StudentActivity {
-  id: string;
-  user_id: string;
-  activity_type: 'upload' | 'download' | 'sale' | 'bookmark' | 'share';
-  points_earned: number;
-  description?: string;
-  created_at: string;
-}
-
-export interface DashboardStats {
+export interface StudentStats {
   totalUploads: number;
   totalDownloads: number;
   totalSales: number;
-  totalBookmarks: number;
-  recentActivities: StudentActivity[];
-  profile: StudentProfile | null;
+  points: number;
+  level: string;
+  achievements: string[];
 }
 
-// Helper function to convert database profile to StudentProfile interface
-const convertToStudentProfile = (data: any): StudentProfile => ({
-  id: data.id,
-  user_id: data.user_id,
-  university: data.university,
-  course: data.course,
-  year_of_study: data.year_of_study,
-  profile_image: data.profile_image,
-  bio: data.bio,
-  points: data.points,
-  level: data.level,
-  total_uploads: data.total_uploads,
-  total_downloads: data.total_downloads,
-  total_sales: data.total_sales,
-  achievements: Array.isArray(data.achievements) ? data.achievements : [],
-  created_at: data.created_at,
-  updated_at: data.updated_at
-});
+export interface RecentActivity {
+  id: string;
+  type: 'upload' | 'download' | 'sale' | 'achievement';
+  description: string;
+  date: string;
+  points?: number;
+}
 
-// Helper function to convert database activity to StudentActivity interface
-const convertToStudentActivity = (data: any): StudentActivity => ({
-  id: data.id,
-  user_id: data.user_id,
-  activity_type: data.activity_type as 'upload' | 'download' | 'sale' | 'bookmark' | 'share',
-  points_earned: data.points_earned,
-  description: data.description,
-  created_at: data.created_at
-});
+export const getStudentStats = async (userId: string): Promise<StudentStats> => {
+  try {
+    // Fetch student profile
+    const { data: profile } = await supabase
+      .from('student_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-export const fetchStudentProfile = async (userId: string): Promise<StudentProfile | null> => {
-  const { data, error } = await supabase
-    .from('student_profiles')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+    if (profile) {
+      return {
+        totalUploads: profile.total_uploads || 0,
+        totalDownloads: profile.total_downloads || 0,
+        totalSales: profile.total_sales || 0,
+        points: profile.points || 0,
+        level: profile.level || 'Fresh Contributor',
+        achievements: profile.achievements || []
+      };
+    }
 
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching student profile:', error);
-    return null;
-  }
-
-  return data ? convertToStudentProfile(data) : null;
-};
-
-export const createStudentProfile = async (userId: string, profileData: Partial<StudentProfile>) => {
-  const { data, error } = await supabase
-    .from('student_profiles')
-    .insert({
-      user_id: userId,
-      ...profileData
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating student profile:', error);
-    throw error;
-  }
-
-  return convertToStudentProfile(data);
-};
-
-export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
-  // Fetch profile
-  const profile = await fetchStudentProfile(userId);
-  
-  // If no profile exists, create one
-  if (!profile) {
-    await createStudentProfile(userId, {});
-  }
-
-  // Fetch recent activities
-  const { data: activities } = await supabase
-    .from('student_activities')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  // Fetch bookmarks count
-  const { count: bookmarksCount } = await supabase
-    .from('bookmarks')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  return {
-    totalUploads: profile?.total_uploads || 0,
-    totalDownloads: profile?.total_downloads || 0,
-    totalSales: profile?.total_sales || 0,
-    totalBookmarks: bookmarksCount || 0,
-    recentActivities: (activities || []).map(convertToStudentActivity),
-    profile: profile
-  };
-};
-
-export const addStudentActivity = async (
-  userId: string,
-  activityType: StudentActivity['activity_type'],
-  points: number = 0,
-  description?: string
-) => {
-  const { error } = await supabase.rpc('add_student_activity', {
-    p_user_id: userId,
-    p_activity_type: activityType,
-    p_points: points,
-    p_description: description
-  });
-
-  if (error) {
-    console.error('Error adding student activity:', error);
-    throw error;
+    // Return default values if no profile found
+    return {
+      totalUploads: 0,
+      totalDownloads: 0,
+      totalSales: 0,
+      points: 0,
+      level: 'Fresh Contributor',
+      achievements: []
+    };
+  } catch (error) {
+    console.error('Error fetching student stats:', error);
+    return {
+      totalUploads: 0,
+      totalDownloads: 0,
+      totalSales: 0,
+      points: 0,
+      level: 'Fresh Contributor',
+      achievements: []
+    };
   }
 };
 
-export const fetchUserBookmarks = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('bookmarks')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+export const getRecentActivities = async (userId: string): Promise<RecentActivity[]> => {
+  try {
+    const { data: activities } = await supabase
+      .from('student_activities')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-  if (error) {
-    console.error('Error fetching bookmarks:', error);
+    if (activities) {
+      return activities.map(activity => ({
+        id: activity.id,
+        type: activity.activity_type as 'upload' | 'download' | 'sale' | 'achievement',
+        description: activity.description || 'Activity completed',
+        date: activity.created_at,
+        points: activity.points_earned || 0
+      }));
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching recent activities:', error);
     return [];
   }
-
-  return data || [];
 };
 
-export const addBookmark = async (userId: string, contentType: string, contentId: string) => {
-  const { data, error } = await supabase
-    .from('bookmarks')
-    .insert({
-      user_id: userId,
-      content_type: contentType,
-      content_id: contentId
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error adding bookmark:', error);
-    throw error;
-  }
-
-  return data;
+export const calculateProgress = (points: number): number => {
+  // Simple progress calculation based on points
+  const maxPoints = 1000; // Adjust based on your system
+  return Math.min((points / maxPoints) * 100, 100);
 };
 
-export const removeBookmark = async (userId: string, contentType: string, contentId: string) => {
-  const { error } = await supabase
-    .from('bookmarks')
-    .delete()
-    .eq('user_id', userId)
-    .eq('content_type', contentType)
-    .eq('content_id', contentId);
+export const getLevelInfo = (level: string) => {
+  const levels = {
+    'Fresh Contributor': { color: 'bg-green-500', nextLevel: 'Active Learner', pointsNeeded: 100 },
+    'Active Learner': { color: 'bg-blue-500', nextLevel: 'Knowledge Seeker', pointsNeeded: 250 },
+    'Knowledge Seeker': { color: 'bg-purple-500', nextLevel: 'Academic Star', pointsNeeded: 500 },
+    'Academic Star': { color: 'bg-yellow-500', nextLevel: 'Scholar', pointsNeeded: 750 },
+    'Scholar': { color: 'bg-red-500', nextLevel: 'Master', pointsNeeded: 1000 },
+    'Master': { color: 'bg-indigo-500', nextLevel: null, pointsNeeded: null }
+  };
 
-  if (error) {
-    console.error('Error removing bookmark:', error);
-    throw error;
-  }
+  return levels[level as keyof typeof levels] || levels['Fresh Contributor'];
 };
