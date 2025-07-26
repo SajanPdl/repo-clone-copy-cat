@@ -30,8 +30,7 @@ const Index = () => {
     initial: { opacity: 0, y: 50 },
     animate: { 
       opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
+      y: 0
     }
   };
 
@@ -48,7 +47,10 @@ const Index = () => {
       {/* Header Ad Placement */}
       <AdPlacement position="header" className="sticky top-0 z-40" />
       
-      <motion.main variants={sectionVariants}>
+      <motion.main 
+        variants={sectionVariants}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         <Hero />
       </motion.main>
 
@@ -92,7 +94,10 @@ const Index = () => {
       {/* Footer Ad Placement */}
       <AdPlacement position="footer" className="mb-4" />
       
-      <motion.footer variants={sectionVariants}>
+      <motion.footer 
+        variants={sectionVariants}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         <Footer />
       </motion.footer>
     </motion.div>
