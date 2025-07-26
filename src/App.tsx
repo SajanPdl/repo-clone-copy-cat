@@ -34,6 +34,7 @@ import MarketplaceManager from "./components/admin/MarketplaceManager";
 import AdvertisementManager from "./components/admin/AdvertisementManager";
 import AdPlacementManager from "./components/admin/AdPlacementManager";
 import { AdsProvider } from "./components/ads/AdsProvider";
+import { AuthProvider } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient();
 
@@ -42,69 +43,71 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
-          <AdsProvider>
-            <Toaster />
-            <BrowserRouter>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/study-materials" element={<StudyMaterialsPage />} />
-                  <Route path="/past-papers" element={<PastPapersPage />} />
-                  <Route path="/blog" element={<BlogPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/marketplace" element={<MarketplacePage />} />
-                  <Route path="/content/:id" element={<ContentViewPage />} />
-                  
-                  {/* Protected Routes */}
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ProtectedRoute>
-                        <StudentDashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/profile" 
-                    element={
-                      <ProtectedRoute>
-                        <ProfilePage />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Admin Routes */}
-                  <Route 
-                    path="/admin" 
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminLayout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<AdminPanel />} />
-                    <Route path="analytics" element={<AnalyticsPage />} />
-                    <Route path="study-materials" element={<StudyMaterialsManager />} />
-                    <Route path="past-papers" element={<PastPapersManager />} />
-                    <Route path="blog" element={<BlogEditor />} />
-                    <Route path="users" element={<UserManagement />} />
-                    <Route path="categories" element={<CategoriesManager />} />
-                    <Route path="grades" element={<GradesManager />} />
-                    <Route path="ads" element={<AdSettingsManager />} />
-                    <Route path="queries" element={<QueriesManager />} />
-                    <Route path="settings" element={<AdminSettings />} />
-                    <Route path="marketplace" element={<MarketplaceManager />} />
-                    <Route path="advertisements" element={<AdvertisementManager />} />
-                    <Route path="ad-placements" element={<AdPlacementManager />} />
-                  </Route>
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-          </AdsProvider>
+          <AuthProvider>
+            <AdsProvider>
+              <Toaster />
+              <BrowserRouter>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                    <Route path="/past-papers" element={<PastPapersPage />} />
+                    <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/marketplace" element={<MarketplacePage />} />
+                    <Route path="/content/:id" element={<ContentViewPage />} />
+                    
+                    {/* Protected Routes */}
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <StudentDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/profile" 
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Admin Routes */}
+                    <Route 
+                      path="/admin" 
+                      element={
+                        <ProtectedRoute adminOnly>
+                          <AdminLayout />
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route index element={<AdminPanel />} />
+                      <Route path="analytics" element={<AnalyticsPage />} />
+                      <Route path="study-materials" element={<StudyMaterialsManager />} />
+                      <Route path="past-papers" element={<PastPapersManager />} />
+                      <Route path="blog" element={<BlogEditor />} />
+                      <Route path="users" element={<UserManagement />} />
+                      <Route path="categories" element={<CategoriesManager />} />
+                      <Route path="grades" element={<GradesManager />} />
+                      <Route path="ads" element={<AdSettingsManager />} />
+                      <Route path="queries" element={<QueriesManager />} />
+                      <Route path="settings" element={<AdminSettings />} />
+                      <Route path="marketplace" element={<MarketplaceManager />} />
+                      <Route path="advertisements" element={<AdvertisementManager />} />
+                      <Route path="ad-placements" element={<AdPlacementManager />} />
+                    </Route>
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </AdsProvider>
+          </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
