@@ -22,25 +22,9 @@ const AdPlacement: React.FC<AdPlacementProps> = ({ position, className = '' }) =
   if (adsForPosition.length === 0) {
     return null;
   }
-
-  // Position-specific classes
-  const getPositionClasses = () => {
-    switch (position) {
-      case 'sidebar':
-        return 'fixed top-20 right-4 z-30 w-80';
-      case 'header':
-        return 'w-full';
-      case 'content':
-        return 'w-full my-8';
-      case 'footer':
-        return 'w-full';
-      default:
-        return 'w-full';
-    }
-  };
   
   return (
-    <div className={`ad-placement ${getPositionClasses()} ${className}`}>
+    <div className={`ad-placement ${className}`}>
       {adsForPosition.map(ad => (
         <AdManager
           key={ad.id}
