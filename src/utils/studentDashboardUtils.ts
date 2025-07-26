@@ -10,26 +10,6 @@ export interface StudentStats {
   achievements: string[];
 }
 
-export interface StudentActivity {
-  id: string;
-  activity_type: 'upload' | 'download' | 'sale' | 'bookmark' | 'share';
-  description: string;
-  created_at: string;
-  points_earned: number;
-}
-
-export interface DashboardStats {
-  totalUploads: number;
-  totalDownloads: number;
-  totalSales: number;
-  totalBookmarks: number;
-  profile: {
-    level: string;
-    points: number;
-  };
-  recentActivities: StudentActivity[];
-}
-
 export interface RecentActivity {
   id: string;
   type: 'upload' | 'download' | 'sale' | 'achievement';
@@ -54,7 +34,7 @@ export const getStudentStats = async (userId: string): Promise<StudentStats> => 
         totalSales: profile.total_sales || 0,
         points: profile.points || 0,
         level: profile.level || 'Fresh Contributor',
-        achievements: Array.isArray(profile.achievements) ? profile.achievements.map(String) : []
+        achievements: profile.achievements || []
       };
     }
 
@@ -80,7 +60,7 @@ export const getStudentStats = async (userId: string): Promise<StudentStats> => 
   }
 };
 
-export const getRecentActivities = async (userId: string): Promise<StudentActivity[]> => {
+export const getRecentActivities = async (userId: string): Promise<RecentActivity[]> => {
   try {
     const { data: activities } = await supabase
       .from('student_activities')
@@ -92,10 +72,10 @@ export const getRecentActivities = async (userId: string): Promise<StudentActivi
     if (activities) {
       return activities.map(activity => ({
         id: activity.id,
-        activity_type: activity.activity_type as 'upload' | 'download' | 'sale' | 'bookmark' | 'share',
+        type: activity.activity_type as 'upload' | 'download' | 'sale' | 'achievement',
         description: activity.description || 'Activity completed',
-        created_at: activity.created_at,
-        points_earned: activity.points_earned || 0
+        date: activity.created_at,
+        points: activity.points_earned || 0
       }));
     }
 
@@ -103,45 +83,6 @@ export const getRecentActivities = async (userId: string): Promise<StudentActivi
   } catch (error) {
     console.error('Error fetching recent activities:', error);
     return [];
-  }
-};
-
-export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
-  try {
-    // Fetch student profile
-    const { data: profile } = await supabase
-      .from('student_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    // Fetch recent activities
-    const recentActivities = await getRecentActivities(userId);
-
-    return {
-      totalUploads: profile?.total_uploads || 0,
-      totalDownloads: profile?.total_downloads || 0,
-      totalSales: profile?.total_sales || 0,
-      totalBookmarks: 0, // This would need to be implemented based on your bookmarks table
-      profile: {
-        level: profile?.level || 'Fresh Contributor',
-        points: profile?.points || 0,
-      },
-      recentActivities
-    };
-  } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
-    return {
-      totalUploads: 0,
-      totalDownloads: 0,
-      totalSales: 0,
-      totalBookmarks: 0,
-      profile: {
-        level: 'Fresh Contributor',
-        points: 0,
-      },
-      recentActivities: []
-    };
   }
 };
 
