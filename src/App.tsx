@@ -1,12 +1,12 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import { QueryClient } from '@tanstack/react-query';
 
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
 import BlogPage from '@/pages/BlogPage';
-import BlogPostView from '@/pages/BlogPostView';
 import ContactPage from '@/pages/ContactPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
@@ -16,25 +16,27 @@ import MarketplacePage from '@/pages/MarketplacePage';
 
 // Student Dashboard Pages
 import StudentDashboard from '@/pages/StudentDashboard';
-import DashboardOverview from '@/components/dashboard/DashboardOverview';
-import DashboardAchievements from '@/components/dashboard/DashboardAchievements';
-import DashboardRewards from '@/components/dashboard/DashboardRewards';
-import DashboardInbox from '@/components/dashboard/DashboardInbox';
-import DashboardSettings from '@/components/dashboard/DashboardSettings';
+import DashboardOverview from '@/pages/DashboardOverview';
+import DashboardAchievements from '@/pages/DashboardAchievements';
+import DashboardRewards from '@/pages/DashboardRewards';
+import DashboardInbox from '@/pages/DashboardInbox';
+import DashboardSettings from '@/pages/DashboardSettings';
 import ProfilePage from '@/pages/ProfilePage';
 
 // Admin Panel
 import AdminPanel from '@/pages/AdminPanel';
 
-// Auth Components
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import NotFound from '@/components/NotFound';
+// Components
+import ProtectedRoute from '@/components/ProtectedRoute';
+import NotFound from '@/pages/NotFound';
 import { AdsProvider } from '@/components/ads/AdsProvider';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <BrowserRouter>
-      <QueryClient>
+      <QueryClientProvider client={queryClient}>
         <AdsProvider>
           <Toaster />
           <Routes>
@@ -42,7 +44,6 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:id" element={<BlogPostView />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/study-materials" element={<StudyMaterialsPage />} />
@@ -52,6 +53,11 @@ function App() {
             <Route path="/marketplace" element={<MarketplacePage />} />
             
             {/* Student Dashboard Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/student/*" element={
               <ProtectedRoute>
                 <Routes>
@@ -95,7 +101,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AdsProvider>
-      </QueryClient>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }
