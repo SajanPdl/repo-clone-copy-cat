@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { validateAndSanitizeFormData, sanitizeHTML, validateFileType, validateFileSize } from '@/utils/inputValidation';
+import { validateAndSanitizeFormData, sanitizeHTML } from '@/utils/inputValidation';
 import { Shield, AlertTriangle } from 'lucide-react';
 
 interface Advertisement {
@@ -69,10 +69,8 @@ const SecureAdManager = () => {
     if (!user) return;
 
     try {
-      // Validate and sanitize form data
       const sanitizedData = validateAndSanitizeFormData(formData);
       
-      // Additional validation
       if (!sanitizedData.title || !sanitizedData.content) {
         toast({
           title: 'Validation Error',
@@ -82,14 +80,17 @@ const SecureAdManager = () => {
         return;
       }
 
-      // Sanitize HTML content
       const sanitizedContent = sanitizeHTML(sanitizedData.content);
 
       const { error } = await supabase
         .from('advertisements')
         .insert({
-          ...sanitizedData,
+          title: sanitizedData.title,
           content: sanitizedContent,
+          image_url: sanitizedData.image_url,
+          link_url: sanitizedData.link_url,
+          position: sanitizedData.position,
+          ad_type: sanitizedData.ad_type,
           is_active: true
         });
 

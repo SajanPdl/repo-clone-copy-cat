@@ -1,4 +1,5 @@
 
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,84 +10,65 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import StudyMaterialsPage from "./pages/StudyMaterialsPage";
 import PastPapersPage from "./pages/PastPapersPage";
-import MarketplacePage from "./pages/MarketplacePage";
 import BlogPage from "./pages/BlogPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
-import AdminPanel from "./pages/AdminPanel";
-import ContentViewPage from "./pages/ContentViewPage";
-import NotFound from "./pages/NotFound";
-import ChatBot from "./components/ChatBot";
-import AdminLayout from "./components/admin/AdminLayout";
-import StudyMaterialsManager from "./components/admin/StudyMaterialsManager";
-import PastPapersManager from "./components/admin/PastPapersManager";
-import MarketplaceManager from "./components/admin/MarketplaceManager";
-import UserManagement from "./components/admin/UserManagement";
-import BlogEditor from "./components/admin/BlogEditor";
-import AdvertisementManager from "./components/admin/AdvertisementManager";
-import CategoriesManager from "./components/admin/CategoriesManager";
-import GradesManager from "./components/admin/GradesManager";
-import AdminSettings from "./components/admin/AdminSettings";
-import AnalyticsPage from "./components/admin/AnalyticsPage";
-import QueriesManager from "./components/admin/QueriesManager";
-import { AdsProvider } from "./components/ads/AdsProvider";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentDashboard from "./pages/StudentDashboard";
+import ProfilePage from "./pages/ProfilePage";
+import ContentViewPage from "./pages/ContentViewPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import AdminPanel from "./pages/AdminPanel";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <AdsProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/study-materials" element={<StudyMaterialsPage />} />
-              <Route path="/past-papers" element={<PastPapersPage />} />
-              <Route path="/marketplace" element={<MarketplacePage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/:id" element={<ContentViewPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/study-materials" element={<StudyMaterialsPage />} />
+            <Route path="/past-papers" element={<PastPapersPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/content/:id" element={<ContentViewPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route 
+              path="/dashboard" 
+              element={
                 <ProtectedRoute>
                   <StudentDashboard />
                 </ProtectedRoute>
-              } />
-              
-              {/* Admin routes with proper protection */}
-              <Route path="/admin" element={
-                <ProtectedRoute adminOnly>
-                  <AdminLayout />
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
-              }>
-                <Route index element={<AdminPanel />} />
-                <Route path="materials" element={<StudyMaterialsManager />} />
-                <Route path="papers" element={<PastPapersManager />} />
-                <Route path="marketplace" element={<MarketplaceManager />} />
-                <Route path="blogs" element={<BlogEditor />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="ads" element={<AdvertisementManager />} />
-                <Route path="categories" element={<CategoriesManager />} />
-                <Route path="grades" element={<GradesManager />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="queries" element={<QueriesManager />} />
-              </Route>
-              
-              <Route path="/content/:id" element={<ContentViewPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <ChatBot />
-          </BrowserRouter>
-        </AdsProvider>
-      </AuthProvider>
-    </TooltipProvider>
+              } 
+            />
+            <Route 
+              path="/admin/*" 
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
