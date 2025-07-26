@@ -150,7 +150,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
       {/* Ad Placement */}
       <div className="p-2 bg-gray-100 border-b">
-        <AdPlacement placement="pdf-viewer-top" />
+        <AdPlacement position="content" />
       </div>
 
       {/* PDF Content */}
@@ -188,7 +188,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
       {/* Bottom Ad Placement */}
       <div className="p-2 bg-gray-100 border-t">
-        <AdPlacement placement="pdf-viewer-bottom" />
+        <AdPlacement position="footer" />
       </div>
 
       {/* Page Info */}

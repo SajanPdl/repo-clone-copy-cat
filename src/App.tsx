@@ -26,6 +26,7 @@ import ProfilePage from '@/pages/ProfilePage';
 
 // Admin Panel
 import AdminPanel from '@/pages/AdminPanel';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 // Components
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -75,27 +76,29 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Admin Routes */}
+              {/* Admin Routes with Layout */}
               <Route path="/admin/*" element={
                 <ProtectedRoute adminOnly>
-                  <Routes>
-                    <Route path="/" element={<AdminPanel />} />
-                    <Route path="/dashboard" element={<AdminPanel />} />
-                    <Route path="/materials" element={<AdminPanel />} />
-                    <Route path="/papers" element={<AdminPanel />} />
-                    <Route path="/blog" element={<AdminPanel />} />
-                    <Route path="/users" element={<AdminPanel />} />
-                    <Route path="/stats" element={<AdminPanel />} />
-                    <Route path="/achievements" element={<AdminPanel />} />
-                    <Route path="/categories" element={<AdminPanel />} />
-                    <Route path="/grades" element={<AdminPanel />} />
-                    <Route path="/marketplace" element={<AdminPanel />} />
-                    <Route path="/queries" element={<AdminPanel />} />
-                    <Route path="/analytics" element={<AdminPanel />} />
-                    <Route path="/ads" element={<AdminPanel />} />
-                    <Route path="/ad-placements" element={<AdminPanel />} />
-                    <Route path="/settings" element={<AdminPanel />} />
-                  </Routes>
+                  <AdminLayout>
+                    <Routes>
+                      <Route path="/" element={<AdminPanel />} />
+                      <Route path="/dashboard" element={<AdminPanel />} />
+                      <Route path="/materials" element={<AdminPanel />} />
+                      <Route path="/papers" element={<AdminPanel />} />
+                      <Route path="/blog" element={<AdminPanel />} />
+                      <Route path="/users" element={<AdminPanel />} />
+                      <Route path="/stats" element={<AdminPanel />} />
+                      <Route path="/achievements" element={<AdminPanel />} />
+                      <Route path="/categories" element={<AdminPanel />} />
+                      <Route path="/grades" element={<AdminPanel />} />
+                      <Route path="/marketplace" element={<AdminPanel />} />
+                      <Route path="/queries" element={<AdminPanel />} />
+                      <Route path="/analytics" element={<AdminPanel />} />
+                      <Route path="/ads" element={<AdminPanel />} />
+                      <Route path="/ad-placements" element={<AdminPanel />} />
+                      <Route path="/settings" element={<AdminPanel />} />
+                    </Routes>
+                  </AdminLayout>
                 </ProtectedRoute>
               } />
 
