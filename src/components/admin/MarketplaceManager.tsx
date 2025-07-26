@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Search, Eye, Heart, MapPin, Calendar, Check, X, Star, Trash2 } from 'lucide-react';
 import { 
-  fetchMarketplaceListings, 
   updateMarketplaceListing, 
   deleteMarketplaceListing,
   MarketplaceListing 
@@ -23,6 +21,30 @@ const MarketplaceManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [approvalFilter, setApprovalFilter] = useState('all');
+
+  // Helper function to convert database row to MarketplaceListing
+  const convertToMarketplaceListing = (dbRow: any): MarketplaceListing => ({
+    id: dbRow.id,
+    user_id: dbRow.user_id,
+    title: dbRow.title,
+    description: dbRow.description,
+    category: dbRow.category as MarketplaceListing['category'],
+    subject: dbRow.subject,
+    university: dbRow.university,
+    price: dbRow.price,
+    is_free: dbRow.is_free,
+    condition: dbRow.condition as MarketplaceListing['condition'],
+    location: dbRow.location,
+    contact_info: dbRow.contact_info,
+    images: dbRow.images,
+    status: dbRow.status as MarketplaceListing['status'],
+    is_featured: dbRow.is_featured,
+    is_approved: dbRow.is_approved,
+    views_count: dbRow.views_count,
+    interest_count: dbRow.interest_count,
+    created_at: dbRow.created_at,
+    updated_at: dbRow.updated_at
+  });
 
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ['admin-marketplace-listings', searchTerm, statusFilter, approvalFilter],
@@ -51,7 +73,7 @@ const MarketplaceManager: React.FC = () => {
         throw new Error('Failed to fetch listings');
       }
 
-      return data || [];
+      return (data || []).map(convertToMarketplaceListing);
     }
   });
 
@@ -99,7 +121,7 @@ const MarketplaceManager: React.FC = () => {
 
   const handleStatusChange = async (listing: MarketplaceListing, newStatus: string) => {
     try {
-      await updateMarketplaceListing(listing.id, { status: newStatus as any });
+      await updateMarketplaceListing(listing.id, { status: newStatus as MarketplaceListing['status'] });
       
       toast({
         title: "Status updated",
