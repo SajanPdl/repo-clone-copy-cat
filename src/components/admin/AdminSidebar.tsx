@@ -107,11 +107,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           {menuItems.map((item, index) => {
             const isActive = item.route ? location.pathname === item.route : activeTab === item.id;
             
-            const ItemComponent = item.route ? Link : 'button';
-            const itemProps = item.route 
-              ? { to: item.route } 
-              : { onClick: () => handleItemClick(item) };
-
             return (
               <motion.div
                 key={item.id}
@@ -119,39 +114,75 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <ItemComponent
-                  {...itemProps}
-                  className={cn(
-                    "w-full flex items-center rounded-lg p-3 text-left transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700",
-                    isActive && "bg-gradient-to-r text-white shadow-md",
-                    isActive && item.color,
-                    !isActive && "text-gray-700 dark:text-gray-300"
-                  )}
-                >
-                  <div className="flex items-center space-x-3">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <item.icon className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        collapsed && "h-6 w-6"
-                      )} />
-                    </motion.div>
-                    
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="font-medium"
-                      >
-                        {item.label}
-                      </motion.span>
+                {item.route ? (
+                  <Link
+                    to={item.route}
+                    className={cn(
+                      "w-full flex items-center rounded-lg p-3 text-left transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+                      isActive && "bg-gradient-to-r text-white shadow-md",
+                      isActive && item.color,
+                      !isActive && "text-gray-700 dark:text-gray-300"
                     )}
-                  </div>
-                </ItemComponent>
+                  >
+                    <div className="flex items-center space-x-3">
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <item.icon className={cn(
+                          "h-5 w-5 flex-shrink-0",
+                          collapsed && "h-6 w-6"
+                        )} />
+                      </motion.div>
+                      
+                      {!collapsed && (
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ delay: 0.1 }}
+                          className="font-medium"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </div>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    className={cn(
+                      "w-full flex items-center rounded-lg p-3 text-left transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+                      isActive && "bg-gradient-to-r text-white shadow-md",
+                      isActive && item.color,
+                      !isActive && "text-gray-700 dark:text-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <item.icon className={cn(
+                          "h-5 w-5 flex-shrink-0",
+                          collapsed && "h-6 w-6"
+                        )} />
+                      </motion.div>
+                      
+                      {!collapsed && (
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ delay: 0.1 }}
+                          className="font-medium"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </div>
+                  </button>
+                )}
               </motion.div>
             );
           })}
