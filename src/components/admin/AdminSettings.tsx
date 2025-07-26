@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   GraduationCap, 
@@ -28,401 +29,722 @@ import {
   Shield, 
   Paintbrush, 
   Globe, 
-  Image
+  Image,
+  Settings,
+  Search,
+  CreditCard,
+  Database,
+  FileText,
+  Link,
+  Upload,
+  TestTube,
+  Download,
+  RotateCcw
 } from 'lucide-react';
+import { fetchRealNepaliDate } from '@/utils/nepaliDate';
 
 const AdminSettings = () => {
   const { toast } = useToast();
-  const [siteSettings, setSiteSettings] = useState({
-    siteTitle: 'EduSanskriti',
+  const [currentTime, setCurrentTime] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+  
+  // General Settings
+  const [generalSettings, setGeneralSettings] = useState({
+    siteName: 'EduSanskriti',
     siteDescription: 'Educational platform for students',
-    contactEmail: 'contact@edusanskriti.com',
-    footerText: '© 2023 EduSanskriti. All rights reserved.',
-    logoUrl: '/logo.png',
+    defaultLanguage: 'en',
+    theme: 'light',
+    maintenanceMode: false,
+    logoUrl: '/logo.png'
+  });
+
+  // SEO Settings
+  const [seoSettings, setSeoSettings] = useState({
+    metaTitle: 'EduSanskriti - Learn & Grow',
+    metaDescription: 'Best educational platform for Nepali students',
     faviconUrl: '/favicon.ico',
+    ogImage: '/og-image.jpg',
+    ogTitle: 'EduSanskriti',
+    ogDescription: 'Educational platform for students',
+    googleAnalyticsId: '',
+    enableSitemap: true
   });
-  
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    newsletterFrequency: 'weekly',
-    adminAlerts: true
+
+  // Payment Settings
+  const [paymentSettings, setPaymentSettings] = useState({
+    enablePaidPlans: true,
+    enableStripe: false,
+    enableKhalti: false,
+    enableEsewa: false,
+    stripePublicKey: '',
+    stripeSecretKey: '',
+    khaltiPublicKey: '',
+    esewaId: '',
+    currency: 'NPR'
   });
-  
-  const [appearanceSettings, setAppearanceSettings] = useState({
-    darkMode: false,
-    primaryColor: '#6A26A9',
-    secondaryColor: '#F97316',
-    fontFamily: 'Inter, sans-serif',
-    enableAnimations: true,
+
+  // Email Configuration
+  const [emailSettings, setEmailSettings] = useState({
+    smtpHost: '',
+    smtpPort: 587,
+    smtpUsername: '',
+    smtpPassword: '',
+    senderName: 'EduSanskriti',
+    senderEmail: 'no-reply@edusanskriti.com',
+    enableTLS: true
   });
-  
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    passwordRequireSpecialChar: true,
-    sessionTimeout: 30,
-    ipRestriction: false
+
+  // Footer & Contact
+  const [contactSettings, setContactSettings] = useState({
+    contactEmail: 'contact@edusanskriti.com',
+    contactPhone: '+977-1-4567890',
+    facebookUrl: '',
+    linkedinUrl: '',
+    discordUrl: '',
+    footerText: '© 2024 EduSanskriti. All rights reserved.'
   });
-  
-  // Handle dark mode toggle
+
+  // Backup & Version
+  const [systemSettings, setSystemSettings] = useState({
+    currentVersion: '1.0.0',
+    autoBackupFrequency: 'daily',
+    changeLog: ''
+  });
+
+  // Update Nepali time
   useEffect(() => {
-    // Apply dark mode to document based on the setting
-    if (appearanceSettings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [appearanceSettings.darkMode]);
-  
-  const handleSiteSettingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setSiteSettings({
-      ...siteSettings,
-      [e.target.name]: e.target.value
-    });
-  };
-  
-  const handleNotificationSettingChange = (key: string, value: boolean | string) => {
-    setNotificationSettings({
-      ...notificationSettings,
+    const updateNepaliTime = async () => {
+      try {
+        const nepaliDate = await fetchRealNepaliDate();
+        setCurrentTime(nepaliDate.time);
+        setCurrentDate(nepaliDate.formattedNepali);
+      } catch (error) {
+        console.error('Error fetching Nepali time:', error);
+      }
+    };
+
+    updateNepaliTime();
+    const interval = setInterval(updateNepaliTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleGeneralSettingChange = (key: string, value: any) => {
+    setGeneralSettings(prev => ({
+      ...prev,
       [key]: value
-    });
+    }));
   };
-  
-  const handleAppearanceSettingChange = (key: string, value: boolean | string) => {
-    setAppearanceSettings({
-      ...appearanceSettings,
+
+  const handleSeoSettingChange = (key: string, value: any) => {
+    setSeoSettings(prev => ({
+      ...prev,
       [key]: value
-    });
+    }));
   };
-  
-  const handleSecuritySettingChange = (key: string, value: boolean | number) => {
-    setSecuritySettings({
-      ...securitySettings,
+
+  const handlePaymentSettingChange = (key: string, value: any) => {
+    setPaymentSettings(prev => ({
+      ...prev,
       [key]: value
-    });
+    }));
   };
-  
-  const handleSaveSiteSettings = () => {
+
+  const handleEmailSettingChange = (key: string, value: any) => {
+    setEmailSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleContactSettingChange = (key: string, value: any) => {
+    setContactSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleSystemSettingChange = (key: string, value: any) => {
+    setSystemSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleSaveSettings = (section: string) => {
     toast({
       title: "Settings Saved",
-      description: "Your site settings have been updated successfully.",
+      description: `${section} settings have been updated successfully.`,
     });
   };
-  
-  const handleSaveNotificationSettings = () => {
+
+  const handleTestEmailConnection = () => {
     toast({
-      title: "Notification Settings Updated",
-      description: "Your notification preferences have been saved.",
+      title: "Testing Email Connection",
+      description: "Sending test email...",
     });
   };
-  
-  const handleSaveAppearanceSettings = () => {
+
+  const handleBackup = () => {
     toast({
-      title: "Appearance Settings Updated",
-      description: "Your appearance preferences have been saved.",
-    });
-    
-    // In a real app, you'd store these settings in localStorage or a database
-    localStorage.setItem('darkMode', appearanceSettings.darkMode.toString());
-    localStorage.setItem('primaryColor', appearanceSettings.primaryColor);
-  };
-  
-  const handleSaveSecuritySettings = () => {
-    toast({
-      title: "Security Settings Updated",
-      description: "Your security settings have been saved.",
+      title: "Backup Created",
+      description: "System backup has been created successfully.",
     });
   };
-  
+
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="site">
-        <TabsList className="mb-6">
-          <TabsTrigger value="site" className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4" />
-            Site Settings
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Site Settings</h1>
+        <div className="text-right text-sm text-gray-600">
+          <p className="font-semibold">{currentTime}</p>
+          <p>{currentDate}</p>
+        </div>
+      </div>
+      
+      <Tabs defaultValue="general">
+        <TabsList className="mb-6 grid w-full grid-cols-4 lg:grid-cols-7">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            General
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsTrigger value="seo" className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            SEO
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payment
+          </TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Email
+          </TabsTrigger>
+          <TabsTrigger value="contact" className="flex items-center gap-2">
+            <Link className="h-4 w-4" />
+            Contact
+          </TabsTrigger>
+          <TabsTrigger value="backup" className="flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            Backup
+          </TabsTrigger>
+          <TabsTrigger value="ads" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Paintbrush className="h-4 w-4" />
-            Appearance
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Security
+            Ad Areas
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="site">
+        {/* General Settings Tab */}
+        <TabsContent value="general">
           <Card>
             <CardHeader>
-              <CardTitle>Site Settings</CardTitle>
-              <CardDescription>
-                Manage your website's general settings and information
-              </CardDescription>
+              <CardTitle>General Settings</CardTitle>
+              <CardDescription>Configure basic site settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="siteTitle">Site Title</Label>
+                <Label htmlFor="siteName">Website Name</Label>
                 <Input
-                  id="siteTitle"
-                  name="siteTitle"
-                  value={siteSettings.siteTitle}
-                  onChange={handleSiteSettingChange}
+                  id="siteName"
+                  value={generalSettings.siteName}
+                  onChange={(e) => handleGeneralSettingChange('siteName', e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="siteDescription">Site Description</Label>
                 <Textarea
                   id="siteDescription"
-                  name="siteDescription"
-                  value={siteSettings.siteDescription}
-                  onChange={handleSiteSettingChange}
+                  value={generalSettings.siteDescription}
+                  onChange={(e) => handleGeneralSettingChange('siteDescription', e.target.value)}
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact Email</Label>
-                <Input
-                  id="contactEmail"
-                  name="contactEmail"
-                  type="email"
-                  value={siteSettings.contactEmail}
-                  onChange={handleSiteSettingChange}
+                <Label htmlFor="logoUrl">Logo Upload</Label>
+                <div className="flex items-center gap-4">
+                  <img src={generalSettings.logoUrl} alt="Logo" className="w-12 h-12 object-cover rounded" />
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Logo
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="defaultLanguage">Default Language</Label>
+                <Select value={generalSettings.defaultLanguage} onValueChange={(value) => handleGeneralSettingChange('defaultLanguage', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="ne">नेपाली (Nepali)</SelectItem>
+                    <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Theme</Label>
+                  <p className="text-sm text-gray-600">Toggle between light and dark theme</p>
+                </div>
+                <Switch
+                  checked={generalSettings.theme === 'dark'}
+                  onCheckedChange={(checked) => handleGeneralSettingChange('theme', checked ? 'dark' : 'light')}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Maintenance Mode</Label>
+                  <p className="text-sm text-gray-600">Enable maintenance mode</p>
+                </div>
+                <Switch
+                  checked={generalSettings.maintenanceMode}
+                  onCheckedChange={(checked) => handleGeneralSettingChange('maintenanceMode', checked)}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleSaveSettings('General')}>Save General Settings</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* SEO Settings Tab */}
+        <TabsContent value="seo">
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO & Meta Configuration</CardTitle>
+              <CardDescription>Configure SEO and meta tags</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="metaTitle">Meta Title</Label>
+                <Input
+                  id="metaTitle"
+                  value={seoSettings.metaTitle}
+                  onChange={(e) => handleSeoSettingChange('metaTitle', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="metaDescription">Meta Description</Label>
+                <Textarea
+                  id="metaDescription"
+                  value={seoSettings.metaDescription}
+                  onChange={(e) => handleSeoSettingChange('metaDescription', e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="faviconUrl">Favicon Upload</Label>
+                <div className="flex items-center gap-4">
+                  <img src={seoSettings.faviconUrl} alt="Favicon" className="w-8 h-8 object-cover" />
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Favicon
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ogTitle">OG Title</Label>
+                <Input
+                  id="ogTitle"
+                  value={seoSettings.ogTitle}
+                  onChange={(e) => handleSeoSettingChange('ogTitle', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="googleAnalyticsId">Google Analytics ID</Label>
+                <Input
+                  id="googleAnalyticsId"
+                  placeholder="GA-XXXXXXXXX"
+                  value={seoSettings.googleAnalyticsId}
+                  onChange={(e) => handleSeoSettingChange('googleAnalyticsId', e.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Enable Sitemap</Label>
+                  <p className="text-sm text-gray-600">Generate XML sitemap</p>
+                </div>
+                <Switch
+                  checked={seoSettings.enableSitemap}
+                  onCheckedChange={(checked) => handleSeoSettingChange('enableSitemap', checked)}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleSaveSettings('SEO')}>Save SEO Settings</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* Payment Settings Tab */}
+        <TabsContent value="payment">
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Gateway Settings</CardTitle>
+              <CardDescription>Configure payment methods</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Enable Paid Plans</Label>
+                  <p className="text-sm text-gray-600">Allow users to purchase premium plans</p>
+                </div>
+                <Switch
+                  checked={paymentSettings.enablePaidPlans}
+                  onCheckedChange={(checked) => handlePaymentSettingChange('enablePaidPlans', checked)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select value={paymentSettings.currency} onValueChange={(value) => handlePaymentSettingChange('currency', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NPR">NPR (Nepali Rupee)</SelectItem>
+                    <SelectItem value="USD">USD (US Dollar)</SelectItem>
+                    <SelectItem value="INR">INR (Indian Rupee)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold">Stripe Integration</h4>
+                <div className="flex items-center justify-between">
+                  <Label>Enable Stripe</Label>
+                  <Switch
+                    checked={paymentSettings.enableStripe}
+                    onCheckedChange={(checked) => handlePaymentSettingChange('enableStripe', checked)}
+                  />
+                </div>
+                {paymentSettings.enableStripe && (
+                  <div className="space-y-2 ml-4">
+                    <Input placeholder="Stripe Public Key" />
+                    <Input type="password" placeholder="Stripe Secret Key" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold">Khalti Integration</h4>
+                <div className="flex items-center justify-between">
+                  <Label>Enable Khalti</Label>
+                  <Switch
+                    checked={paymentSettings.enableKhalti}
+                    onCheckedChange={(checked) => handlePaymentSettingChange('enableKhalti', checked)}
+                  />
+                </div>
+                {paymentSettings.enableKhalti && (
+                  <div className="space-y-2 ml-4">
+                    <Input placeholder="Khalti Public Key" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold">eSewa Integration</h4>
+                <div className="flex items-center justify-between">
+                  <Label>Enable eSewa</Label>
+                  <Switch
+                    checked={paymentSettings.enableEsewa}
+                    onCheckedChange={(checked) => handlePaymentSettingChange('enableEsewa', checked)}
+                  />
+                </div>
+                {paymentSettings.enableEsewa && (
+                  <div className="space-y-2 ml-4">
+                    <Input placeholder="eSewa Merchant ID" />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleSaveSettings('Payment')}>Save Payment Settings</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* Email Configuration Tab */}
+        <TabsContent value="email">
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Configuration</CardTitle>
+              <CardDescription>Configure SMTP settings for email delivery</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="smtpHost">SMTP Host</Label>
+                  <Input
+                    id="smtpHost"
+                    placeholder="smtp.gmail.com"
+                    value={emailSettings.smtpHost}
+                    onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPort">SMTP Port</Label>
+                  <Input
+                    id="smtpPort"
+                    type="number"
+                    placeholder="587"
+                    value={emailSettings.smtpPort}
+                    onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="smtpUsername">SMTP Username</Label>
+                <Input
+                  id="smtpUsername"
+                  value={emailSettings.smtpUsername}
+                  onChange={(e) => handleEmailSettingChange('smtpUsername', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="smtpPassword">SMTP Password</Label>
+                <Input
+                  id="smtpPassword"
+                  type="password"
+                  value={emailSettings.smtpPassword}
+                  onChange={(e) => handleEmailSettingChange('smtpPassword', e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="senderName">Sender Name</Label>
+                  <Input
+                    id="senderName"
+                    value={emailSettings.senderName}
+                    onChange={(e) => handleEmailSettingChange('senderName', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="senderEmail">Sender Email</Label>
+                  <Input
+                    id="senderEmail"
+                    type="email"
+                    value={emailSettings.senderEmail}
+                    onChange={(e) => handleEmailSettingChange('senderEmail', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Enable TLS</Label>
+                  <p className="text-sm text-gray-600">Use secure TLS connection</p>
+                </div>
+                <Switch
+                  checked={emailSettings.enableTLS}
+                  onCheckedChange={(checked) => handleEmailSettingChange('enableTLS', checked)}
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex gap-2">
+              <Button onClick={() => handleSaveSettings('Email')}>Save Email Settings</Button>
+              <Button variant="outline" onClick={handleTestEmailConnection}>
+                <TestTube className="h-4 w-4 mr-2" />
+                Test Connection
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* Contact & Footer Tab */}
+        <TabsContent value="contact">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact & Footer Settings</CardTitle>
+              <CardDescription>Configure contact information and social media links</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail">Contact Email</Label>
+                  <Input
+                    id="contactEmail"
+                    type="email"
+                    value={contactSettings.contactEmail}
+                    onChange={(e) => handleContactSettingChange('contactEmail', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactPhone">Contact Phone</Label>
+                  <Input
+                    id="contactPhone"
+                    value={contactSettings.contactPhone}
+                    onChange={(e) => handleContactSettingChange('contactPhone', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold">Social Media Links</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="facebookUrl">Facebook URL</Label>
+                  <Input
+                    id="facebookUrl"
+                    placeholder="https://facebook.com/edusanskriti"
+                    value={contactSettings.facebookUrl}
+                    onChange={(e) => handleContactSettingChange('facebookUrl', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+                  <Input
+                    id="linkedinUrl"
+                    placeholder="https://linkedin.com/company/edusanskriti"
+                    value={contactSettings.linkedinUrl}
+                    onChange={(e) => handleContactSettingChange('linkedinUrl', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="discordUrl">Discord URL</Label>
+                  <Input
+                    id="discordUrl"
+                    placeholder="https://discord.gg/edusanskriti"
+                    value={contactSettings.discordUrl}
+                    onChange={(e) => handleContactSettingChange('discordUrl', e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="footerText">Footer Text</Label>
-                <Input
+                <Textarea
                   id="footerText"
-                  name="footerText"
-                  value={siteSettings.footerText}
-                  onChange={handleSiteSettingChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="logoUrl">Logo URL</Label>
-                <Input
-                  id="logoUrl"
-                  name="logoUrl"
-                  value={siteSettings.logoUrl}
-                  onChange={handleSiteSettingChange}
+                  value={contactSettings.footerText}
+                  onChange={(e) => handleContactSettingChange('footerText', e.target.value)}
+                  rows={2}
                 />
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSaveSiteSettings}>Save Settings</Button>
+              <Button onClick={() => handleSaveSettings('Contact')}>Save Contact Settings</Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="notifications">
+
+        {/* Backup & Restore Tab */}
+        <TabsContent value="backup">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Configure how you want to receive notifications
-              </CardDescription>
+              <CardTitle>Backup & System Management</CardTitle>
+              <CardDescription>Manage system backups and versioning</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="emailNotifications">Email Notifications</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Receive notifications via email
-                  </p>
-                </div>
-                <Switch
-                  id="emailNotifications"
-                  checked={notificationSettings.emailNotifications}
-                  onCheckedChange={(checked) => handleNotificationSettingChange('emailNotifications', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="pushNotifications">Push Notifications</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Receive notifications in your browser
-                  </p>
-                </div>
-                <Switch
-                  id="pushNotifications"
-                  checked={notificationSettings.pushNotifications}
-                  onCheckedChange={(checked) => handleNotificationSettingChange('pushNotifications', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="adminAlerts">Admin Alerts</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Receive alerts about important system events
-                  </p>
-                </div>
-                <Switch
-                  id="adminAlerts"
-                  checked={notificationSettings.adminAlerts}
-                  onCheckedChange={(checked) => handleNotificationSettingChange('adminAlerts', checked)}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleSaveNotificationSettings}>Save Preferences</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance Settings</CardTitle>
-              <CardDescription>
-                Customize how the admin dashboard looks
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="darkMode">Dark Mode</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Enable dark mode for the admin interface
-                  </p>
-                </div>
-                <Switch
-                  id="darkMode"
-                  checked={appearanceSettings.darkMode}
-                  onCheckedChange={(checked) => handleAppearanceSettingChange('darkMode', checked)}
-                />
-              </div>
               <div className="space-y-2">
-                <Label htmlFor="primaryColor">Primary Color</Label>
+                <Label>Current Version</Label>
                 <div className="flex items-center gap-2">
-                  <input 
-                    type="color" 
-                    id="primaryColor" 
-                    value={appearanceSettings.primaryColor}
-                    onChange={(e) => handleAppearanceSettingChange('primaryColor', e.target.value)}
-                    className="h-10 w-10 cursor-pointer rounded border"
-                  />
-                  <Input
-                    value={appearanceSettings.primaryColor}
-                    onChange={(e) => handleAppearanceSettingChange('primaryColor', e.target.value)}
-                    className="flex-1"
-                  />
+                  <Input value={systemSettings.currentVersion} readOnly />
+                  <Button variant="outline" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Changelog
+                  </Button>
                 </div>
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="secondaryColor">Secondary Color</Label>
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="color" 
-                    id="secondaryColor" 
-                    value={appearanceSettings.secondaryColor}
-                    onChange={(e) => handleAppearanceSettingChange('secondaryColor', e.target.value)}
-                    className="h-10 w-10 cursor-pointer rounded border"
-                  />
-                  <Input
-                    value={appearanceSettings.secondaryColor}
-                    onChange={(e) => handleAppearanceSettingChange('secondaryColor', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
+                <Label htmlFor="autoBackupFrequency">Auto Backup Frequency</Label>
+                <Select value={systemSettings.autoBackupFrequency} onValueChange={(value) => handleSystemSettingChange('autoBackupFrequency', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="disabled">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="enableAnimations">Enable Animations</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Enable UI animations throughout the site
-                  </p>
-                </div>
-                <Switch
-                  id="enableAnimations"
-                  checked={appearanceSettings.enableAnimations}
-                  onCheckedChange={(checked) => handleAppearanceSettingChange('enableAnimations', checked)}
+
+              <div className="space-y-2">
+                <Label htmlFor="changeLog">Change Log Editor</Label>
+                <Textarea
+                  id="changeLog"
+                  placeholder="Enter release notes and changes..."
+                  value={systemSettings.changeLog}
+                  onChange={(e) => handleSystemSettingChange('changeLog', e.target.value)}
+                  rows={4}
                 />
+              </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold">Backup Actions</h4>
+                <div className="flex gap-2 flex-wrap">
+                  <Button onClick={handleBackup}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Create Manual Backup
+                  </Button>
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Backup File
+                  </Button>
+                  <Button variant="destructive">
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Rollback Version
+                  </Button>
+                </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSaveAppearanceSettings}>Save Appearance</Button>
+              <Button onClick={() => handleSaveSettings('System')}>Save System Settings</Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="security">
+
+        {/* Ad Areas Tab */}
+        <TabsContent value="ads">
           <Card>
             <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Manage your security preferences
-              </CardDescription>
+              <CardTitle>Advertisement Areas Management</CardTitle>
+              <CardDescription>Add and manage advertisement placements on your website</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="twoFactorAuth">Two-Factor Authentication</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Require a second form of authentication when signing in
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Header Banner</h4>
+                  <p className="text-sm text-gray-600 mb-3">Top of every page</p>
+                  <div className="flex gap-2">
+                    <Button size="sm">Add Ad</Button>
+                    <Button size="sm" variant="outline">Preview</Button>
+                  </div>
                 </div>
-                <Switch
-                  id="twoFactorAuth"
-                  checked={securitySettings.twoFactorAuth}
-                  onCheckedChange={(checked) => handleSecuritySettingChange('twoFactorAuth', checked)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                <Input
-                  id="sessionTimeout"
-                  type="number"
-                  min="5"
-                  max="120"
-                  value={securitySettings.sessionTimeout}
-                  onChange={(e) => handleSecuritySettingChange('sessionTimeout', parseInt(e.target.value) || 30)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="passwordRequireSpecialChar">Require Special Characters</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Passwords must contain at least one special character
-                  </p>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Sidebar</h4>
+                  <p className="text-sm text-gray-600 mb-3">Right sidebar on content pages</p>
+                  <div className="flex gap-2">
+                    <Button size="sm">Add Ad</Button>
+                    <Button size="sm" variant="outline">Preview</Button>
+                  </div>
                 </div>
-                <Switch
-                  id="passwordRequireSpecialChar"
-                  checked={securitySettings.passwordRequireSpecialChar}
-                  onCheckedChange={(checked) => handleSecuritySettingChange('passwordRequireSpecialChar', checked)}
-                />
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Content Area</h4>
+                  <p className="text-sm text-gray-600 mb-3">Between content sections</p>
+                  <div className="flex gap-2">
+                    <Button size="sm">Add Ad</Button>
+                    <Button size="sm" variant="outline">Preview</Button>
+                  </div>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Footer</h4>
+                  <p className="text-sm text-gray-600 mb-3">Bottom of every page</p>
+                  <div className="flex gap-2">
+                    <Button size="sm">Add Ad</Button>
+                    <Button size="sm" variant="outline">Preview</Button>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2 pt-4">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                />
+              <div className="border-t pt-4">
+                <Button>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Add New Ad Area
+                </Button>
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSaveSecuritySettings}>Update Security Settings</Button>
+              <Button onClick={() => handleSaveSettings('Ad Areas')}>Save Ad Settings</Button>
             </CardFooter>
           </Card>
         </TabsContent>
