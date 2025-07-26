@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +25,7 @@ import AdminSettings from "./components/admin/AdminSettings";
 import AnalyticsPage from "./components/admin/AnalyticsPage";
 import QueriesManager from "./components/admin/QueriesManager";
 import { AdsProvider } from "./components/ads/AdsProvider";
+import StudentDashboard from "./pages/StudentDashboard";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +44,7 @@ const App = () => (
             <Route path="/blog/:id" element={<ContentViewPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<StudentDashboard />} />
             
             {/* Admin routes with shared layout */}
             <Route path="/admin" element={<AdminLayout />}>
