@@ -12,10 +12,10 @@ export interface StudentStats {
 
 export interface StudentActivity {
   id: string;
-  type: 'upload' | 'download' | 'sale' | 'achievement';
+  activity_type: 'upload' | 'download' | 'sale' | 'bookmark' | 'share';
   description: string;
-  date: string;
-  points?: number;
+  created_at: string;
+  points_earned: number;
 }
 
 export interface DashboardStats {
@@ -54,7 +54,7 @@ export const getStudentStats = async (userId: string): Promise<StudentStats> => 
         totalSales: profile.total_sales || 0,
         points: profile.points || 0,
         level: profile.level || 'Fresh Contributor',
-        achievements: Array.isArray(profile.achievements) ? profile.achievements : []
+        achievements: Array.isArray(profile.achievements) ? profile.achievements.map(String) : []
       };
     }
 
@@ -80,7 +80,7 @@ export const getStudentStats = async (userId: string): Promise<StudentStats> => 
   }
 };
 
-export const getRecentActivities = async (userId: string): Promise<RecentActivity[]> => {
+export const getRecentActivities = async (userId: string): Promise<StudentActivity[]> => {
   try {
     const { data: activities } = await supabase
       .from('student_activities')
@@ -92,10 +92,10 @@ export const getRecentActivities = async (userId: string): Promise<RecentActivit
     if (activities) {
       return activities.map(activity => ({
         id: activity.id,
-        type: activity.activity_type as 'upload' | 'download' | 'sale' | 'achievement',
+        activity_type: activity.activity_type as 'upload' | 'download' | 'sale' | 'bookmark' | 'share',
         description: activity.description || 'Activity completed',
-        date: activity.created_at,
-        points: activity.points_earned || 0
+        created_at: activity.created_at,
+        points_earned: activity.points_earned || 0
       }));
     }
 
