@@ -24,15 +24,18 @@ import {
   Home,
   MessageSquare,
   Trophy,
-  Wallet
+  Wallet,
+  FileText,
+  Calendar
 } from 'lucide-react';
 
 const mainItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Overview', url: '/dashboard/overview', icon: BarChart3 },
   { title: 'My Notes', url: '/study-materials', icon: BookOpen },
+  { title: 'Upload Material', url: '/dashboard/upload', icon: Upload },
   { title: 'Marketplace', url: '/marketplace', icon: ShoppingCart },
-  { title: 'Saved Items', url: '/dashboard', icon: Heart }, // This will show saved tab in dashboard
+  { title: 'Saved Items', url: '/dashboard/saved', icon: Heart },
   { title: 'Messages', url: '/dashboard/inbox', icon: MessageSquare },
 ];
 

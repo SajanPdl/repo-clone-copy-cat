@@ -18,6 +18,13 @@ import ContactPage from '@/pages/ContactPage';
 import MarketplacePage from '@/pages/MarketplacePage';
 import ProfilePage from '@/pages/ProfilePage';
 import StudentDashboard from '@/pages/StudentDashboard';
+import StudentUploadPage from '@/pages/StudentUploadPage';
+import StudentSavedPage from '@/pages/StudentSavedPage';
+import DashboardOverview from '@/pages/DashboardOverview';
+import DashboardInbox from '@/pages/DashboardInbox';
+import DashboardAchievements from '@/pages/DashboardAchievements';
+import DashboardRewards from '@/pages/DashboardRewards';
+import DashboardSettings from '@/pages/DashboardSettings';
 import AdminPanel from '@/pages/AdminPanel';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -63,10 +70,58 @@ function App() {
                   }
                 />
                 <Route
-                  path="/dashboard/*"
+                  path="/dashboard/overview"
                   element={
                     <ProtectedRoute>
-                      <StudentDashboard />
+                      <DashboardOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/upload"
+                  element={
+                    <ProtectedRoute>
+                      <StudentUploadPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/saved"
+                  element={
+                    <ProtectedRoute>
+                      <StudentSavedPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/inbox"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardInbox />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/achievements"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardAchievements />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/rewards"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardRewards />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/settings"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardSettings />
                     </ProtectedRoute>
                   }
                 />
