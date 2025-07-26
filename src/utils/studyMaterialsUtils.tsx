@@ -37,13 +37,19 @@ export const filterMaterials = (
 // Upload a new study material to the database
 export const uploadStudyMaterial = async (material: Omit<StudyMaterial, 'id' | 'downloads' | 'created_at' | 'updated_at'>) => {
   try {
+    const materialWithDefaults = {
+      ...material,
+      downloads: 0,
+      views: 0,
+      rating: 0.0,
+      author_id: null,
+      tags: material.tags || [],
+      date: new Date().toISOString().split('T')[0]
+    };
+
     const { data, error } = await supabase
       .from('study_materials')
-      .insert([{
-        ...material,
-        downloads: 0,
-        date: new Date().toISOString().split('T')[0]
-      }])
+      .insert([materialWithDefaults])
       .select();
     
     if (error) {

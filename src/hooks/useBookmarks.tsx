@@ -46,14 +46,14 @@ export const useBookmarks = () => {
             const { data: material } = await supabase
               .from('study_materials')
               .select('*')
-              .eq('id', bookmark.content_id)
+              .eq('id', parseInt(bookmark.content_id)) // Convert to integer
               .single();
             materialData = material;
           } else if (bookmark.content_type === 'past_paper') {
             const { data: paper } = await supabase
               .from('past_papers')
               .select('*')
-              .eq('id', bookmark.content_id)
+              .eq('id', parseInt(bookmark.content_id)) // Convert to integer
               .single();
             materialData = paper;
           }

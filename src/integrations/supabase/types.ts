@@ -407,6 +407,36 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          plan_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ratings: {
         Row: {
           comment: string | null
@@ -732,6 +762,10 @@ export type Database = {
         Returns: undefined
       }
       is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      is_premium_user: {
         Args: { user_id: string }
         Returns: boolean
       }
