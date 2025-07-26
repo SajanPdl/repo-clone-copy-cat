@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Plus, Pencil, Trash2, GraduationCap } from 'lucide-react';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -12,12 +12,13 @@ import { Tables } from '@/integrations/supabase/types';
 type Grade = Tables<'grades'>;
 
 const GradesManager = () => {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newGrade, setNewGrade] = useState({ name: '', description: '' });
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
   
   // Fetch grades from database
-  const { data: grades = [], isLoading } = useQuery({
+  const { data: grades = [], isLoading, error } = useQuery({
     queryKey: ['grades'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,7 +26,10 @@ const GradesManager = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching grades:', error);
+        throw error;
+      }
       return data;
     }
   });
@@ -39,12 +43,27 @@ const GradesManager = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating grade:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['grades'] });
-      toast.success('Grade added successfully');
+      toast({
+        title: "Success",
+        description: "Grade added successfully"
+      });
+      setNewGrade({ name: '', description: '' });
+    },
+    onError: (error) => {
+      console.error('Create mutation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add grade",
+        variant: "destructive"
+      });
     }
   });
   
@@ -57,12 +76,27 @@ const GradesManager = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating grade:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['grades'] });
-      toast.success('Grade updated successfully');
+      toast({
+        title: "Success",
+        description: "Grade updated successfully"
+      });
+      setEditingGrade(null);
+    },
+    onError: (error) => {
+      console.error('Update mutation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update grade",
+        variant: "destructive"
+      });
     }
   });
   
@@ -73,17 +107,36 @@ const GradesManager = () => {
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting grade:', error);
+        throw error;
+      }
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['grades'] });
-      toast.success('Grade deleted successfully');
+      toast({
+        title: "Success",
+        description: "Grade deleted successfully"
+      });
+    },
+    onError: (error) => {
+      console.error('Delete mutation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete grade",
+        variant: "destructive"
+      });
     }
   });
   
   const handleAddGrade = () => {
     if (!newGrade.name.trim()) {
-      toast.error('Grade name is required');
+      toast({
+        title: "Error",
+        description: "Grade name is required",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -91,18 +144,19 @@ const GradesManager = () => {
       name: newGrade.name.trim(),
       description: newGrade.description.trim() || null
     });
-    
-    setNewGrade({ name: '', description: '' });
   };
   
   const handleUpdateGrade = () => {
-    if (!editingGrade || !editingGrade.name) {
-      toast.error('Grade name is required');
+    if (!editingGrade || !editingGrade.name?.trim()) {
+      toast({
+        title: "Error",
+        description: "Grade name is required",
+        variant: "destructive"
+      });
       return;
     }
     
     updateMutation.mutate(editingGrade);
-    setEditingGrade(null);
   };
   
   const handleDeleteGrade = (id: number) => {
@@ -110,6 +164,22 @@ const GradesManager = () => {
       deleteMutation.mutate(id);
     }
   };
+
+  if (error) {
+    console.error('Grades query error:', error);
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-red-500 mb-4">Error loading grades</p>
+            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['grades'] })}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -145,8 +215,13 @@ const GradesManager = () => {
               />
             </div>
           </div>
-          <Button className="mt-4" onClick={handleAddGrade}>
-            <Plus className="h-4 w-4 mr-2" /> Add Grade
+          <Button 
+            className="mt-4" 
+            onClick={handleAddGrade} 
+            disabled={createMutation.isPending}
+          >
+            <Plus className="h-4 w-4 mr-2" /> 
+            {createMutation.isPending ? 'Adding...' : 'Add Grade'}
           </Button>
         </CardContent>
       </Card>
@@ -169,12 +244,12 @@ const GradesManager = () => {
               </div>
               
               <div className="divide-y">
-                {grades.length > 0 ? grades.map((grade) => (
+                {grades && grades.length > 0 ? grades.map((grade) => (
                   <div key={grade.id} className="grid grid-cols-12 px-4 py-3 items-center">
                     <div className="col-span-6 font-medium">
                       {editingGrade?.id === grade.id ? (
                         <Input
-                          value={editingGrade.name}
+                          value={editingGrade.name || ''}
                           onChange={(e) => setEditingGrade({ ...editingGrade, name: e.target.value })}
                         />
                       ) : (
@@ -193,26 +268,35 @@ const GradesManager = () => {
                     </div>
                     <div className="col-span-2 flex justify-end space-x-2">
                       {editingGrade?.id === grade.id ? (
-                        <Button size="sm" onClick={handleUpdateGrade}>
-                          Save
-                        </Button>
+                        <>
+                          <Button size="sm" onClick={handleUpdateGrade} disabled={updateMutation.isPending}>
+                            {updateMutation.isPending ? 'Saving...' : 'Save'}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)}>
+                            Cancel
+                          </Button>
+                        </>
                       ) : (
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          onClick={() => setEditingGrade(grade)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={() => setEditingGrade(grade)}
+                            disabled={updateMutation.isPending || deleteMutation.isPending}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                            onClick={() => handleDeleteGrade(grade.id)}
+                            disabled={updateMutation.isPending || deleteMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                        onClick={() => handleDeleteGrade(grade.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 )) : (

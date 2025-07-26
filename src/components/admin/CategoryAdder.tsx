@@ -33,7 +33,6 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
   const [isFormVisible, setIsFormVisible] = useState(showForm);
   const [categoryName, setCategoryName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const createMutation = useMutation({
     mutationFn: async (newCategory: { name: string; description?: string }) => {
@@ -43,14 +42,35 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating category:', error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       toast({
         title: "Success",
         description: "Category added successfully"
+      });
+      
+      // Call the onAddCategory callback if provided
+      if (onAddCategory) {
+        onAddCategory({ name: data.name, description: data.description || undefined });
+      }
+      
+      // Reset form
+      setCategoryName('');
+      setCategoryDescription('');
+      setIsFormVisible(false);
+    },
+    onError: (error) => {
+      console.error('Create mutation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add category",
+        variant: "destructive"
       });
     }
   });
@@ -76,34 +96,12 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
       return;
     }
     
-    setIsSubmitting(true);
+    const newCategory = {
+      name: categoryName.trim(),
+      description: categoryDescription.trim() || undefined
+    };
     
-    try {
-      const newCategory = {
-        name: categoryName.trim(),
-        description: categoryDescription.trim() || undefined
-      };
-      
-      await createMutation.mutateAsync(newCategory);
-      
-      // Call the onAddCategory callback if provided
-      if (onAddCategory) {
-        onAddCategory(newCategory);
-      }
-      
-      // Reset form
-      setCategoryName('');
-      setCategoryDescription('');
-      setIsFormVisible(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add category",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    createMutation.mutate(newCategory);
   };
   
   return (
@@ -158,14 +156,15 @@ const CategoryAdder: React.FC<CategoryAdderProps> = ({
                 type="button" 
                 variant="outline" 
                 onClick={handleToggleForm}
+                disabled={createMutation.isPending}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !categoryName.trim()}
+                disabled={createMutation.isPending || !categoryName.trim()}
               >
-                {isSubmitting ? 'Adding...' : 'Add Category'}
+                {createMutation.isPending ? 'Adding...' : 'Add Category'}
               </Button>
             </CardFooter>
           </form>
