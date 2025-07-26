@@ -108,7 +108,13 @@ export const fetchUserAchievements = async (userId: string): Promise<UserAchieve
     return [];
   }
 
-  return data || [];
+  return (data || []).map(userAchievement => ({
+    ...userAchievement,
+    achievement: {
+      ...userAchievement.achievement,
+      rarity: userAchievement.achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+    }
+  }));
 };
 
 export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {

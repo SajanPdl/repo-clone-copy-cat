@@ -16,6 +16,7 @@ import MarketplaceManager from '@/components/MarketplaceManager';
 import ProfileEditor from '@/components/ProfileEditor';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
+import { supabase } from '@/integrations/supabase/client';
 import {
   BookOpen,
   Download,
@@ -27,7 +28,8 @@ import {
   Calendar,
   User,
   Settings,
-  Bell
+  Bell,
+  LogOut
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -59,6 +61,32 @@ const StudentDashboard = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to sign out. Please try again.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: 'You have been signed out successfully.'
+        });
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred while signing out.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -135,12 +163,12 @@ const StudentDashboard = () => {
             {/* Level Progress and Achievements */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <LevelProgress
-                level={stats?.profile?.level || 'Beginner'}
+                level={stats?.profile?.level || 'Fresh Contributor'}
                 points={stats?.profile?.points || 0}
                 nextLevelPoints={1000}
               />
               <AchievementCard
-                achievements={stats?.profile?.achievements || []}
+                achievements={stats?.achievements || []}
               />
             </div>
 
@@ -210,7 +238,7 @@ const StudentDashboard = () => {
                     Welcome back, {user.email?.split('@')[0] || 'Student'}!
                   </h1>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {stats?.profile?.level || 'Student'} • {stats?.profile?.points || 0} points
+                    {stats?.profile?.level || 'Fresh Contributor'} • {stats?.profile?.points || 0} points
                   </p>
                 </div>
               </div>
@@ -221,6 +249,9 @@ const StudentDashboard = () => {
                 </Button>
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                  <LogOut className="h-5 w-5" />
                 </Button>
               </div>
             </div>

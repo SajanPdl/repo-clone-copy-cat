@@ -59,7 +59,10 @@ export const fetchAllAchievements = async (): Promise<Achievement[]> => {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(achievement => ({
+    ...achievement,
+    rarity: achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+  }));
 };
 
 export const fetchUserAchievements = async (userId: string): Promise<UserAchievement[]> => {
@@ -77,7 +80,13 @@ export const fetchUserAchievements = async (userId: string): Promise<UserAchieve
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(userAchievement => ({
+    ...userAchievement,
+    achievement: userAchievement.achievement ? {
+      ...userAchievement.achievement,
+      rarity: userAchievement.achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+    } : undefined
+  }));
 };
 
 export const grantAchievementToUser = async (userId: string, achievementId: string, adminId: string) => {
