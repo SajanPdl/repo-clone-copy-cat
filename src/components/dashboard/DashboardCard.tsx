@@ -8,7 +8,8 @@ interface DashboardCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  gradient: string;
+  description?: string;
+  gradient?: string;
   delay?: number;
   trend?: {
     value: number;
@@ -20,7 +21,8 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   title,
   value,
   icon: Icon,
-  gradient,
+  description,
+  gradient = "from-blue-600 to-purple-600",
   delay = 0,
   trend
 }) => {
@@ -50,6 +52,11 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           <div className="text-2xl font-bold text-white mb-2">
             {value}
           </div>
+          {description && (
+            <p className="text-xs text-white/70 mb-2">
+              {description}
+            </p>
+          )}
           {trend && (
             <p className={`text-xs ${trend.isPositive ? 'text-green-200' : 'text-red-200'} flex items-center`}>
               <span className={`mr-1 ${trend.isPositive ? '↗' : '↘'}`}>

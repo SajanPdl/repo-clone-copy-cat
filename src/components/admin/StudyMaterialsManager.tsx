@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -109,22 +110,21 @@ const StudyMaterialsManager = () => {
         return;
       }
 
-        const newMaterial = await uploadStudyMaterial({
-          title: materialData.title,
-          description: materialData.description,
-          subject: materialData.subject,
-          category: materialData.category,
-          grade: materialData.grade,
-          author_id: null,
-          date: materialData.date,
-          downloads: 0,
-          views: 0,
-          rating: 0.0,
-          tags: [],
-          is_featured: false,
-          file_url: materialData.file_url,
-          file_type: materialData.file_type
-        });
+      const newMaterial = await uploadStudyMaterial({
+        title: materialData.title,
+        description: materialData.description,
+        subject: materialData.subject,
+        category: materialData.category,
+        grade: materialData.grade,
+        author_id: null,
+        date: materialData.date,
+        views: 0,
+        rating: 0.0,
+        tags: [],
+        is_featured: false,
+        file_url: materialData.file_url,
+        file_type: materialData.file_type
+      });
 
       setMaterials(prevMaterials => [...prevMaterials, newMaterial]);
       setIsDialogOpen(false);
@@ -205,7 +205,7 @@ const StudyMaterialsManager = () => {
         <h2 className="text-2xl font-bold">Manage Study Materials</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="primary">Add New Material</Button>
+            <Button>Add New Material</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

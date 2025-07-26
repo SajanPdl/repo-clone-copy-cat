@@ -86,25 +86,29 @@ const StudentDashboard = () => {
       title: 'Total Uploads',
       value: stats?.totalUploads || 0,
       icon: BookOpen,
-      description: 'Study materials shared'
+      description: 'Study materials shared',
+      gradient: 'from-blue-600 to-cyan-600'
     },
     {
       title: 'Downloads',
       value: stats?.totalDownloads || 0,
       icon: Download,
-      description: 'Materials downloaded'
+      description: 'Materials downloaded',
+      gradient: 'from-green-600 to-teal-600'
     },
     {
       title: 'Marketplace Items',
       value: stats?.totalSales || 0,
       icon: ShoppingCart,
-      description: 'Items sold'
+      description: 'Items sold',
+      gradient: 'from-purple-600 to-pink-600'
     },
     {
       title: 'Bookmarks',
       value: bookmarks.length,
       icon: Heart,
-      description: 'Saved materials'
+      description: 'Saved materials',
+      gradient: 'from-red-600 to-rose-600'
     }
   ];
 
@@ -122,6 +126,8 @@ const StudentDashboard = () => {
                   value={card.value}
                   icon={card.icon}
                   description={card.description}
+                  gradient={card.gradient}
+                  delay={index * 0.1}
                 />
               ))}
             </div>
