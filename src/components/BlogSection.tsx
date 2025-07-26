@@ -1,192 +1,141 @@
-import { useState, useEffect } from 'react';
-import { Calendar, User, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/hooks/use-toast";
-import ContentPagination from './common/ContentPagination';
+import { Button } from '@/components/ui/button';
+import { Calendar, User, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { BlogPost } from '@/utils/queryUtils';
+import { useNavigate } from 'react-router-dom';
+
+interface BlogPost {
+  id: number;
+  title: string;
+  content: string;
+  excerpt: string;
+  author: string;
+  category: string;
+  featured_image: string;
+  created_at: string;
+  is_published: boolean;
+}
 
 const BlogSection = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const postsPerPage = 4;
 
-  // Load blog posts from database
   useEffect(() => {
-    const loadBlogPosts = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        setBlogPosts(data || []);
-      } catch (error) {
-        console.error('Error loading blog posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBlogPosts();
+    fetchBlogPosts();
   }, []);
-  
-  // Filter posts by category if selected
-  const filteredPosts = selectedCategory 
-    ? blogPosts.filter(post => post.category === selectedCategory) 
-    : blogPosts;
-  
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const displayedPosts = filteredPosts.slice(
-    (currentPage - 1) * postsPerPage, 
-    currentPage * postsPerPage
-  );
-  
-  // Get unique categories for filter
-  const categories = [...new Set(blogPosts.map(post => post.category))];
-  
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const fetchBlogPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setBlogPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching blog posts:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCardClick = (postId: number) => {
     navigate(`/blog/${postId}`);
   };
 
-  const handleViewAllClick = () => {
-    toast({
-      title: "Blog Section",
-      description: "Navigating to all articles page",
-    });
-    navigate("/blog");
-  };
-  
-  const handleCategoryFilter = (category: string | null) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  };
+  if (loading) {
+    return (
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center">Loading blog posts...</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section id="blog" className="py-20 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Educational Articles & Tips</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Stay updated with the latest educational insights, study techniques, and career guidance through our informative articles.
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Latest from Our Blog</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Stay updated with educational insights, study tips, and academic resources
           </p>
         </div>
-        
-        {/* Category filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-          <Button 
-            variant={selectedCategory === null ? "default" : "outline"} 
-            size="sm"
-            onClick={() => handleCategoryFilter(null)}
-          >
-            All Categories
-          </Button>
-          
-          {categories.map(category => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleCategoryFilter(category)}
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 h-96 rounded-lg" />
-            ))
-          ) : (
-            displayedPosts.map(post => (
+        {blogPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {blogPosts.map((post) => (
               <Card 
                 key={post.id} 
-                className="overflow-hidden group hover:shadow-neon transition-all duration-300 h-full cursor-pointer"
+                className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
                 onClick={() => handleCardClick(post.id)}
               >
-                <div className="block h-full">
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={post.featured_image || "/placeholder.svg"} 
-                      alt={post.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-t-lg flex items-center justify-center">
+                  {post.featured_image ? (
+                    <img
+                      src={post.featured_image}
+                      alt={post.title}
+                      className="w-full h-full object-cover rounded-t-lg"
                     />
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-edu-purple/90 text-white">
-                        {post.category}
-                      </Badge>
+                  ) : (
+                    <div className="text-blue-600 text-4xl font-bold">
+                      {post.title.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <User className="h-4 w-4" />
+                      {post.author}
                     </div>
                   </div>
                   
-                  <CardHeader className="p-6 pb-2">
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4 gap-4">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        <span>{post.author}</span>
-                      </div>
-                    </div>
-                    
-                    <CardTitle className="text-xl group-hover:text-edu-purple transition-colors duration-300">
-                      {post.title}
-                    </CardTitle>
-                  </CardHeader>
+                  <Badge variant="secondary" className="mb-3">
+                    {post.category}
+                  </Badge>
                   
-                  <CardContent className="p-6 pt-0">
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                      {post.excerpt || post.content.substring(0, 150) + '...'}
-                    </p>
-                  </CardContent>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                    {post.title}
+                  </h3>
                   
-                  <CardFooter className="p-6 pt-0 mt-auto">
-                    <div className="inline-flex items-center text-edu-purple hover:text-edu-indigo font-medium transition-colors duration-300">
-                      Read More
-                      <ArrowRight className="ml-1 h-4 w-4" />
-                    </div>
-                  </CardFooter>
-                </div>
+                  <p className="text-gray-600 mb-4 line-clamp-3">
+                    {post.excerpt || post.content.substring(0, 150) + '...'}
+                  </p>
+                  
+                  <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-800 transition-colors">
+                    <span>Read More</span>
+                    <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </CardContent>
               </Card>
-            ))
-          )}
-        </div>
-        
-        {filteredPosts.length > postsPerPage && (
-          <ContentPagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            totalItems={filteredPosts.length}
-            itemsPerPage={postsPerPage}
-          />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No blog posts available at the moment.</p>
+          </div>
         )}
-        
-        <div className="text-center mt-12">
+
+        <div className="text-center">
           <Button 
-            className="btn-primary" 
-            onClick={handleViewAllClick}
+            variant="outline" 
+            size="lg"
+            onClick={() => navigate('/blog')}
           >
-            View All Articles
+            View All Posts
           </Button>
         </div>
       </div>

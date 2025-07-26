@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface StudentProfile {
@@ -28,6 +27,22 @@ export interface StudentActivity {
   created_at: string;
 }
 
+export interface UserAchievement {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  earned_at: string;
+  awarded_by_admin?: string;
+  achievement: {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    rarity: 'common' | 'rare' | 'epic' | 'legendary';
+    points_required: number;
+  };
+}
+
 export interface DashboardStats {
   totalUploads: number;
   totalDownloads: number;
@@ -35,6 +50,7 @@ export interface DashboardStats {
   totalBookmarks: number;
   recentActivities: StudentActivity[];
   profile: StudentProfile | null;
+  achievements: UserAchievement[];
 }
 
 export const fetchStudentProfile = async (userId: string): Promise<StudentProfile | null> => {
@@ -77,6 +93,24 @@ export const createStudentProfile = async (userId: string, profileData: Partial<
   return data;
 };
 
+export const fetchUserAchievements = async (userId: string): Promise<UserAchievement[]> => {
+  const { data, error } = await supabase
+    .from('user_achievements')
+    .select(`
+      *,
+      achievement:achievements(*)
+    `)
+    .eq('user_id', userId)
+    .order('earned_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user achievements:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
 export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
   // Fetch profile
   const profile = await fetchStudentProfile(userId);
@@ -100,6 +134,9 @@ export const fetchDashboardStats = async (userId: string): Promise<DashboardStat
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
 
+  // Fetch user achievements
+  const achievements = await fetchUserAchievements(userId);
+
   // Type-cast activities to match our interface
   const typedActivities: StudentActivity[] = (activities || []).map(activity => ({
     ...activity,
@@ -112,7 +149,8 @@ export const fetchDashboardStats = async (userId: string): Promise<DashboardStat
     totalSales: profile?.total_sales || 0,
     totalBookmarks: bookmarksCount || 0,
     recentActivities: typedActivities,
-    profile: profile
+    profile: profile,
+    achievements: achievements
   };
 };
 

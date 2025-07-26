@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string | null
+          id: string
+          is_system_generated: boolean | null
+          name: string
+          points_required: number | null
+          rarity: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon?: string | null
+          id?: string
+          is_system_generated?: boolean | null
+          name: string
+          points_required?: number | null
+          rarity?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          is_system_generated?: boolean | null
+          name?: string
+          points_required?: number | null
+          rarity?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       advertisements: {
         Row: {
           ad_type: string | null
@@ -658,6 +694,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string | null
+          awarded_by_admin: string | null
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id?: string | null
+          awarded_by_admin?: string | null
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string | null
+          awarded_by_admin?: string | null
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_queries: {
         Row: {
           created_at: string | null
@@ -741,9 +809,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_grant_achievement: {
+        Args: {
+          p_user_id: string
+          p_achievement_id: string
+          p_admin_id: string
+        }
+        Returns: undefined
+      }
       calculate_user_level: {
         Args: { points: number }
         Returns: string
+      }
+      check_and_grant_achievements: {
+        Args: { p_user_id: string; p_points: number }
+        Returns: undefined
       }
       increment_download_count: {
         Args: { material_id: number; table_name: string }
