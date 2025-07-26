@@ -89,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      bookmarks: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -451,6 +475,87 @@ export type Database = {
           },
         ]
       }
+      student_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          points_earned: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points_earned?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points_earned?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_profiles: {
+        Row: {
+          achievements: Json | null
+          bio: string | null
+          course: string | null
+          created_at: string
+          id: string
+          level: string | null
+          points: number | null
+          profile_image: string | null
+          total_downloads: number | null
+          total_sales: number | null
+          total_uploads: number | null
+          university: string | null
+          updated_at: string
+          user_id: string
+          year_of_study: number | null
+        }
+        Insert: {
+          achievements?: Json | null
+          bio?: string | null
+          course?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          points?: number | null
+          profile_image?: string | null
+          total_downloads?: number | null
+          total_sales?: number | null
+          total_uploads?: number | null
+          university?: string | null
+          updated_at?: string
+          user_id: string
+          year_of_study?: number | null
+        }
+        Update: {
+          achievements?: Json | null
+          bio?: string | null
+          course?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          points?: number | null
+          profile_image?: string | null
+          total_downloads?: number | null
+          total_sales?: number | null
+          total_uploads?: number | null
+          university?: string | null
+          updated_at?: string
+          user_id?: string
+          year_of_study?: number | null
+        }
+        Relationships: []
+      }
       study_materials: {
         Row: {
           category: string
@@ -561,6 +666,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_student_activity: {
+        Args: {
+          p_user_id: string
+          p_activity_type: string
+          p_points?: number
+          p_description?: string
+        }
+        Returns: undefined
+      }
+      calculate_user_level: {
+        Args: { points: number }
+        Returns: string
+      }
       increment_download_count: {
         Args: { material_id: number; table_name: string }
         Returns: undefined

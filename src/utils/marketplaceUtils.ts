@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface MarketplaceListing {
@@ -50,6 +49,41 @@ export interface SellerRating {
   review?: string;
   created_at: string;
 }
+
+// Helper function to convert database row to MarketplaceListing
+const convertToMarketplaceListing = (dbRow: any): MarketplaceListing => ({
+  id: dbRow.id,
+  user_id: dbRow.user_id,
+  title: dbRow.title,
+  description: dbRow.description,
+  category: dbRow.category as MarketplaceListing['category'],
+  subject: dbRow.subject,
+  university: dbRow.university,
+  price: dbRow.price,
+  is_free: dbRow.is_free,
+  condition: dbRow.condition as MarketplaceListing['condition'],
+  location: dbRow.location,
+  contact_info: dbRow.contact_info,
+  images: dbRow.images,
+  status: dbRow.status as MarketplaceListing['status'],
+  is_featured: dbRow.is_featured,
+  is_approved: dbRow.is_approved,
+  views_count: dbRow.views_count,
+  interest_count: dbRow.interest_count,
+  created_at: dbRow.created_at,
+  updated_at: dbRow.updated_at
+});
+
+// Helper function to convert database row to MarketplaceInquiry
+const convertToMarketplaceInquiry = (dbRow: any): MarketplaceInquiry => ({
+  id: dbRow.id,
+  listing_id: dbRow.listing_id,
+  inquirer_id: dbRow.inquirer_id,
+  message: dbRow.message,
+  contact_info: dbRow.contact_info,
+  status: dbRow.status as MarketplaceInquiry['status'],
+  created_at: dbRow.created_at
+});
 
 // Fetch marketplace listings with filters
 export const fetchMarketplaceListings = async (params?: {
@@ -131,7 +165,7 @@ export const fetchMarketplaceListings = async (params?: {
       throw new Error("Failed to fetch marketplace listings");
     }
 
-    return data || [];
+    return (data || []).map(convertToMarketplaceListing);
   } catch (error) {
     console.error("Error in fetchMarketplaceListings:", error);
     return [];
@@ -152,7 +186,7 @@ export const fetchMarketplaceListingById = async (id: string): Promise<Marketpla
       return null;
     }
 
-    return data;
+    return data ? convertToMarketplaceListing(data) : null;
   } catch (error) {
     console.error("Error in fetchMarketplaceListingById:", error);
     return null;
@@ -173,7 +207,7 @@ export const createMarketplaceListing = async (listing: Omit<MarketplaceListing,
       throw new Error("Failed to create marketplace listing");
     }
 
-    return data;
+    return data ? convertToMarketplaceListing(data) : null;
   } catch (error) {
     console.error("Error in createMarketplaceListing:", error);
     return null;
@@ -195,7 +229,7 @@ export const updateMarketplaceListing = async (id: string, updates: Partial<Mark
       throw new Error("Failed to update marketplace listing");
     }
 
-    return data;
+    return data ? convertToMarketplaceListing(data) : null;
   } catch (error) {
     console.error("Error in updateMarketplaceListing:", error);
     return null;
@@ -266,7 +300,7 @@ export const fetchUserMarketplaceListings = async (userId: string): Promise<Mark
       throw new Error("Failed to fetch user marketplace listings");
     }
 
-    return data || [];
+    return (data || []).map(convertToMarketplaceListing);
   } catch (error) {
     console.error("Error in fetchUserMarketplaceListings:", error);
     return [];
@@ -293,7 +327,7 @@ export const fetchMarketplaceInquiries = async (listingId?: string, userId?: str
       throw new Error("Failed to fetch marketplace inquiries");
     }
 
-    return data || [];
+    return (data || []).map(convertToMarketplaceInquiry);
   } catch (error) {
     console.error("Error in fetchMarketplaceInquiries:", error);
     return [];
@@ -314,7 +348,7 @@ export const createMarketplaceInquiry = async (inquiry: Omit<MarketplaceInquiry,
       throw new Error("Failed to create marketplace inquiry");
     }
 
-    return data;
+    return data ? convertToMarketplaceInquiry(data) : null;
   } catch (error) {
     console.error("Error in createMarketplaceInquiry:", error);
     return null;

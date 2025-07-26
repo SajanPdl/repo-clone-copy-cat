@@ -11,26 +11,36 @@ import {
   Download, 
   User, 
   Settings,
-  TrendingUp,
+  Upload,
+  ShoppingCart,
+  Heart,
+  Bell,
+  BarChart3,
   Calendar,
-  Award,
-  Clock
+  Wallet,
+  Trophy,
+  Plus,
+  Edit,
+  Trash2,
+  Share2,
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AnimatedWrapper from '@/components/ui/animated-wrapper';
 import { useToast } from '@/hooks/use-toast';
-
-interface StudentStats {
-  totalDownloads: number;
-  studyMaterials: number;
-  pastPapers: number;
-  recentActivity: any[];
-}
+import DashboardCard from '@/components/dashboard/DashboardCard';
+import AchievementCard from '@/components/dashboard/AchievementCard';
+import RecentActivity from '@/components/dashboard/RecentActivity';
+import LevelProgress from '@/components/dashboard/LevelProgress';
+import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
+import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
 
 const StudentDashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
     const getUser = async () => {
@@ -38,294 +48,368 @@ const StudentDashboard = () => {
       setUser(user);
     };
     getUser();
+
+    // Update time every second
+    const updateTime = () => setCurrentTime(getNepaliTime());
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Fetch student statistics
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['studentStats', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      
-      const [studyMaterialsRes, pastPapersRes] = await Promise.all([
-        supabase.from('study_materials').select('*'),
-        supabase.from('past_papers').select('*')
-      ]);
-
-      return {
-        totalDownloads: 0, // This would need to be tracked separately
-        studyMaterials: studyMaterialsRes.data?.length || 0,
-        pastPapers: pastPapersRes.data?.length || 0,
-        recentActivity: []
-      };
-    },
+  // Fetch dashboard statistics
+  const { data: dashboardStats, isLoading: statsLoading, refetch } = useQuery({
+    queryKey: ['dashboardStats', user?.id],
+    queryFn: () => fetchDashboardStats(user.id),
     enabled: !!user
   });
 
-  // Fetch recent downloads/activity
-  const { data: recentMaterials } = useQuery({
-    queryKey: ['recentMaterials'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('study_materials')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      return data || [];
+  // Mock achievements data
+  const achievements = [
+    {
+      id: '1',
+      title: 'First Upload',
+      description: 'Upload your first study material',
+      progress: dashboardStats?.totalUploads || 0,
+      maxProgress: 1,
+      earned: (dashboardStats?.totalUploads || 0) >= 1,
+      rarity: 'common' as const
+    },
+    {
+      id: '2',
+      title: 'Knowledge Sharer',
+      description: 'Upload 10 study materials',
+      progress: dashboardStats?.totalUploads || 0,
+      maxProgress: 10,
+      earned: (dashboardStats?.totalUploads || 0) >= 10,
+      rarity: 'rare' as const
+    },
+    {
+      id: '3',
+      title: 'Bestseller',
+      description: 'Complete 5 marketplace sales',
+      progress: dashboardStats?.totalSales || 0,
+      maxProgress: 5,
+      earned: (dashboardStats?.totalSales || 0) >= 5,
+      rarity: 'epic' as const
     }
-  });
-
-  const { data: recentPapers } = useQuery({
-    queryKey: ['recentPapers'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('past_papers')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      return data || [];
-    }
-  });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
-  };
+  ];
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center p-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-6xl mb-4"
+          >
+            🔐
+          </motion.div>
           <h2 className="text-2xl font-bold mb-4">Please log in to access your dashboard</h2>
-          <Button onClick={() => window.location.href = '/login'}>Go to Login</Button>
+          <Button onClick={() => window.location.href = '/login'} size="lg">
+            Go to Login
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
       <div className="container mx-auto px-4 py-8">
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-8"
         >
-          {/* Header */}
-          <motion.div variants={itemVariants} className="flex items-center justify-between">
+          {/* Header with greeting and time */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between"
+          >
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {user?.user_metadata?.name || user?.email}!
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Welcome back, {user?.user_metadata?.name || user?.email?.split('@')[0]}! 
+                <span className="text-2xl ml-2">👋</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
-                Track your learning progress and access your materials
+              <p className="text-gray-600 dark:text-gray-300 mt-2 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                {getNepaliDate()} • {currentTime}
               </p>
             </div>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 hover:scale-105 transition-transform">
               <Settings className="h-4 w-4" />
               Settings
             </Button>
           </motion.div>
 
           {/* Stats Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <AnimatedWrapper animation="slideUp" delay={0.1} hover>
-              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-blue-100">Study Materials</p>
-                      <p className="text-2xl font-bold">{stats?.studyMaterials || 0}</p>
-                    </div>
-                    <BookOpen className="h-8 w-8 text-blue-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <DashboardCard
+              title="Notes Uploaded"
+              value={dashboardStats?.totalUploads || 0}
+              icon={Upload}
+              gradient="from-green-500 to-emerald-600"
+              delay={0.1}
+              trend={{ value: 12, isPositive: true }}
+            />
+            <DashboardCard
+              title="Downloads"
+              value={dashboardStats?.totalDownloads || 0}
+              icon={Download}
+              gradient="from-blue-500 to-cyan-600"
+              delay={0.2}
+              trend={{ value: 8, isPositive: true }}
+            />
+            <DashboardCard
+              title="Items Sold"
+              value={dashboardStats?.totalSales || 0}
+              icon={ShoppingCart}
+              gradient="from-purple-500 to-pink-600"
+              delay={0.3}
+              trend={{ value: 25, isPositive: true }}
+            />
+            <DashboardCard
+              title="Saved Items"
+              value={dashboardStats?.totalBookmarks || 0}
+              icon={Heart}
+              gradient="from-orange-500 to-red-600"
+              delay={0.4}
+              trend={{ value: 5, isPositive: false }}
+            />
+          </div>
 
-            <AnimatedWrapper animation="slideUp" delay={0.2} hover>
-              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-100">Past Papers</p>
-                      <p className="text-2xl font-bold">{stats?.pastPapers || 0}</p>
-                    </div>
-                    <FileText className="h-8 w-8 text-green-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
+          {/* Main Dashboard Content */}
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm dark:bg-gray-800/50">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                My Notes
+              </TabsTrigger>
+              <TabsTrigger value="marketplace" className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Marketplace
+              </TabsTrigger>
+              <TabsTrigger value="saved" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                Saved
+              </TabsTrigger>
+              <TabsTrigger value="inbox" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Inbox
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </TabsTrigger>
+            </TabsList>
 
-            <AnimatedWrapper animation="slideUp" delay={0.3} hover>
-              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100">Downloads</p>
-                      <p className="text-2xl font-bold">{stats?.totalDownloads || 0}</p>
-                    </div>
-                    <Download className="h-8 w-8 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
-
-            <AnimatedWrapper animation="slideUp" delay={0.4} hover>
-              <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-orange-100">Achievements</p>
-                      <p className="text-2xl font-bold">0</p>
-                    </div>
-                    <Award className="h-8 w-8 text-orange-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
-          </motion.div>
-
-          {/* Main Content */}
-          <motion.div variants={itemVariants}>
-            <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="materials">Study Materials</TabsTrigger>
-                <TabsTrigger value="papers">Past Papers</TabsTrigger>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Recent Study Materials */}
-                  <AnimatedWrapper animation="slideLeft" delay={0.1}>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <BookOpen className="h-5 w-5" />
-                          Recent Study Materials
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {recentMaterials?.map((material, index) => (
-                          <motion.div
-                            key={material.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                          >
-                            <div>
-                              <h4 className="font-medium">{material.title}</h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {material.subject} • {material.grade}
-                              </p>
-                            </div>
-                            <Badge variant="outline">{material.category}</Badge>
-                          </motion.div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </AnimatedWrapper>
-
-                  {/* Recent Past Papers */}
-                  <AnimatedWrapper animation="slideRight" delay={0.1}>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          Recent Past Papers
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {recentPapers?.map((paper, index) => (
-                          <motion.div
-                            key={paper.id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                          >
-                            <div>
-                              <h4 className="font-medium">{paper.title}</h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {paper.subject} • {paper.grade} • {paper.year}
-                              </p>
-                            </div>
-                            <Badge variant="outline">{paper.board}</Badge>
-                          </motion.div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </AnimatedWrapper>
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Level Progress */}
+                <div className="lg:col-span-1">
+                  <LevelProgress
+                    level={dashboardStats?.profile?.level || 'Fresh Contributor'}
+                    points={dashboardStats?.profile?.points || 0}
+                    nextLevelPoints={500}
+                  />
                 </div>
-              </TabsContent>
 
-              <TabsContent value="materials">
-                <AnimatedWrapper animation="fadeIn">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Your Study Materials</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p>Study materials management interface would go here...</p>
-                    </CardContent>
-                  </Card>
-                </AnimatedWrapper>
-              </TabsContent>
+                {/* Recent Activity */}
+                <div className="lg:col-span-2">
+                  <RecentActivity activities={dashboardStats?.recentActivities || []} />
+                </div>
+              </div>
 
-              <TabsContent value="papers">
-                <AnimatedWrapper animation="fadeIn">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Your Past Papers</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p>Past papers management interface would go here...</p>
-                    </CardContent>
-                  </Card>
-                </AnimatedWrapper>
-              </TabsContent>
+              {/* Achievements */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Achievements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {achievements.map((achievement, index) => (
+                      <AchievementCard
+                        key={achievement.id}
+                        achievement={achievement}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="profile">
-                <AnimatedWrapper animation="fadeIn">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Profile Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium">Email</label>
-                          <p className="text-gray-600 dark:text-gray-300">{user?.email}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Member Since</label>
-                          <p className="text-gray-600 dark:text-gray-300">
-                            {new Date(user?.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
+            <TabsContent value="notes">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    My Notes Manager
+                  </CardTitle>
+                  <Button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New Note
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📝</div>
+                    <h3 className="text-xl font-semibold mb-2">No notes uploaded yet</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Start sharing your knowledge by uploading your first study material!
+                    </p>
+                    <Button variant="outline">
+                      Upload Your First Note
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="marketplace">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    My Marketplace Listings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🛒</div>
+                    <h3 className="text-xl font-semibold mb-2">No items listed</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Start earning by selling or sharing your books and materials!
+                    </p>
+                    <Button variant="outline">
+                      Create First Listing
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="saved">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="h-5 w-5" />
+                    Saved Content
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">💾</div>
+                    <h3 className="text-xl font-semibold mb-2">No saved items</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Bookmark notes, papers, and marketplace items for quick access!
+                    </p>
+                    <Button variant="outline">
+                      Browse Content
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="inbox">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notifications & Messages
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📬</div>
+                    <h3 className="text-xl font-semibold mb-2">No new messages</h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      You're all caught up! Messages from buyers and admin announcements will appear here.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="profile">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Profile Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-2xl font-bold text-white">
+                        {(user?.user_metadata?.name || user?.email)?.[0]?.toUpperCase()}
                       </div>
-                    </CardContent>
-                  </Card>
-                </AnimatedWrapper>
-              </TabsContent>
-            </Tabs>
-          </motion.div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Email</label>
+                        <p className="text-gray-600 dark:text-gray-300">{user?.email}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Member Since</label>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {new Date(user?.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Current Level</label>
+                        <Badge className="bg-gradient-to-r from-purple-500 to-blue-500">
+                          {dashboardStats?.profile?.level || 'Fresh Contributor'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5" />
+                      Rewards & Points
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center mb-4">
+                      <div className="text-4xl font-bold text-purple-600">
+                        {dashboardStats?.profile?.points || 0}
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300">Total XP Points</p>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <span className="text-sm">Premium Content Access</span>
+                        <Badge variant="outline">500 XP</Badge>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <span className="text-sm">Free Book Giveaway</span>
+                        <Badge variant="outline">1000 XP</Badge>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <span className="text-sm">Custom Profile Theme</span>
+                        <Badge variant="outline">250 XP</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </div>
     </div>
