@@ -22,11 +22,23 @@ import {
 } from '@/components/ui/dialog';
 import AnimatedWrapper from '@/components/ui/animated-wrapper';
 
+interface Advertisement {
+  id: number;
+  title: string;
+  content: string | null;
+  image_url: string | null;
+  link_url: string | null;
+  position: string;
+  ad_type: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 const AdPlacementManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingAd, setEditingAd] = useState(null);
+  const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -48,13 +60,13 @@ const AdPlacementManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Advertisement[];
     }
   });
 
   // Create advertisement mutation
   const createAdMutation = useMutation({
-    mutationFn: async (newAd) => {
+    mutationFn: async (newAd: Omit<Advertisement, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
         .from('advertisements')
         .insert([newAd])
@@ -73,7 +85,7 @@ const AdPlacementManager = () => {
         description: 'Advertisement created successfully'
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
         description: 'Failed to create advertisement: ' + error.message,
@@ -84,7 +96,7 @@ const AdPlacementManager = () => {
 
   // Update advertisement mutation
   const updateAdMutation = useMutation({
-    mutationFn: async ({ id, ...updates }) => {
+    mutationFn: async ({ id, ...updates }: { id: number } & Partial<Advertisement>) => {
       const { data, error } = await supabase
         .from('advertisements')
         .update(updates)
@@ -108,7 +120,7 @@ const AdPlacementManager = () => {
 
   // Delete advertisement mutation
   const deleteAdMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: number) => {
       const { error } = await supabase
         .from('advertisements')
         .delete()
@@ -127,7 +139,7 @@ const AdPlacementManager = () => {
 
   // Toggle active status
   const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }) => {
+    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
       const { error } = await supabase
         .from('advertisements')
         .update({ is_active })
@@ -152,7 +164,7 @@ const AdPlacementManager = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingAd) {
@@ -162,7 +174,7 @@ const AdPlacementManager = () => {
     }
   };
 
-  const handleEdit = (ad) => {
+  const handleEdit = (ad: Advertisement) => {
     setEditingAd(ad);
     setFormData({
       title: ad.title,
@@ -176,7 +188,7 @@ const AdPlacementManager = () => {
     setIsCreateDialogOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this advertisement?')) {
       deleteAdMutation.mutate(id);
     }
