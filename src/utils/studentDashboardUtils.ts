@@ -37,6 +37,35 @@ export interface DashboardStats {
   profile: StudentProfile | null;
 }
 
+// Helper function to convert database profile to StudentProfile interface
+const convertToStudentProfile = (data: any): StudentProfile => ({
+  id: data.id,
+  user_id: data.user_id,
+  university: data.university,
+  course: data.course,
+  year_of_study: data.year_of_study,
+  profile_image: data.profile_image,
+  bio: data.bio,
+  points: data.points,
+  level: data.level,
+  total_uploads: data.total_uploads,
+  total_downloads: data.total_downloads,
+  total_sales: data.total_sales,
+  achievements: Array.isArray(data.achievements) ? data.achievements : [],
+  created_at: data.created_at,
+  updated_at: data.updated_at
+});
+
+// Helper function to convert database activity to StudentActivity interface
+const convertToStudentActivity = (data: any): StudentActivity => ({
+  id: data.id,
+  user_id: data.user_id,
+  activity_type: data.activity_type as 'upload' | 'download' | 'sale' | 'bookmark' | 'share',
+  points_earned: data.points_earned,
+  description: data.description,
+  created_at: data.created_at
+});
+
 export const fetchStudentProfile = async (userId: string): Promise<StudentProfile | null> => {
   const { data, error } = await supabase
     .from('student_profiles')
@@ -49,7 +78,7 @@ export const fetchStudentProfile = async (userId: string): Promise<StudentProfil
     return null;
   }
 
-  return data;
+  return data ? convertToStudentProfile(data) : null;
 };
 
 export const createStudentProfile = async (userId: string, profileData: Partial<StudentProfile>) => {
@@ -67,7 +96,7 @@ export const createStudentProfile = async (userId: string, profileData: Partial<
     throw error;
   }
 
-  return data;
+  return convertToStudentProfile(data);
 };
 
 export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
@@ -98,7 +127,7 @@ export const fetchDashboardStats = async (userId: string): Promise<DashboardStat
     totalDownloads: profile?.total_downloads || 0,
     totalSales: profile?.total_sales || 0,
     totalBookmarks: bookmarksCount || 0,
-    recentActivities: activities || [],
+    recentActivities: (activities || []).map(convertToStudentActivity),
     profile: profile
   };
 };
