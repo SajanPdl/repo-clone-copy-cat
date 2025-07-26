@@ -10,6 +10,26 @@ export interface StudentStats {
   achievements: string[];
 }
 
+export interface StudentActivity {
+  id: string;
+  type: 'upload' | 'download' | 'sale' | 'achievement';
+  description: string;
+  date: string;
+  points?: number;
+}
+
+export interface DashboardStats {
+  totalUploads: number;
+  totalDownloads: number;
+  totalSales: number;
+  totalBookmarks: number;
+  profile: {
+    level: string;
+    points: number;
+  };
+  recentActivities: StudentActivity[];
+}
+
 export interface RecentActivity {
   id: string;
   type: 'upload' | 'download' | 'sale' | 'achievement';
@@ -34,7 +54,7 @@ export const getStudentStats = async (userId: string): Promise<StudentStats> => 
         totalSales: profile.total_sales || 0,
         points: profile.points || 0,
         level: profile.level || 'Fresh Contributor',
-        achievements: profile.achievements || []
+        achievements: Array.isArray(profile.achievements) ? profile.achievements : []
       };
     }
 
@@ -83,6 +103,45 @@ export const getRecentActivities = async (userId: string): Promise<RecentActivit
   } catch (error) {
     console.error('Error fetching recent activities:', error);
     return [];
+  }
+};
+
+export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
+  try {
+    // Fetch student profile
+    const { data: profile } = await supabase
+      .from('student_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    // Fetch recent activities
+    const recentActivities = await getRecentActivities(userId);
+
+    return {
+      totalUploads: profile?.total_uploads || 0,
+      totalDownloads: profile?.total_downloads || 0,
+      totalSales: profile?.total_sales || 0,
+      totalBookmarks: 0, // This would need to be implemented based on your bookmarks table
+      profile: {
+        level: profile?.level || 'Fresh Contributor',
+        points: profile?.points || 0,
+      },
+      recentActivities
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalUploads: 0,
+      totalDownloads: 0,
+      totalSales: 0,
+      totalBookmarks: 0,
+      profile: {
+        level: 'Fresh Contributor',
+        points: 0,
+      },
+      recentActivities: []
+    };
   }
 };
 
