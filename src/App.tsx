@@ -1,8 +1,11 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import StudyMaterialsPage from "./pages/StudyMaterialsPage";
 import PastPapersPage from "./pages/PastPapersPage";
@@ -34,45 +37,55 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AdsProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/study-materials" element={<StudyMaterialsPage />} />
-            <Route path="/past-papers" element={<PastPapersPage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:id" element={<ContentViewPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<StudentDashboard />} />
-            
-            {/* Admin routes with shared layout */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminPanel />} />
-              <Route path="materials" element={<StudyMaterialsManager />} />
-              <Route path="papers" element={<PastPapersManager />} />
-              <Route path="marketplace" element={<MarketplaceManager />} />
-              <Route path="blogs" element={<BlogEditor />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="ads" element={<AdvertisementManager />} />
-              <Route path="categories" element={<CategoriesManager />} />
-              <Route path="grades" element={<GradesManager />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="queries" element={<QueriesManager />} />
-            </Route>
-            
-            <Route path="/content/:id" element={<ContentViewPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          {/* Chat bot available on all pages */}
-          <ChatBot />
-        </BrowserRouter>
-      </AdsProvider>
+      <AuthProvider>
+        <AdsProvider>
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/study-materials" element={<StudyMaterialsPage />} />
+              <Route path="/past-papers" element={<PastPapersPage />} />
+              <Route path="/marketplace" element={<MarketplacePage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:id" element={<ContentViewPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin routes with proper protection */}
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<AdminPanel />} />
+                <Route path="materials" element={<StudyMaterialsManager />} />
+                <Route path="papers" element={<PastPapersManager />} />
+                <Route path="marketplace" element={<MarketplaceManager />} />
+                <Route path="blogs" element={<BlogEditor />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="ads" element={<AdvertisementManager />} />
+                <Route path="categories" element={<CategoriesManager />} />
+                <Route path="grades" element={<GradesManager />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="queries" element={<QueriesManager />} />
+              </Route>
+              
+              <Route path="/content/:id" element={<ContentViewPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ChatBot />
+          </BrowserRouter>
+        </AdsProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

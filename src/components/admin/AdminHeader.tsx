@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, Search, User, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,15 +13,28 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const AdminHeader = () => {
   const { toast } = useToast();
+  const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out of the admin panel.",
-    });
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleNotificationClick = () => {
@@ -58,7 +72,7 @@ const AdminHeader = () => {
               <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>
-              <span className="hidden md:inline">Admin User</span>
+              <span className="hidden md:inline">{user?.email || 'Admin User'}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
