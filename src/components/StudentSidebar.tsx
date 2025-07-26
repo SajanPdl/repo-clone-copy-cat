@@ -44,9 +44,10 @@ const profileItems = [
 ];
 
 export function StudentSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const isCollapsed = state === 'collapsed';
 
   const isActive = (path: string) => {
     if (path === '/dashboard' && currentPath === '/dashboard') return true;
@@ -59,8 +60,8 @@ export function StudentSidebar() {
 
   return (
     <Sidebar
-      className={collapsed ? "w-14" : "w-60"}
-      collapsible
+      className={isCollapsed ? "w-14" : "w-60"}
+      variant="sidebar"
     >
       <SidebarContent>
         <SidebarGroup>
@@ -72,7 +73,7 @@ export function StudentSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls(item.url)}>
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -90,7 +91,7 @@ export function StudentSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls(item.url)}>
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
