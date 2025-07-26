@@ -1,106 +1,78 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface StudentStats {
+export interface StudentActivity {
+  id: string;
+  activity_type: 'upload' | 'download' | 'sale' | 'bookmark' | 'share';
+  description: string;
+  points_earned: number;
+  created_at: string;
+}
+
+export interface StudentProfile {
+  level: string;
+  points: number;
+}
+
+export interface DashboardStats {
   totalUploads: number;
   totalDownloads: number;
   totalSales: number;
-  points: number;
-  level: string;
-  achievements: string[];
+  totalBookmarks: number;
+  profile: StudentProfile;
+  recentActivities: StudentActivity[];
 }
 
-export interface RecentActivity {
-  id: string;
-  type: 'upload' | 'download' | 'sale' | 'achievement';
-  description: string;
-  date: string;
-  points?: number;
-}
-
-export const getStudentStats = async (userId: string): Promise<StudentStats> => {
+export const fetchDashboardStats = async (userId: string): Promise<DashboardStats> => {
   try {
     // Fetch student profile
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('student_profiles')
       .select('*')
       .eq('user_id', userId)
       .single();
 
-    if (profile) {
-      return {
-        totalUploads: profile.total_uploads || 0,
-        totalDownloads: profile.total_downloads || 0,
-        totalSales: profile.total_sales || 0,
-        points: profile.points || 0,
-        level: profile.level || 'Fresh Contributor',
-        achievements: profile.achievements || []
-      };
-    }
-
-    // Return default values if no profile found
-    return {
-      totalUploads: 0,
-      totalDownloads: 0,
-      totalSales: 0,
-      points: 0,
-      level: 'Fresh Contributor',
-      achievements: []
-    };
-  } catch (error) {
-    console.error('Error fetching student stats:', error);
-    return {
-      totalUploads: 0,
-      totalDownloads: 0,
-      totalSales: 0,
-      points: 0,
-      level: 'Fresh Contributor',
-      achievements: []
-    };
-  }
-};
-
-export const getRecentActivities = async (userId: string): Promise<RecentActivity[]> => {
-  try {
-    const { data: activities } = await supabase
+    // Fetch recent activities
+    const { data: activitiesData } = await supabase
       .from('student_activities')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (activities) {
-      return activities.map(activity => ({
+    // Parse achievements safely
+    const achievements = profileData?.achievements ? 
+      (Array.isArray(profileData.achievements) ? profileData.achievements as string[] : []) : [];
+
+    return {
+      totalUploads: profileData?.total_uploads || 0,
+      totalDownloads: profileData?.total_downloads || 0,
+      totalSales: profileData?.total_sales || 0,
+      totalBookmarks: achievements.length,
+      profile: {
+        level: profileData?.level || 'Fresh Contributor',
+        points: profileData?.points || 0
+      },
+      recentActivities: activitiesData?.map(activity => ({
         id: activity.id,
-        type: activity.activity_type as 'upload' | 'download' | 'sale' | 'achievement',
-        description: activity.description || 'Activity completed',
-        date: activity.created_at,
-        points: activity.points_earned || 0
-      }));
-    }
-
-    return [];
+        activity_type: activity.activity_type as StudentActivity['activity_type'],
+        description: activity.description || '',
+        points_earned: activity.points_earned || 0,
+        created_at: activity.created_at
+      })) || []
+    };
   } catch (error) {
-    console.error('Error fetching recent activities:', error);
-    return [];
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalUploads: 0,
+      totalDownloads: 0,
+      totalSales: 0,
+      totalBookmarks: 0,
+      profile: {
+        level: 'Fresh Contributor',
+        points: 0
+      },
+      recentActivities: []
+    };
   }
-};
-
-export const calculateProgress = (points: number): number => {
-  // Simple progress calculation based on points
-  const maxPoints = 1000; // Adjust based on your system
-  return Math.min((points / maxPoints) * 100, 100);
-};
-
-export const getLevelInfo = (level: string) => {
-  const levels = {
-    'Fresh Contributor': { color: 'bg-green-500', nextLevel: 'Active Learner', pointsNeeded: 100 },
-    'Active Learner': { color: 'bg-blue-500', nextLevel: 'Knowledge Seeker', pointsNeeded: 250 },
-    'Knowledge Seeker': { color: 'bg-purple-500', nextLevel: 'Academic Star', pointsNeeded: 500 },
-    'Academic Star': { color: 'bg-yellow-500', nextLevel: 'Scholar', pointsNeeded: 750 },
-    'Scholar': { color: 'bg-red-500', nextLevel: 'Master', pointsNeeded: 1000 },
-    'Master': { color: 'bg-indigo-500', nextLevel: null, pointsNeeded: null }
-  };
-
-  return levels[level as keyof typeof levels] || levels['Fresh Contributor'];
 };
