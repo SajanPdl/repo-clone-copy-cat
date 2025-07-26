@@ -1,163 +1,102 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { QueryClient } from '@tanstack/react-query';
 
-import { Suspense } from "react";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
-import LoginPage from "./pages/LoginPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import StudyMaterialsPage from "./pages/StudyMaterialsPage";
-import PastPapersPage from "./pages/PastPapersPage";
-import BlogPage from "./pages/BlogPage";
-import ContactPage from "./pages/ContactPage";
-import StudentDashboard from "./pages/StudentDashboard";
-import ProfilePage from "./pages/ProfilePage";
-import MarketplacePage from "./pages/MarketplacePage";
-import ContentViewPage from "./pages/ContentViewPage";
-import AdminPanel from "./pages/AdminPanel";
-import NotFound from "./pages/NotFound";
-import DashboardOverview from "./pages/DashboardOverview";
-import DashboardAchievements from "./pages/DashboardAchievements";
-import DashboardRewards from "./pages/DashboardRewards";
-import DashboardInbox from "./pages/DashboardInbox";
-import DashboardSettings from "./pages/DashboardSettings";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminLayout from "./components/admin/AdminLayout";
-import AnalyticsPage from "./components/admin/AnalyticsPage";
-import StudyMaterialsManager from "./components/admin/StudyMaterialsManager";
-import PastPapersManager from "./components/admin/PastPapersManager";
-import BlogEditor from "./components/admin/BlogEditor";
-import UserManagement from "./components/admin/UserManagement";
-import CategoriesManager from "./components/admin/CategoriesManager";
-import GradesManager from "./components/admin/GradesManager";
-import AdSettingsManager from "./components/admin/AdSettingsManager";
-import QueriesManager from "./components/admin/QueriesManager";
-import AdminSettings from "./components/admin/AdminSettings";
-import MarketplaceManager from "./components/admin/MarketplaceManager";
-import AdvertisementManager from "./components/admin/AdvertisementManager";
-import AdPlacementManager from "./components/admin/AdPlacementManager";
-import GlobalHeader from "./components/GlobalHeader";
-import { AdsProvider } from "./components/ads/AdsProvider";
-import { AuthProvider } from "@/hooks/useAuth";
+import Index from '@/pages/Index';
+import LoginPage from '@/pages/LoginPage';
+import BlogPage from '@/pages/BlogPage';
+import BlogPostView from '@/pages/BlogPostView';
+import ContactPage from '@/pages/ContactPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
+import ContentViewPage from '@/pages/ContentViewPage';
+import PastPapersPage from '@/pages/PastPapersPage';
+import MarketplacePage from '@/pages/MarketplacePage';
 
-const queryClient = new QueryClient();
+// Student Dashboard Pages
+import StudentDashboard from '@/pages/StudentDashboard';
+import DashboardOverview from '@/components/dashboard/DashboardOverview';
+import DashboardAchievements from '@/components/dashboard/DashboardAchievements';
+import DashboardRewards from '@/components/dashboard/DashboardRewards';
+import DashboardInbox from '@/components/dashboard/DashboardInbox';
+import DashboardSettings from '@/components/dashboard/DashboardSettings';
+import ProfilePage from '@/pages/ProfilePage';
+
+// Admin Panel
+import AdminPanel from '@/pages/AdminPanel';
+
+// Auth Components
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import NotFound from '@/components/NotFound';
+import { AdsProvider } from '@/components/ads/AdsProvider';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <AuthProvider>
-            <AdsProvider>
-              <Toaster />
-              <BrowserRouter>
-                <GlobalHeader />
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/study-materials" element={<StudyMaterialsPage />} />
-                    <Route path="/past-papers" element={<PastPapersPage />} />
-                    <Route path="/blog" element={<BlogPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/marketplace" element={<MarketplacePage />} />
-                    <Route path="/content/:id" element={<ContentViewPage />} />
-                    
-                    {/* Protected Routes */}
-                    <Route 
-                      path="/dashboard" 
-                      element={
-                        <ProtectedRoute>
-                          <StudentDashboard />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/dashboard/overview" 
-                      element={
-                        <ProtectedRoute>
-                          <DashboardOverview />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/dashboard/achievements" 
-                      element={
-                        <ProtectedRoute>
-                          <DashboardAchievements />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/dashboard/rewards" 
-                      element={
-                        <ProtectedRoute>
-                          <DashboardRewards />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/dashboard/inbox" 
-                      element={
-                        <ProtectedRoute>
-                          <DashboardInbox />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/dashboard/settings" 
-                      element={
-                        <ProtectedRoute>
-                          <DashboardSettings />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/profile" 
-                      element={
-                        <ProtectedRoute>
-                          <ProfilePage />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    
-                    {/* Admin Routes */}
-                    <Route 
-                      path="/admin" 
-                      element={
-                        <ProtectedRoute adminOnly>
-                          <AdminLayout />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<AdminPanel />} />
-                      <Route path="analytics" element={<AnalyticsPage />} />
-                      <Route path="study-materials" element={<StudyMaterialsManager />} />
-                      <Route path="past-papers" element={<PastPapersManager />} />
-                      <Route path="blog" element={<BlogEditor />} />
-                      <Route path="users" element={<UserManagement />} />
-                      <Route path="categories" element={<CategoriesManager />} />
-                      <Route path="grades" element={<GradesManager />} />
-                      <Route path="ads" element={<AdSettingsManager />} />
-                      <Route path="queries" element={<QueriesManager />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                      <Route path="marketplace" element={<MarketplaceManager />} />
-                      <Route path="advertisements" element={<AdvertisementManager />} />
-                      <Route path="ad-placements" element={<AdPlacementManager />} />
-                    </Route>
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-            </AdsProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClient>
+        <AdsProvider>
+          <Toaster />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:id" element={<BlogPostView />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/study-materials" element={<StudyMaterialsPage />} />
+            <Route path="/study-materials/:id" element={<ContentViewPage />} />
+            <Route path="/past-papers" element={<PastPapersPage />} />
+            <Route path="/past-papers/:id" element={<ContentViewPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            
+            {/* Student Dashboard Routes */}
+            <Route path="/student/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/" element={<StudentDashboard />} />
+                  <Route path="/dashboard" element={<StudentDashboard />} />
+                  <Route path="/overview" element={<DashboardOverview />} />
+                  <Route path="/achievements" element={<DashboardAchievements />} />
+                  <Route path="/rewards" element={<DashboardRewards />} />
+                  <Route path="/inbox" element={<DashboardInbox />} />
+                  <Route path="/settings" element={<DashboardSettings />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute requireAdmin>
+                <Routes>
+                  <Route path="/" element={<AdminPanel />} />
+                  <Route path="/dashboard" element={<AdminPanel />} />
+                  <Route path="/materials" element={<AdminPanel />} />
+                  <Route path="/papers" element={<AdminPanel />} />
+                  <Route path="/blog" element={<AdminPanel />} />
+                  <Route path="/users" element={<AdminPanel />} />
+                  <Route path="/stats" element={<AdminPanel />} />
+                  <Route path="/achievements" element={<AdminPanel />} />
+                  <Route path="/categories" element={<AdminPanel />} />
+                  <Route path="/grades" element={<AdminPanel />} />
+                  <Route path="/marketplace" element={<AdminPanel />} />
+                  <Route path="/queries" element={<AdminPanel />} />
+                  <Route path="/analytics" element={<AdminPanel />} />
+                  <Route path="/ads" element={<AdminPanel />} />
+                  <Route path="/ad-placements" element={<AdminPanel />} />
+                  <Route path="/settings" element={<AdminPanel />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AdsProvider>
+      </QueryClient>
+    </BrowserRouter>
   );
 }
 
