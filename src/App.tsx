@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
 import BlogPage from '@/pages/BlogPage';
+import BlogPostView from '@/pages/BlogPostView';
 import ContactPage from '@/pages/ContactPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
@@ -44,6 +45,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:id" element={<BlogPostView />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/study-materials" element={<StudyMaterialsPage />} />
@@ -75,7 +77,7 @@ function App() {
 
             {/* Admin Routes */}
             <Route path="/admin/*" element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute adminOnly>
                 <Routes>
                   <Route path="/" element={<AdminPanel />} />
                   <Route path="/dashboard" element={<AdminPanel />} />

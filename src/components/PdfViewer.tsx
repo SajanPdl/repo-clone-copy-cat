@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, RotateCw, Search, Bookmark, Share2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, RotateCw, Search, Bookmark, Share2, Fullscreen, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,8 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
   const [rotation, setRotation] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showOutline, setShowOutline] = useState<boolean>(false);
   const { toast } = useToast();
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -54,6 +57,10 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
 
   const handleRotate = () => {
     setRotation(prev => (prev + 90) % 360);
+  };
+
+  const handleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   const handleSearch = () => {
@@ -102,8 +109,19 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
     });
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') handlePageChange(pageNumber - 1);
+    if (e.key === 'ArrowRight') handlePageChange(pageNumber + 1);
+    if (e.key === '+') handleZoomIn();
+    if (e.key === '-') handleZoomOut();
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+    <div 
+      className={`bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
+      onKeyDown={handleKeyPress}
+      tabIndex={0}
+    >
       {/* Header with controls */}
       <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -136,6 +154,11 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
             {/* Rotate */}
             <Button variant="outline" size="sm" onClick={handleRotate}>
               <RotateCw className="h-4 w-4" />
+            </Button>
+            
+            {/* Fullscreen */}
+            <Button variant="outline" size="sm" onClick={handleFullscreen}>
+              <Fullscreen className="h-4 w-4" />
             </Button>
             
             {/* Actions */}
@@ -244,7 +267,17 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
 
         {/* Sidebar for bookmarks/outline */}
         <div className="w-64 bg-gray-50 dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4">
-          <h3 className="font-semibold mb-4">Quick Actions</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Quick Actions</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowOutline(!showOutline)}
+            >
+              <FileText className="h-4 w-4" />
+            </Button>
+          </div>
+          
           <div className="space-y-2">
             <Button variant="ghost" className="w-full justify-start" onClick={handleBookmark}>
               <Bookmark className="h-4 w-4 mr-2" />
@@ -258,7 +291,33 @@ const PdfViewer = ({ fileUrl, title }: PdfViewerProps) => {
               <Download className="h-4 w-4 mr-2" />
               Download
             </Button>
+            <Button variant="ghost" className="w-full justify-start" onClick={handleFullscreen}>
+              <Fullscreen className="h-4 w-4 mr-2" />
+              {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            </Button>
           </div>
+
+          {/* Page thumbnails or outline */}
+          {showOutline && (
+            <div className="mt-6">
+              <h4 className="text-sm font-medium mb-2">Pages</h4>
+              <div className="space-y-1 max-h-40 overflow-y-auto">
+                {Array.from({ length: numPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`w-full text-left px-2 py-1 text-sm rounded ${
+                      pageNumber === i + 1 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    Page {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Ad placement in sidebar */}
           <div className="mt-6">
