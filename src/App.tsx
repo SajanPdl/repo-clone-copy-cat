@@ -100,8 +100,8 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                {/* Protected Admin Route */}
-                <Route path="/admin" element={
+                {/* Protected Admin Routes */}
+                <Route path="/admin/*" element={
                   <ProtectedRoute requireAdmin={true}>
                     <AdminPanel />
                   </ProtectedRoute>

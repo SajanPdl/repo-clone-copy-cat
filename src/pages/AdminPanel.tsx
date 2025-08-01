@@ -17,6 +17,8 @@ import AdvertisementManager from '@/components/admin/AdvertisementManager';
 import AdPlacementManager from '@/components/admin/AdPlacementManager';
 import MarketplaceManager from '@/components/admin/MarketplaceManager';
 import EnhancedDashboard from '@/components/admin/EnhancedDashboard';
+import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
+import WithdrawalManager from '@/components/admin/WithdrawalManager';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -54,6 +56,8 @@ const AdminPanel = () => {
     if (path.includes('/analytics')) return <AnalyticsPage />;
     if (path.includes('/ads')) return <AdvertisementManager />;
     if (path.includes('/ad-placements')) return <AdPlacementManager />;
+    if (path.includes('/payments')) return <PaymentVerificationManager />;
+    if (path.includes('/withdrawals')) return <WithdrawalManager />;
     if (path.includes('/settings')) return <AdminSettings />;
     
     return <div className="p-6">Page not found</div>;
