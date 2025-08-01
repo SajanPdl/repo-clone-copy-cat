@@ -60,10 +60,14 @@ const AdminPanel = () => {
     if (path.includes('/withdrawals')) return <WithdrawalManager />;
     if (path.includes('/settings')) return <AdminSettings />;
     
-    return <div className="p-6">Page not found</div>;
+    return <EnhancedDashboard />;
   };
 
-  return <div className="w-full">{renderContent()}</div>;
+  return (
+    <div className="w-full min-h-full">
+      {renderContent()}
+    </div>
+  );
 };
 
 export default AdminPanel;
