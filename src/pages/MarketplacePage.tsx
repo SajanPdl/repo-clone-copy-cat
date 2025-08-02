@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -11,25 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-
-interface MarketplaceListing {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  condition: string;
-  category: string;
-  subject: string;
-  university: string;
-  images: string[];
-  user_id: string;
-  created_at: string;
-  formattedPrice?: string;
-  seller?: {
-    full_name: string;
-    avatar_url?: string;
-  };
-}
+import { MarketplaceListing } from '@/utils/marketplaceUtils';
 
 const MarketplacePage = () => {
   const { user } = useAuth();
@@ -61,7 +43,7 @@ const MarketplacePage = () => {
         .from('marketplace_listings')
         .select(`
           *,
-          seller:profiles(full_name, avatar_url)
+          seller:profiles!marketplace_listings_user_id_fkey(full_name, avatar_url)
         `)
         .eq('status', 'active');
 
@@ -105,11 +87,22 @@ const MarketplacePage = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      return data.map(listing => ({
-        ...listing,
-        // Format price with NPR currency
-        formattedPrice: listing.is_free ? 'Free' : `NPR ${listing.price?.toLocaleString() || 0}`
-      })) as MarketplaceListing[];
+      // Transform data to match MarketplaceListing type
+      return (data || []).map(listing => ({
+        id: listing.id,
+        title: listing.title || '',
+        description: listing.description || '',
+        price: listing.price || 0,
+        condition: listing.condition || 'good',
+        category: listing.category || '',
+        subject: listing.subject || '',
+        university: listing.university || '',
+        image_url: listing.images?.[0] || '/placeholder.svg',
+        seller_id: listing.user_id || '',
+        seller_name: listing.seller?.full_name || 'Unknown',
+        created_at: listing.created_at || new Date().toISOString(),
+        formattedPrice: listing.is_free ? 'निःशुल्क' : `रू ${(listing.price || 0).toLocaleString()}`
+      } as MarketplaceListing));
     }
   });
 

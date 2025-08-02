@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AdsProvider } from '@/components/ads/AdsProvider';
 import { SecureAuthProvider } from '@/hooks/useSecureAuth';
-import Navbar from '@/components/Navbar';
 import Index from '@/pages/Index';
 import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
 import PastPapersPage from '@/pages/PastPapersPage';
@@ -35,12 +34,12 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <SecureAuthProvider>
           <AdsProvider>
-            <div className="min-h-screen bg-background">
-              <SecurityMiddleware>
+            <SecurityMiddleware>
+              <div className="min-h-screen bg-background">
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Index />} />
@@ -110,13 +109,13 @@ function App() {
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </SecurityMiddleware>
-              <Toaster />
-            </div>
+                <Toaster />
+              </div>
+            </SecurityMiddleware>
           </AdsProvider>
         </SecureAuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
