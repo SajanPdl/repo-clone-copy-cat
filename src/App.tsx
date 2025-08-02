@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/hooks/use-toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Sonner } from 'sonner';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
@@ -19,20 +20,15 @@ import ProfilePage from '@/pages/ProfilePage';
 import NotFound from '@/pages/NotFound';
 
 import StudentDashboard from '@/pages/StudentDashboard';
-import DashboardOverview from '@/components/student/DashboardOverview';
 import StudentUploadPage from '@/pages/StudentUploadPage';
 import StudentSavedPage from '@/pages/StudentSavedPage';
-import DashboardAchievements from '@/components/student/DashboardAchievements';
-import DashboardRewards from '@/components/student/DashboardRewards';
-import DashboardInbox from '@/components/student/DashboardInbox';
-import DashboardSettings from '@/components/student/DashboardSettings';
 
 import AdminPanel from '@/pages/AdminPanel';
 import AdminLayout from '@/components/admin/AdminLayout';
 
 import { AuthProvider } from '@/hooks/useAuth';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AdsProvider } from '@/hooks/useAds';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { AdsProvider } from '@/components/ads/AdsProvider';
 
 const queryClient = new QueryClient();
 
@@ -42,7 +38,7 @@ const App = () => (
       <AdsProvider>
         <TooltipProvider>
           <Toaster />
-          <Sonner />
+          <SonnerToaster />
           <BrowserRouter>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
               <Routes>
@@ -68,11 +64,6 @@ const App = () => (
                     <StudentDashboard />
                   </ProtectedRoute>
                 } />
-                <Route path="/dashboard/overview" element={
-                  <ProtectedRoute>
-                    <DashboardOverview />
-                  </ProtectedRoute>
-                } />
                 <Route path="/dashboard/upload" element={
                   <ProtectedRoute>
                     <StudentUploadPage />
@@ -81,26 +72,6 @@ const App = () => (
                 <Route path="/dashboard/saved" element={
                   <ProtectedRoute>
                     <StudentSavedPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/achievements" element={
-                  <ProtectedRoute>
-                    <DashboardAchievements />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/rewards" element={
-                  <ProtectedRoute>
-                    <DashboardRewards />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/inbox" element={
-                  <ProtectedRoute>
-                    <DashboardInbox />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/settings" element={
-                  <ProtectedRoute>
-                    <DashboardSettings />
                   </ProtectedRoute>
                 } />
 
@@ -123,6 +94,10 @@ const App = () => (
                         <Route path="analytics" element={<AdminPanel />} />
                         <Route path="payments" element={<AdminPanel />} />
                         <Route path="withdrawals" element={<AdminPanel />} />
+                        <Route path="events" element={<AdminPanel />} />
+                        <Route path="jobs" element={<AdminPanel />} />
+                        <Route path="referrals" element={<AdminPanel />} />
+                        <Route path="merch" element={<AdminPanel />} />
                         <Route path="settings" element={<AdminPanel />} />
                       </Routes>
                     </AdminLayout>

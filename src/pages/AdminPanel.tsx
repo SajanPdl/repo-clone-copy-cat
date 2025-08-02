@@ -19,6 +19,8 @@ import MarketplaceManager from '@/components/admin/MarketplaceManager';
 import EnhancedDashboard from '@/components/admin/EnhancedDashboard';
 import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
 import WithdrawalManager from '@/components/admin/WithdrawalManager';
+import EventsManager from '@/components/admin/EventsManager';
+import JobsManager from '@/components/admin/JobsManager';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -58,6 +60,8 @@ const AdminPanel = () => {
     if (path.includes('/ad-placements')) return <AdPlacementManager />;
     if (path.includes('/payments')) return <PaymentVerificationManager />;
     if (path.includes('/withdrawals')) return <WithdrawalManager />;
+    if (path.includes('/events')) return <EventsManager />;
+    if (path.includes('/jobs')) return <JobsManager />;
     if (path.includes('/settings')) return <AdminSettings />;
     
     return <EnhancedDashboard />;

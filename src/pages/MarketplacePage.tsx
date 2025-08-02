@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
 import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
@@ -94,9 +96,7 @@ const MarketplacePage: React.FC = () => {
   };
 
   const handleViewListing = async (listing: MarketplaceListing) => {
-    // Increment view count
     await incrementListingViews(listing.id);
-    // Navigate to listing detail (you can implement this)
     console.log('View listing:', listing);
   };
 
@@ -154,17 +154,22 @@ const MarketplacePage: React.FC = () => {
 
   if (showCreateForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 px-4">
-        <CreateListingForm
-          onSuccess={handleListingCreated}
-          onCancel={() => setShowCreateForm(false)}
-        />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <CreateListingForm
+            onSuccess={handleListingCreated}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        </div>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -264,6 +269,7 @@ const MarketplacePage: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+      <Footer />
     </div>
   );
 };
