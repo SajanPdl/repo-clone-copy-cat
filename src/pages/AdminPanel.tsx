@@ -1,20 +1,20 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { EnhancedDashboard } from '@/components/admin/EnhancedDashboard';
-import { StudyMaterialsManager } from '@/components/admin/StudyMaterialsManager';
-import { PastPapersManager } from '@/components/admin/PastPapersManager';
-import { UserManagement } from '@/components/admin/UserManagement';
-import { MarketplaceManager } from '@/components/admin/MarketplaceManager';
-import { CategoriesManager } from '@/components/admin/CategoriesManager';
-import { GradesManager } from '@/components/admin/GradesManager';
-import { BlogEditor } from '@/components/admin/BlogEditor';
-import { QueriesManager } from '@/components/admin/QueriesManager';
-import { AdvertisementManager } from '@/components/admin/AdvertisementManager';
-import { AchievementManager } from '@/components/admin/AchievementManager';
-import { AdminSettings } from '@/components/admin/AdminSettings';
-import { PaymentVerificationManager } from '@/components/admin/PaymentVerificationManager';
-import { WithdrawalManager } from '@/components/admin/WithdrawalManager';
+import EnhancedDashboard from '@/components/admin/EnhancedDashboard';
+import StudyMaterialsManager from '@/components/admin/StudyMaterialsManager';
+import PastPapersManager from '@/components/admin/PastPapersManager';
+import UserManagement from '@/components/admin/UserManagement';
+import MarketplaceManager from '@/components/admin/MarketplaceManager';
+import CategoriesManager from '@/components/admin/CategoriesManager';
+import GradesManager from '@/components/admin/GradesManager';
+import BlogEditor from '@/components/admin/BlogEditor';
+import QueriesManager from '@/components/admin/QueriesManager';
+import AdvertisementManager from '@/components/admin/AdvertisementManager';
+import AchievementManager from '@/components/admin/AchievementManager';
+import AdminSettings from '@/components/admin/AdminSettings';
+import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
+import WithdrawalManager from '@/components/admin/WithdrawalManager';
 import EventsManager from '@/components/admin/EventsManager';
 import JobsManager from '@/components/admin/JobsManager';
 

@@ -1,37 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Calendar, MapPin, Users, Plus, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Clock,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Loader2
-} from 'lucide-react';
 
 interface Event {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   event_type: 'exam' | 'fest' | 'webinar' | 'job_fair' | 'workshop' | 'other';
   start_date: string;
   end_date?: string;
   location?: string;
-  is_virtual: boolean;
   region?: string;
   stream?: string;
+  is_virtual: boolean;
   max_attendees?: number;
   registration_deadline?: string;
   is_featured: boolean;
@@ -41,98 +32,141 @@ interface Event {
 
 const EventsManager = () => {
   const { toast } = useToast();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    event_type: 'other' as Event['event_type'],
+    event_type: 'webinar' as Event['event_type'],
     start_date: '',
     end_date: '',
     location: '',
-    is_virtual: false,
     region: '',
     stream: '',
-    max_attendees: '',
+    is_virtual: false,
+    max_attendees: 0,
     registration_deadline: '',
     is_featured: false
   });
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
-    try {
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['admin-events'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('start_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setEvents(data || []);
-    } catch (error) {
-      console.error('Error loading events:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load events',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
+      
+      return (data || []).map(event => ({
+        ...event,
+        event_type: event.event_type as Event['event_type']
+      })) as Event[];
     }
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data: result, error } = await supabase
+        .from('events')
+        .insert([data])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      toast({ title: 'Event created successfully' });
+      resetForm();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error creating event', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: Partial<Event> & { id: string }) => {
+      const { data: result, error } = await supabase
+        .from('events')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      toast({ title: 'Event updated successfully' });
+      resetForm();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error updating event', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      toast({ title: 'Event deleted successfully' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error deleting event', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      event_type: 'webinar',
+      start_date: '',
+      end_date: '',
+      location: '',
+      region: '',
+      stream: '',
+      is_virtual: false,
+      max_attendees: 0,
+      registration_deadline: '',
+      is_featured: false
+    });
+    setEditingEvent(null);
+    setShowForm(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      const eventData = {
-        ...formData,
-        max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
-        end_date: formData.end_date || null,
-        location: formData.location || null,
-        region: formData.region || null,
-        stream: formData.stream || null,
-        registration_deadline: formData.registration_deadline || null
-      };
-
-      if (editingEvent) {
-        const { error } = await supabase
-          .from('events')
-          .update(eventData)
-          .eq('id', editingEvent.id);
-
-        if (error) throw error;
-        
-        toast({
-          title: 'Success',
-          description: 'Event updated successfully'
-        });
-      } else {
-        const { error } = await supabase
-          .from('events')
-          .insert([eventData]);
-
-        if (error) throw error;
-        
-        toast({
-          title: 'Success',
-          description: 'Event created successfully'
-        });
-      }
-
-      loadEvents();
-      resetForm();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save event',
-        variant: 'destructive'
-      });
+    if (editingEvent) {
+      updateMutation.mutate({ id: editingEvent.id, ...formData });
+    } else {
+      createMutation.mutate(formData);
     }
   };
 
@@ -142,116 +176,62 @@ const EventsManager = () => {
       title: event.title,
       description: event.description || '',
       event_type: event.event_type,
-      start_date: new Date(event.start_date).toISOString().slice(0, 16),
-      end_date: event.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : '',
+      start_date: event.start_date,
+      end_date: event.end_date || '',
       location: event.location || '',
-      is_virtual: event.is_virtual,
       region: event.region || '',
       stream: event.stream || '',
-      max_attendees: event.max_attendees?.toString() || '',
-      registration_deadline: event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : '',
+      is_virtual: event.is_virtual,
+      max_attendees: event.max_attendees || 0,
+      registration_deadline: event.registration_deadline || '',
       is_featured: event.is_featured
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      toast({
-        title: 'Success',
-        description: 'Event deleted successfully'
-      });
-      
-      loadEvents();
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete event',
-        variant: 'destructive'
-      });
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      event_type: 'other',
-      start_date: '',
-      end_date: '',
-      location: '',
-      is_virtual: false,
-      region: '',
-      stream: '',
-      max_attendees: '',
-      registration_deadline: '',
-      is_featured: false
-    });
-    setEditingEvent(null);
-    setShowForm(false);
-  };
-
-  const getEventTypeBadge = (type: string) => {
-    const colors = {
-      exam: 'bg-red-100 text-red-800',
-      fest: 'bg-purple-100 text-purple-800',
-      webinar: 'bg-blue-100 text-blue-800',
-      job_fair: 'bg-green-100 text-green-800',
-      workshop: 'bg-orange-100 text-orange-800',
-      other: 'bg-gray-100 text-gray-800'
-    };
-    return colors[type as keyof typeof colors] || colors.other;
-  };
-
-  if (loading) {
+  if (showForm) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold">
+            {editingEvent ? 'Edit Event' : 'Create New Event'}
+          </h2>
+          <Button variant="outline" onClick={resetForm}>
+            Cancel
+          </Button>
+        </div>
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Events Management</h1>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Event
-        </Button>
-      </div>
-
-      {showForm && (
         <Card>
-          <CardHeader>
-            <CardTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title">Event Title*</Label>
+                  <label className="block text-sm font-medium mb-2">Title</label>
                   <Input
-                    id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="event_type">Event Type*</Label>
-                  <Select value={formData.event_type} onValueChange={(value) => setFormData({ ...formData, event_type: value as Event['event_type'] })}>
+                  <label className="block text-sm font-medium mb-2">Event Type</label>
+                  <Select
+                    value={formData.event_type}
+                    onValueChange={(value: Event['event_type']) => 
+                      setFormData({ ...formData, event_type: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -267,9 +247,8 @@ const EventsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="start_date">Start Date & Time*</Label>
+                  <label className="block text-sm font-medium mb-2">Start Date</label>
                   <Input
-                    id="start_date"
                     type="datetime-local"
                     value={formData.start_date}
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
@@ -278,9 +257,8 @@ const EventsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="end_date">End Date & Time</Label>
+                  <label className="block text-sm font-medium mb-2">End Date</label>
                   <Input
-                    id="end_date"
                     type="datetime-local"
                     value={formData.end_date}
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
@@ -288,50 +266,33 @@ const EventsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <label className="block text-sm font-medium mb-2">Location</label>
                   <Input
-                    id="location"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Physical location or online platform"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="region">Region</Label>
+                  <label className="block text-sm font-medium mb-2">Region</label>
                   <Input
-                    id="region"
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    placeholder="e.g., Kathmandu, Pokhara"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="stream">Stream/Subject</Label>
+                  <label className="block text-sm font-medium mb-2">Max Attendees</label>
                   <Input
-                    id="stream"
-                    value={formData.stream}
-                    onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
-                    placeholder="e.g., Computer Science, Management"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="max_attendees">Max Attendees</Label>
-                  <Input
-                    id="max_attendees"
                     type="number"
                     value={formData.max_attendees}
-                    onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })}
-                    min="1"
+                    onChange={(e) => setFormData({ ...formData, max_attendees: parseInt(e.target.value) || 0 })}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="registration_deadline">Registration Deadline</Label>
+                  <label className="block text-sm font-medium mb-2">Registration Deadline</label>
                   <Input
-                    id="registration_deadline"
                     type="datetime-local"
                     value={formData.registration_deadline}
                     onChange={(e) => setFormData({ ...formData, registration_deadline: e.target.value })}
@@ -340,12 +301,11 @@ const EventsManager = () => {
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <label className="block text-sm font-medium mb-2">Description</label>
                 <Textarea
-                  id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
+                  rows={4}
                 />
               </div>
 
@@ -356,7 +316,7 @@ const EventsManager = () => {
                     checked={formData.is_virtual}
                     onChange={(e) => setFormData({ ...formData, is_virtual: e.target.checked })}
                   />
-                  <span>Virtual Event</span>
+                  <span className="text-sm">Virtual Event</span>
                 </label>
 
                 <label className="flex items-center space-x-2">
@@ -365,7 +325,7 @@ const EventsManager = () => {
                     checked={formData.is_featured}
                     onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
                   />
-                  <span>Featured Event</span>
+                  <span className="text-sm">Featured Event</span>
                 </label>
               </div>
 
@@ -373,78 +333,123 @@ const EventsManager = () => {
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
                   {editingEvent ? 'Update Event' : 'Create Event'}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
-      )}
+      </motion.div>
+    );
+  }
 
-      <div className="grid gap-4">
-        {events.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">No events found</h3>
-              <p className="text-gray-600">Create your first event to get started.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          events.map((event) => (
-            <Card key={event.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {event.title}
-                      {event.is_featured && (
-                        <Badge variant="secondary">Featured</Badge>
-                      )}
-                    </CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                      <Badge className={getEventTypeBadge(event.event_type)}>
-                        {event.event_type.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(event.start_date).toLocaleDateString()} at {new Date(event.start_date).toLocaleTimeString()}
-                      </span>
-                      {event.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {event.location}
-                        </span>
-                      )}
-                      {event.max_attendees && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          Max {event.max_attendees}
-                        </span>
-                      )}
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold">Events Management</h2>
+          <p className="text-gray-600 dark:text-gray-300">Manage events, webinars, and academic calendar</p>
+        </div>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Event
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <motion.div key={event.id} layout>
+              <Card className="h-full">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
+                    <div className="flex space-x-1">
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(event)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleDelete(event.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(event)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(event.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">{event.event_type}</Badge>
+                    {event.is_virtual && <Badge>Virtual</Badge>}
+                    {event.is_featured && <Badge className="bg-purple-500">Featured</Badge>}
                   </div>
-                </div>
-              </CardHeader>
-              {event.description && (
-                <CardContent>
-                  <p className="text-gray-700">{event.description}</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {event.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+                      {event.description}
+                    </p>
+                  )}
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(event.start_date).toLocaleDateString()}
+                    </div>
+                    
+                    {event.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        {event.location}
+                      </div>
+                    )}
+                    
+                    {event.max_attendees && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Max {event.max_attendees} attendees
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
-              )}
-            </Card>
-          ))
-        )}
-      </div>
-    </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && events.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-xl font-semibold mb-2">No events found</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Start by creating your first event.
+          </p>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Event
+          </Button>
+        </motion.div>
+      )}
+    </motion.div>
   );
 };
 
