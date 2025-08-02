@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
-import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
-import { MarketplaceCard } from '@/components/marketplace/MarketplaceCard';
-import { CreateListingForm } from '@/components/marketplace/CreateListingForm';
+import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
+import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
+import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search } from 'lucide-react';
@@ -21,9 +21,10 @@ interface MarketplaceListing {
   category: string;
   subject: string;
   university: string;
-  image_url: string;
-  seller_id: string;
+  images: string[];
+  user_id: string;
   created_at: string;
+  formattedPrice?: string;
   seller?: {
     full_name: string;
     avatar_url?: string;
@@ -36,16 +37,21 @@ const MarketplacePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     search: '',
-    category: '',
-    subject: '',
-    university: '',
-    condition: '',
+    category: 'all',
+    subject: 'all',
+    university: 'all',
+    condition: 'all',
     priceMin: 0,
     priceMax: 10000,
     freeOnly: false,
-    sortBy: 'created_at'
+    sortBy: 'latest'
   });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Mock data for filters
+  const categories = ['book', 'notes', 'pdf', 'question_bank', 'calculator', 'device', 'other'];
+  const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Computer Science'];
+  const universities = ['Tribhuvan University', 'Kathmandu University', 'Pokhara University', 'Purbanchal University'];
 
   // Fetch marketplace listings
   const { data: listings, isLoading, refetch } = useQuery({
@@ -63,33 +69,33 @@ const MarketplacePage = () => {
       if (filters.search) {
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
-      if (filters.category) {
+      if (filters.category && filters.category !== 'all') {
         query = query.eq('category', filters.category);
       }
-      if (filters.subject) {
+      if (filters.subject && filters.subject !== 'all') {
         query = query.eq('subject', filters.subject);
       }
-      if (filters.university) {
+      if (filters.university && filters.university !== 'all') {
         query = query.eq('university', filters.university);
       }
-      if (filters.condition) {
+      if (filters.condition && filters.condition !== 'all') {
         query = query.eq('condition', filters.condition);
       }
       if (filters.freeOnly) {
-        query = query.eq('price', 0);
+        query = query.eq('is_free', true);
       } else {
         query = query.gte('price', filters.priceMin).lte('price', filters.priceMax);
       }
 
       // Apply sorting
       switch (filters.sortBy) {
-        case 'price_low':
+        case 'price_asc':
           query = query.order('price', { ascending: true });
           break;
-        case 'price_high':
+        case 'price_desc':
           query = query.order('price', { ascending: false });
           break;
-        case 'newest':
+        case 'latest':
           query = query.order('created_at', { ascending: false });
           break;
         default:
@@ -102,7 +108,7 @@ const MarketplacePage = () => {
       return data.map(listing => ({
         ...listing,
         // Format price with NPR currency
-        formattedPrice: listing.price === 0 ? 'Free' : `NPR ${listing.price.toLocaleString()}`
+        formattedPrice: listing.is_free ? 'Free' : `NPR ${listing.price?.toLocaleString() || 0}`
       })) as MarketplaceListing[];
     }
   });
@@ -119,14 +125,14 @@ const MarketplacePage = () => {
   const clearFilters = () => {
     setFilters({
       search: '',
-      category: '',
-      subject: '',
-      university: '',
-      condition: '',
+      category: 'all',
+      subject: 'all',
+      university: 'all',
+      condition: 'all',
       priceMin: 0,
       priceMax: 10000,
       freeOnly: false,
-      sortBy: 'created_at'
+      sortBy: 'latest'
     });
     setSearchTerm('');
   };
@@ -146,7 +152,7 @@ const MarketplacePage = () => {
         .from('marketplace_listings')
         .insert([{
           ...listingData,
-          seller_id: user.id,
+          user_id: user.id,
           status: 'active'
         }]);
 
@@ -167,6 +173,11 @@ const MarketplacePage = () => {
         variant: 'destructive'
       });
     }
+  };
+
+  const handleViewListing = (listing: MarketplaceListing) => {
+    // Placeholder for viewing listing details
+    console.log('View listing:', listing);
   };
 
   return (
@@ -205,8 +216,9 @@ const MarketplacePage = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={clearFilters}
-                searchTerm={searchTerm}
-                onSearch={handleSearch}
+                categories={categories}
+                subjects={subjects}
+                universities={universities}
               />
             </div>
           </div>
@@ -237,10 +249,8 @@ const MarketplacePage = () => {
                 {listings.map((listing) => (
                   <MarketplaceCard
                     key={listing.id}
-                    listing={{
-                      ...listing,
-                      formattedPrice: listing.price === 0 ? 'Free' : `NPR ${listing.price.toLocaleString()}`
-                    }}
+                    listing={listing}
+                    onView={handleViewListing}
                   />
                 ))}
               </div>
@@ -249,7 +259,7 @@ const MarketplacePage = () => {
                 <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
                 <p className="text-gray-500 mb-4">
-                  {filters.search || filters.category || filters.subject
+                  {filters.search || filters.category !== 'all' || filters.subject !== 'all'
                     ? 'Try adjusting your filters or search terms'
                     : 'Be the first to create a listing!'}
                 </p>
