@@ -11,7 +11,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { MarketplaceListing } from '@/utils/marketplaceUtils';
+
+// Define the MarketplaceListing interface to match what we actually need
+interface MarketplaceListing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  condition: string;
+  category: string;
+  subject: string;
+  university: string;
+  image_url: string;
+  seller_id: string;
+  seller_name: string;
+  created_at: string;
+  formattedPrice: string;
+}
 
 const MarketplacePage = () => {
   const { user } = useAuth();
@@ -42,8 +58,18 @@ const MarketplacePage = () => {
       let query = supabase
         .from('marketplace_listings')
         .select(`
-          *,
-          seller:profiles!marketplace_listings_user_id_fkey(full_name, avatar_url)
+          id,
+          title,
+          description,
+          price,
+          condition,
+          category,
+          subject,
+          university,
+          images,
+          user_id,
+          created_at,
+          is_free
         `)
         .eq('status', 'active');
 
@@ -87,7 +113,7 @@ const MarketplacePage = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Transform data to match MarketplaceListing type
+      // Transform data to match MarketplaceListing interface
       return (data || []).map(listing => ({
         id: listing.id,
         title: listing.title || '',
@@ -99,7 +125,7 @@ const MarketplacePage = () => {
         university: listing.university || '',
         image_url: listing.images?.[0] || '/placeholder.svg',
         seller_id: listing.user_id || '',
-        seller_name: listing.seller?.full_name || 'Unknown',
+        seller_name: 'Unknown', // Simplified for now
         created_at: listing.created_at || new Date().toISOString(),
         formattedPrice: listing.is_free ? 'निःशुल्क' : `रू ${(listing.price || 0).toLocaleString()}`
       } as MarketplaceListing));
@@ -196,7 +222,7 @@ const MarketplacePage = () => {
               <DialogHeader>
                 <DialogTitle>Create New Listing</DialogTitle>
               </DialogHeader>
-              <CreateListingForm onSubmit={handleCreateListing} />
+              <CreateListingForm onCreateListing={handleCreateListing} />
             </DialogContent>
           </Dialog>
         </div>
