@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useBookmarks } from '@/hooks/useBookmarks';
-import { useAuth } from '@/hooks/useAuth';
+import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
 import { 
   Download, 
   Calendar, 

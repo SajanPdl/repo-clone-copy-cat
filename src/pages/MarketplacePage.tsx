@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,23 +10,15 @@ import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
 import { useToast } from '@/hooks/use-toast';
+import { MarketplaceListing as UtilsMarketplaceListing } from '@/utils/marketplaceUtils';
 
-// Define the MarketplaceListing interface to match what we actually need
-interface MarketplaceListing {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  condition: string;
-  category: string;
-  subject: string;
-  university: string;
+// Define the MarketplaceListing interface to match what we actually need for display
+interface MarketplaceListing extends UtilsMarketplaceListing {
   image_url: string;
   seller_id: string;
   seller_name: string;
-  created_at: string;
   formattedPrice: string;
 }
 
@@ -114,21 +107,36 @@ const MarketplacePage = () => {
       if (error) throw error;
       
       // Transform data to match MarketplaceListing interface
-      return (data || []).map(listing => ({
-        id: listing.id,
-        title: listing.title || '',
-        description: listing.description || '',
-        price: listing.price || 0,
-        condition: listing.condition || 'good',
-        category: listing.category || '',
-        subject: listing.subject || '',
-        university: listing.university || '',
-        image_url: listing.images?.[0] || '/placeholder.svg',
-        seller_id: listing.user_id || '',
-        seller_name: 'Unknown', // Simplified for now
-        created_at: listing.created_at || new Date().toISOString(),
-        formattedPrice: listing.is_free ? 'निःशुल्क' : `रू ${(listing.price || 0).toLocaleString()}`
-      } as MarketplaceListing));
+      return (data || []).map(listing => {
+        // Create a new object with all required properties from UtilsMarketplaceListing
+        const transformedListing: MarketplaceListing = {
+          id: listing.id,
+          user_id: listing.user_id || '',
+          title: listing.title || '',
+          description: listing.description || '',
+          category: listing.category || 'other',
+          subject: listing.subject || '',
+          university: listing.university || '',
+          price: listing.price,
+          is_free: listing.is_free,
+          condition: listing.condition || 'good',
+          location: '',
+          contact_info: {},
+          images: listing.images || [],
+          status: 'active',
+          is_featured: false,
+          is_approved: true,
+          views_count: 0,
+          interest_count: 0,
+          created_at: listing.created_at || new Date().toISOString(),
+          updated_at: listing.created_at || new Date().toISOString(),
+          image_url: listing.images?.[0] || '/placeholder.svg',
+          seller_id: listing.user_id || '',
+          seller_name: 'Unknown', // Simplified for now
+          formattedPrice: listing.is_free ? 'निःशुल्क' : `रू ${(listing.price || 0).toLocaleString()}`
+        };
+        return transformedListing;
+      });
     }
   });
 
@@ -222,7 +230,13 @@ const MarketplacePage = () => {
               <DialogHeader>
                 <DialogTitle>Create New Listing</DialogTitle>
               </DialogHeader>
-              <CreateListingForm onCreateListing={handleCreateListing} />
+              <CreateListingForm 
+                onSuccess={() => {
+                  setIsCreateDialogOpen(false);
+                  refetch();
+                }} 
+                onCancel={() => setIsCreateDialogOpen(false)} 
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -268,7 +282,28 @@ const MarketplacePage = () => {
                 {listings.map((listing) => (
                   <MarketplaceCard
                     key={listing.id}
-                    listing={listing}
+                    listing={{
+                      id: listing.id,
+                      user_id: listing.seller_id,
+                      title: listing.title,
+                      description: listing.description,
+                      category: listing.category as 'book' | 'notes' | 'pdf' | 'question_bank' | 'calculator' | 'device' | 'other',
+                      subject: listing.subject,
+                      university: listing.university,
+                      price: listing.price,
+                      is_free: listing.is_free,
+                      condition: listing.condition as 'new' | 'used' | 'fair' | 'excellent',
+                      location: '',
+                      contact_info: {},
+                      images: listing.image_url ? [listing.image_url] : [],
+                      status: listing.status,
+                      is_featured: listing.is_featured,
+                      is_approved: listing.is_approved,
+                      views_count: listing.views_count,
+                      interest_count: listing.interest_count,
+                      created_at: listing.created_at,
+                      updated_at: listing.updated_at
+                    }}
                     onView={handleViewListing}
                   />
                 ))}
