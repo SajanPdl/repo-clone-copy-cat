@@ -1,332 +1,192 @@
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import Navbar from '@/components/Navbar';
+import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
+import { useToast } from '@/hooks/use-toast';
 import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
 import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search } from 'lucide-react';
-import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
-import { useToast } from '@/hooks/use-toast';
-import { MarketplaceListing as UtilsMarketplaceListing } from '@/utils/marketplaceUtils';
+import { motion } from 'framer-motion';
 
-// Define the MarketplaceListing interface to match what we actually need for display
-interface MarketplaceListing extends UtilsMarketplaceListing {
-  image_url: string;
-  seller_id: string;
-  seller_name: string;
-  formattedPrice: string;
+export interface MarketplaceListing {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  category: 'book' | 'notes' | 'pdf' | 'question_bank' | 'calculator' | 'device' | 'other';
+  subject?: string;
+  university?: string;
+  price?: number;
+  is_free: boolean;
+  condition: 'new' | 'used' | 'excellent' | 'fair';
+  location?: string;
+  contact_info?: any;
+  images?: string[];
+  status: 'active' | 'sold' | 'exchanged' | 'inactive';
+  is_featured: boolean;
+  is_approved: boolean;
+  views_count: number;
+  interest_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const MarketplacePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    search: '',
-    category: 'all',
-    subject: 'all',
-    university: 'all',
-    condition: 'all',
-    priceMin: 0,
-    priceMax: 10000,
-    freeOnly: false,
-    sortBy: 'latest'
-  });
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCondition, setSelectedCondition] = useState('all');
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
-  // Mock data for filters
-  const categories = ['book', 'notes', 'pdf', 'question_bank', 'calculator', 'device', 'other'];
-  const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Computer Science'];
-  const universities = ['Tribhuvan University', 'Kathmandu University', 'Pokhara University', 'Purbanchal University'];
-
-  // Fetch marketplace listings
-  const { data: listings, isLoading, refetch } = useQuery({
-    queryKey: ['marketplace-listings', filters],
+  const { data: listings = [], isLoading, refetch } = useQuery({
+    queryKey: ['marketplace-listings', searchTerm, selectedCategory, selectedCondition],
     queryFn: async () => {
       let query = supabase
         .from('marketplace_listings')
-        .select(`
-          id,
-          title,
-          description,
-          price,
-          condition,
-          category,
-          subject,
-          university,
-          images,
-          user_id,
-          created_at,
-          is_free
-        `)
+        .select('*')
+        .eq('is_approved', true)
         .eq('status', 'active');
 
-      // Apply filters
-      if (filters.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
-      }
-      if (filters.category && filters.category !== 'all') {
-        query = query.eq('category', filters.category);
-      }
-      if (filters.subject && filters.subject !== 'all') {
-        query = query.eq('subject', filters.subject);
-      }
-      if (filters.university && filters.university !== 'all') {
-        query = query.eq('university', filters.university);
-      }
-      if (filters.condition && filters.condition !== 'all') {
-        query = query.eq('condition', filters.condition);
-      }
-      if (filters.freeOnly) {
-        query = query.eq('is_free', true);
-      } else {
-        query = query.gte('price', filters.priceMin).lte('price', filters.priceMax);
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
 
-      // Apply sorting
-      switch (filters.sortBy) {
-        case 'price_asc':
-          query = query.order('price', { ascending: true });
-          break;
-        case 'price_desc':
-          query = query.order('price', { ascending: false });
-          break;
-        case 'latest':
-          query = query.order('created_at', { ascending: false });
-          break;
-        default:
-          query = query.order('created_at', { ascending: false });
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      // Transform data to match MarketplaceListing interface
-      return (data || []).map(listing => {
-        // Create a new object with all required properties from UtilsMarketplaceListing
-        const transformedListing: MarketplaceListing = {
-          id: listing.id,
-          user_id: listing.user_id || '',
-          title: listing.title || '',
-          description: listing.description || '',
-          category: listing.category || 'other',
-          subject: listing.subject || '',
-          university: listing.university || '',
-          price: listing.price,
-          is_free: listing.is_free,
-          condition: listing.condition || 'good',
-          location: '',
-          contact_info: {},
-          images: listing.images || [],
-          status: 'active',
-          is_featured: false,
-          is_approved: true,
-          views_count: 0,
-          interest_count: 0,
-          created_at: listing.created_at || new Date().toISOString(),
-          updated_at: listing.created_at || new Date().toISOString(),
-          image_url: listing.images?.[0] || '/placeholder.svg',
-          seller_id: listing.user_id || '',
-          seller_name: 'Unknown', // Simplified for now
-          formattedPrice: listing.is_free ? 'निःशुल्क' : `रू ${(listing.price || 0).toLocaleString()}`
-        };
-        return transformedListing;
-      });
+      if (selectedCondition !== 'all') {
+        query = query.eq('condition', selectedCondition);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching listings:', error);
+        throw new Error('Failed to fetch listings');
+      }
+
+      return (data || []).map(item => ({
+        ...item,
+        category: item.category as MarketplaceListing['category'],
+        condition: item.condition as MarketplaceListing['condition'],
+        status: item.status as MarketplaceListing['status']
+      })) as MarketplaceListing[];
     }
   });
 
-  const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    handleFilterChange('search', term);
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      search: '',
-      category: 'all',
-      subject: 'all',
-      university: 'all',
-      condition: 'all',
-      priceMin: 0,
-      priceMax: 10000,
-      freeOnly: false,
-      sortBy: 'latest'
+  const handleCreateSuccess = () => {
+    setShowCreateForm(false);
+    refetch();
+    toast({
+      title: "Success",
+      description: "Your listing has been created and is pending approval."
     });
-    setSearchTerm('');
   };
 
-  const handleCreateListing = async (listingData: any) => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please log in to create a listing',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('marketplace_listings')
-        .insert([{
-          ...listingData,
-          user_id: user.id,
-          status: 'active'
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Your listing has been created successfully'
-      });
-
-      setIsCreateDialogOpen(false);
-      refetch();
-    } catch (error) {
-      console.error('Error creating listing:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create listing. Please try again.',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleViewListing = (listing: MarketplaceListing) => {
-    // Placeholder for viewing listing details
-    console.log('View listing:', listing);
-  };
+  const filteredListings = listings.filter(listing => {
+    const matchesPrice = listing.is_free || (listing.price && listing.price >= priceRange[0] && listing.price <= priceRange[1]);
+    return matchesPrice;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 py-8 mt-16">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Marketplace</h1>
-            <p className="text-gray-600">Buy and sell study materials, books, and more</p>
-          </div>
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Listing
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Listing</DialogTitle>
-              </DialogHeader>
-              <CreateListingForm 
-                onSuccess={() => {
-                  setIsCreateDialogOpen(false);
-                  refetch();
-                }} 
-                onCancel={() => setIsCreateDialogOpen(false)} 
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <MarketplaceFilters
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={clearFilters}
-                categories={categories}
-                subjects={subjects}
-                universities={universities}
-              />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Student Marketplace
+              </h1>
+              <p className="text-gray-600 text-lg mt-2">Buy, sell, and exchange study materials</p>
             </div>
-          </div>
-
-          {/* Listings Grid */}
-          <div className="lg:col-span-3">
-            {/* Search Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {isLoading ? 'Loading...' : `${listings?.length || 0} items found`}
-              </h2>
-            </div>
-
-            {/* Listings Grid */}
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg shadow-sm p-4 animate-pulse">
-                    <div className="w-full h-48 bg-gray-200 rounded-md mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
-                    <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                  </div>
-                ))}
-              </div>
-            ) : listings && listings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {listings.map((listing) => (
-                  <MarketplaceCard
-                    key={listing.id}
-                    listing={{
-                      id: listing.id,
-                      user_id: listing.seller_id,
-                      title: listing.title,
-                      description: listing.description,
-                      category: listing.category as 'book' | 'notes' | 'pdf' | 'question_bank' | 'calculator' | 'device' | 'other',
-                      subject: listing.subject,
-                      university: listing.university,
-                      price: listing.price,
-                      is_free: listing.is_free,
-                      condition: listing.condition as 'new' | 'used' | 'fair' | 'excellent',
-                      location: '',
-                      contact_info: {},
-                      images: listing.image_url ? [listing.image_url] : [],
-                      status: listing.status,
-                      is_featured: listing.is_featured,
-                      is_approved: listing.is_approved,
-                      views_count: listing.views_count,
-                      interest_count: listing.interest_count,
-                      created_at: listing.created_at,
-                      updated_at: listing.updated_at
-                    }}
-                    onView={handleViewListing}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-                <p className="text-gray-500 mb-4">
-                  {filters.search || filters.category !== 'all' || filters.subject !== 'all'
-                    ? 'Try adjusting your filters or search terms'
-                    : 'Be the first to create a listing!'}
-                </p>
-                {user && (
-                  <Button onClick={() => setIsCreateDialogOpen(true)} variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Listing
+            
+            {user && (
+              <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Create Listing
                   </Button>
-                )}
-              </div>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create New Listing</DialogTitle>
+                  </DialogHeader>
+                  <CreateListingForm 
+                    onSuccess={handleCreateSuccess}
+                    onCancel={() => setShowCreateForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
             )}
           </div>
-        </div>
+
+          <MarketplaceFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            selectedCondition={selectedCondition}
+            onConditionChange={setSelectedCondition}
+            priceRange={priceRange}
+            onPriceRangeChange={setPriceRange}
+          />
+        </motion.div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : filteredListings.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <Search className="h-16 w-16 mx-auto text-gray-400 mb-6" />
+            <h3 className="text-2xl font-semibold mb-3">No items found</h3>
+            <p className="text-gray-600 mb-8">Try adjusting your filters or create a new listing</p>
+            {user && (
+              <Button 
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-500"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create First Listing
+              </Button>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {filteredListings.map((listing, index) => (
+              <motion.div
+                key={listing.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <MarketplaceCard listing={listing} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
