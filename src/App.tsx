@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SecureAuthProvider } from "@/hooks/useSecureAuth";
+import { AdsProvider } from "@/components/ads/AdsProvider";
 import SecurityMiddleware from "@/components/SecurityMiddleware";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -29,54 +30,56 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SecureAuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <SecurityMiddleware>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/study-materials" element={<StudyMaterialsPage />} />
-              <Route path="/past-papers" element={<PastPapersPage />} />
-              <Route path="/marketplace" element={<MarketplacePage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/jobs" element={<JobsPage />} />
-              <Route path="/merch" element={<MerchPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              
-              {/* Student Dashboard Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <StudentDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/upload" element={
-                <ProtectedRoute>
-                  <StudentUploadPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/achievements" element={
-                <ProtectedRoute>
-                  <StudentAchievementsPage />
-                </ProtectedRoute>
-              } />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<LoginPage />} />
-              <Route path="/admin/*" element={
-                <ProtectedRoute requireAdmin>
-                  <div className="flex min-h-screen">
-                    <AdminSidebar />
-                    <AdminPanel />
-                  </div>
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </SecurityMiddleware>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AdsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <SecurityMiddleware>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                <Route path="/past-papers" element={<PastPapersPage />} />
+                <Route path="/marketplace" element={<MarketplacePage />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/merch" element={<MerchPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                
+                {/* Student Dashboard Routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <StudentDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/upload" element={
+                  <ProtectedRoute>
+                    <StudentUploadPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/achievements" element={
+                  <ProtectedRoute>
+                    <StudentAchievementsPage />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<LoginPage />} />
+                <Route path="/admin/*" element={
+                  <ProtectedRoute requireAdmin>
+                    <div className="flex min-h-screen">
+                      <AdminSidebar />
+                      <AdminPanel />
+                    </div>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </SecurityMiddleware>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AdsProvider>
     </SecureAuthProvider>
   </QueryClientProvider>
 );

@@ -1,318 +1,298 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Trophy, Star, Medal, Award, Target, Calendar } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { StudentSidebar } from '@/components/StudentSidebar';
-import { Trophy, Award, Star, Target, Lock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
 
-interface UserAchievement {
+interface Achievement {
   id: string;
-  user_id: string;
-  achievement_id: string;
-  earned_at: string;
-  achievement: {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    rarity: 'common' | 'rare' | 'epic' | 'legendary';
-    points_required: number;
-  };
+  title: string;
+  description: string;
+  icon: string;
+  category: 'study' | 'participation' | 'performance' | 'social';
+  points: number;
+  unlockedAt?: string;
+  progress?: number;
+  maxProgress?: number;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 const StudentAchievementsPage = () => {
-  const { user } = useAuth();
-
-  const { data: userAchievements = [] } = useQuery({
-    queryKey: ['user-achievements', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievement:achievements(*)
-        `)
-        .eq('user_id', user.id)
-        .order('earned_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching achievements:', error);
-        return [];
-      }
-
-      return data || [];
+  // Mock achievements data
+  const mockAchievements: Achievement[] = [
+    {
+      id: '1',
+      title: 'First Steps',
+      description: 'Complete your first study session',
+      icon: 'trophy',
+      category: 'study',
+      points: 50,
+      unlockedAt: '2024-01-10',
+      rarity: 'common'
     },
-    enabled: !!user
-  });
+    {
+      id: '2',
+      title: 'Knowledge Seeker',
+      description: 'Read 10 study materials',
+      icon: 'star',
+      category: 'study',
+      points: 100,
+      unlockedAt: '2024-01-15',
+      rarity: 'common'
+    },
+    {
+      id: '3',
+      title: 'Exam Master',
+      description: 'Score above 90% in 5 practice tests',
+      icon: 'medal',
+      category: 'performance',
+      points: 500,
+      progress: 3,
+      maxProgress: 5,
+      rarity: 'epic'
+    },
+    {
+      id: '4',
+      title: 'Community Helper',
+      description: 'Help 20 fellow students with their queries',
+      icon: 'award',
+      category: 'social',
+      points: 300,
+      progress: 12,
+      maxProgress: 20,
+      rarity: 'rare'
+    },
+    {
+      id: '5',
+      title: 'Consistency King',
+      description: 'Study for 30 consecutive days',
+      icon: 'target',
+      category: 'study',
+      points: 1000,
+      progress: 18,
+      maxProgress: 30,
+      rarity: 'legendary'
+    }
+  ];
 
-  const { data: allAchievements = [] } = useQuery({
-    queryKey: ['all-achievements'],
+  const { data: achievements = mockAchievements, isLoading } = useQuery({
+    queryKey: ['student-achievements'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('achievements')
-        .select('*')
-        .order('points_required', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching all achievements:', error);
-        return [];
-      }
-
-      return data || [];
+      return mockAchievements;
     }
   });
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['user-profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
+  const unlockedAchievements = achievements.filter(a => a.unlockedAt);
+  const lockedAchievements = achievements.filter(a => !a.unlockedAt);
+  const totalPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
 
-      const { data, error } = await supabase
-        .from('student_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) return null;
-      return data;
-    },
-    enabled: !!user
-  });
-
-  const earnedAchievementIds = userAchievements.map(ua => ua.achievement_id);
-  const unlockedAchievements = userAchievements.filter(ua => ua.achievement);
-  const lockedAchievements = allAchievements.filter(a => !earnedAchievementIds.includes(a.id));
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300';
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'trophy': return Trophy;
+      case 'star': return Star;
+      case 'medal': return Medal;
+      case 'award': return Award;
+      case 'target': return Target;
+      default: return Trophy;
     }
   };
 
-  const getRarityGradient = (rarity: string) => {
+  const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'from-gray-400 to-gray-600';
-      case 'rare': return 'from-blue-400 to-blue-600';
-      case 'epic': return 'from-purple-400 to-purple-600';
-      case 'legendary': return 'from-yellow-400 to-yellow-600';
-      default: return 'from-gray-400 to-gray-600';
+      case 'common': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case 'rare': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      case 'epic': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'study': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'participation': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      case 'performance': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      case 'social': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <SidebarProvider>
-        <div className="flex w-full">
-          <StudentSidebar />
-          <SidebarInset className="flex-1">
-            <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
-              <div className="flex items-center gap-4 px-6 py-4">
-                <SidebarTrigger className="lg:hidden" />
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-3"
-                >
-                  <div className="p-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
-                    <Trophy className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                      Achievements
-                    </h1>
-                    <p className="text-gray-600 text-sm">Your learning milestones and rewards</p>
-                  </div>
-                </motion.div>
-              </div>
-            </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8 mt-16">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Your Achievements
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Track your progress and celebrate your learning milestones
+          </p>
+        </div>
 
-            <main className="p-6 space-y-8">
-              {/* Progress Overview */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-gray-200/50"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      {unlockedAchievements.length}
-                    </div>
-                    <p className="text-gray-600">Achievements Earned</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">
-                      {userProfile?.points || 0}
-                    </div>
-                    <p className="text-gray-600">Total Points</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      {Math.round((unlockedAchievements.length / allAchievements.length) * 100)}%
-                    </div>
-                    <p className="text-gray-600">Completion Rate</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Overall Progress</span>
-                    <span className="text-sm text-gray-500">
-                      {unlockedAchievements.length} / {allAchievements.length}
-                    </span>
-                  </div>
-                  <Progress 
-                    value={(unlockedAchievements.length / allAchievements.length) * 100} 
-                    className="h-2"
-                  />
-                </div>
-              </motion.div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="text-center">
+              <Trophy className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+              <CardTitle>{unlockedAchievements.length}</CardTitle>
+              <CardDescription>Achievements Unlocked</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="text-center">
+              <Star className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+              <CardTitle>{totalPoints}</CardTitle>
+              <CardDescription>Total Points Earned</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="text-center">
+              <Target className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <CardTitle>{Math.round((unlockedAchievements.length / achievements.length) * 100)}%</CardTitle>
+              <CardDescription>Completion Rate</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
 
-              {/* Unlocked Achievements */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Award className="h-6 w-6 text-yellow-600" />
-                  Earned Achievements
+        {isLoading ? (
+          <div className="space-y-8">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Unlocked Achievements */}
+            {unlockedAchievements.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  Unlocked Achievements
                 </h2>
-                
-                {unlockedAchievements.length === 0 ? (
-                  <Card className="text-center py-12 backdrop-blur-lg bg-white/80 border-0">
-                    <CardContent>
-                      <Trophy className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">No achievements yet</h3>
-                      <p className="text-gray-600">Keep learning and engaging to earn your first achievement!</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {unlockedAchievements.map((userAchievement, index) => (
-                      <motion.div
-                        key={userAchievement.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <Card className={`hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-lg bg-white/80 border-2 ${getRarityColor(userAchievement.achievement.rarity)}`}>
-                          <CardHeader className="text-center">
-                            <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${getRarityGradient(userAchievement.achievement.rarity)} flex items-center justify-center mb-4`}>
-                              <Trophy className="h-8 w-8 text-white" />
-                            </div>
-                            <CardTitle className="text-lg">{userAchievement.achievement.name}</CardTitle>
-                            <Badge className={getRarityColor(userAchievement.achievement.rarity)}>
-                              {userAchievement.achievement.rarity}
-                            </Badge>
-                          </CardHeader>
-                          <CardContent className="text-center space-y-3">
-                            <p className="text-sm text-gray-600">
-                              {userAchievement.achievement.description}
-                            </p>
-                            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              {userAchievement.achievement.points_required} points
-                            </div>
-                            <p className="text-xs text-green-600 font-medium">
-                              Earned {new Date(userAchievement.earned_at).toLocaleDateString()}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Locked Achievements */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Target className="h-6 w-6 text-gray-600" />
-                  Available Achievements
-                </h2>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {lockedAchievements.map((achievement, index) => {
-                    const canEarn = (userProfile?.points || 0) >= achievement.points_required;
-                    
+                  {unlockedAchievements.map((achievement) => {
+                    const IconComponent = getIconComponent(achievement.icon);
                     return (
-                      <motion.div
-                        key={achievement.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <Card className={`hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-lg bg-white/80 border-0 ${
-                          canEarn ? 'bg-green-50' : 'opacity-75'
-                        }`}>
-                          <CardHeader className="text-center">
-                            <div className={`w-16 h-16 mx-auto rounded-full ${
-                              canEarn 
-                                ? `bg-gradient-to-r ${getRarityGradient(achievement.rarity)}`
-                                : 'bg-gray-300'
-                            } flex items-center justify-center mb-4`}>
-                              {canEarn ? (
-                                <Trophy className="h-8 w-8 text-white" />
-                              ) : (
-                                <Lock className="h-8 w-8 text-gray-500" />
-                              )}
-                            </div>
-                            <CardTitle className="text-lg">{achievement.name}</CardTitle>
-                            <Badge className={getRarityColor(achievement.rarity)}>
-                              {achievement.rarity}
-                            </Badge>
-                          </CardHeader>
-                          <CardContent className="text-center space-y-3">
-                            <p className="text-sm text-gray-600">
-                              {achievement.description}
-                            </p>
-                            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              {achievement.points_required} points required
-                            </div>
-                            {canEarn && (
-                              <Badge className="bg-green-500 text-white">
-                                Ready to earn!
-                              </Badge>
-                            )}
-                            <div className="mt-3">
-                              <div className="flex items-center justify-between text-xs mb-1">
-                                <span>Progress</span>
-                                <span>{Math.min(userProfile?.points || 0, achievement.points_required)} / {achievement.points_required}</span>
+                      <Card key={achievement.id} className="hover:shadow-lg transition-shadow border-2 border-green-200 dark:border-green-800">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-full mr-4">
+                                <IconComponent className="h-6 w-6 text-green-600 dark:text-green-400" />
                               </div>
-                              <Progress 
-                                value={Math.min(((userProfile?.points || 0) / achievement.points_required) * 100, 100)} 
-                                className="h-2"
-                              />
+                              <div>
+                                <CardTitle className="text-lg">{achievement.title}</CardTitle>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge className={getRarityColor(achievement.rarity)}>
+                                    {achievement.rarity}
+                                  </Badge>
+                                  <Badge className={getCategoryColor(achievement.category)}>
+                                    {achievement.category}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
+                          </div>
+                          <CardDescription>{achievement.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              Unlocked: {new Date(achievement.unlockedAt!).toLocaleDateString()}
+                            </div>
+                            <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-900/20">
+                              +{achievement.points} points
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
                     );
                   })}
                 </div>
-              </motion.div>
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+              </section>
+            )}
+
+            {/* In Progress / Locked Achievements */}
+            {lockedAchievements.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  In Progress
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {lockedAchievements.map((achievement) => {
+                    const IconComponent = getIconComponent(achievement.icon);
+                    const progressPercentage = achievement.progress && achievement.maxProgress 
+                      ? (achievement.progress / achievement.maxProgress) * 100 
+                      : 0;
+                    
+                    return (
+                      <Card key={achievement.id} className="hover:shadow-lg transition-shadow opacity-75">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mr-4">
+                                <IconComponent className="h-6 w-6 text-gray-400" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg text-gray-700 dark:text-gray-300">
+                                  {achievement.title}
+                                </CardTitle>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge className={getRarityColor(achievement.rarity)}>
+                                    {achievement.rarity}
+                                  </Badge>
+                                  <Badge className={getCategoryColor(achievement.category)}>
+                                    {achievement.category}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <CardDescription>{achievement.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {achievement.progress !== undefined && achievement.maxProgress !== undefined && (
+                            <div className="mb-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600 dark:text-gray-300">Progress</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-300">
+                                  {achievement.progress}/{achievement.maxProgress}
+                                </span>
+                              </div>
+                              <Progress value={progressPercentage} className="h-2" />
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {achievement.progress !== undefined && achievement.maxProgress !== undefined
+                                ? `${achievement.maxProgress - achievement.progress} more to go`
+                                : 'Not started yet'
+                              }
+                            </span>
+                            <Badge variant="outline" className="bg-gray-50 dark:bg-gray-900">
+                              +{achievement.points} points
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

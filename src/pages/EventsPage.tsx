@@ -1,234 +1,208 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Calendar, MapPin, Clock, Users, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, MapPin, Users, Clock, Search, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { format } from 'date-fns';
+import Navbar from '@/components/Navbar';
 
 interface Event {
   id: string;
   title: string;
-  description?: string;
-  event_type: 'exam' | 'fest' | 'webinar' | 'job_fair' | 'workshop' | 'other';
-  start_date: string;
-  end_date?: string;
-  location?: string;
-  region?: string;
-  stream?: string;
-  is_virtual: boolean;
-  max_attendees?: number;
-  registration_deadline?: string;
-  is_featured: boolean;
-  created_at: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  type: 'exam' | 'webinar' | 'workshop' | 'seminar';
+  capacity: number;
+  registered: number;
+  fee: number;
+  image?: string;
 }
 
 const EventsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [selectedDate, setSelectedDate] = useState('all');
 
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['events', searchTerm, selectedType, selectedRegion],
-    queryFn: async () => {
-      let query = supabase
-        .from('events')
-        .select('*');
-
-      if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-
-      if (selectedType !== 'all') {
-        query = query.eq('event_type', selectedType);
-      }
-
-      if (selectedRegion !== 'all') {
-        query = query.eq('region', selectedRegion);
-      }
-
-      const { data, error } = await query.order('start_date', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching events:', error);
-        return [];
-      }
-
-      return data || [];
+  // Mock data for events
+  const mockEvents: Event[] = [
+    {
+      id: '1',
+      title: 'Advanced Mathematics Exam Preparation',
+      description: 'Intensive preparation session for upcoming mathematics examinations with expert guidance.',
+      date: '2024-01-15',
+      time: '10:00 AM',
+      location: 'Virtual',
+      type: 'exam',
+      capacity: 100,
+      registered: 75,
+      fee: 500
+    },
+    {
+      id: '2',
+      title: 'Career Guidance Webinar',
+      description: 'Learn about various career opportunities and how to prepare for your future.',
+      date: '2024-01-20',
+      time: '2:00 PM',
+      location: 'Online',
+      type: 'webinar',
+      capacity: 200,
+      registered: 150,
+      fee: 0
+    },
+    {
+      id: '3',
+      title: 'Physics Workshop - Quantum Mechanics',
+      description: 'Hands-on workshop covering the fundamentals of quantum mechanics.',
+      date: '2024-01-25',
+      time: '9:00 AM',
+      location: 'Kathmandu University',
+      type: 'workshop',
+      capacity: 50,
+      registered: 30,
+      fee: 1000
     }
+  ];
+
+  const { data: events = mockEvents, isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      // In a real app, this would fetch from Supabase
+      return mockEvents;
+    }
+  });
+
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === 'all' || event.type === selectedType;
+    return matchesSearch && matchesType;
   });
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
-      case 'exam': return 'bg-red-100 text-red-800';
-      case 'fest': return 'bg-purple-100 text-purple-800';
-      case 'webinar': return 'bg-blue-100 text-blue-800';
-      case 'job_fair': return 'bg-green-100 text-green-800';
-      case 'workshop': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'exam': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      case 'webinar': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      case 'workshop': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'seminar': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              Upcoming Events
-            </h1>
-            <p className="text-gray-600 text-lg">Stay updated with academic events, webinars, and opportunities</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8 mt-16">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Upcoming Events
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Join our educational events, exams, and workshops to enhance your learning experience
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="exam">Exams</SelectItem>
+              <SelectItem value="webinar">Webinars</SelectItem>
+              <SelectItem value="workshop">Workshops</SelectItem>
+              <SelectItem value="seminar">Seminars</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          {/* Filters */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-gray-200/50 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search events..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Event Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="exam">Exam</SelectItem>
-                  <SelectItem value="fest">Fest</SelectItem>
-                  <SelectItem value="webinar">Webinar</SelectItem>
-                  <SelectItem value="job_fair">Job Fair</SelectItem>
-                  <SelectItem value="workshop">Workshop</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Region" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Regions</SelectItem>
-                  <SelectItem value="kathmandu">Kathmandu</SelectItem>
-                  <SelectItem value="pokhara">Pokhara</SelectItem>
-                  <SelectItem value="chitwan">Chitwan</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-
+        {/* Events Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        ) : events.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <Calendar className="h-16 w-16 mx-auto text-gray-400 mb-6" />
-            <h3 className="text-2xl font-semibold mb-3">No events found</h3>
-            <p className="text-gray-600">Try adjusting your search filters</p>
-          </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event, index) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-lg bg-white/80 border-0">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
-                      {event.is_featured && (
-                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                          Featured
-                        </Badge>
-                      )}
+            {filteredEvents.map((event) => (
+              <Card key={event.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{event.title}</CardTitle>
+                    <Badge className={getEventTypeColor(event.type)}>
+                      {event.type}
+                    </Badge>
+                  </div>
+                  <CardDescription>{event.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {new Date(event.date).toLocaleDateString()}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className={getEventTypeColor(event.event_type)}>
-                        {event.event_type.replace('_', ' ')}
-                      </Badge>
-                      {event.is_virtual && <Badge variant="outline">Virtual</Badge>}
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <Clock className="h-4 w-4 mr-2" />
+                      {event.time}
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {event.description && (
-                      <p className="text-sm text-gray-600 line-clamp-3">
-                        {event.description}
-                      </p>
-                    )}
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {event.location}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <Users className="h-4 w-4 mr-2" />
+                      {event.registered}/{event.capacity} registered
+                    </div>
                     
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-blue-500" />
-                        <span>{format(new Date(event.start_date), 'PPP')}</span>
+                    <div className="flex justify-between items-center pt-4">
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {event.fee === 0 ? 'Free' : `Rs. ${event.fee}`}
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-green-500" />
-                        <span>{format(new Date(event.start_date), 'p')}</span>
-                      </div>
-                      
-                      {event.location && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-red-500" />
-                          <span>{event.location}</span>
-                        </div>
-                      )}
-                      
-                      {event.max_attendees && (
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-purple-500" />
-                          <span>Max {event.max_attendees} attendees</span>
-                        </div>
-                      )}
+                      <Button size="sm">
+                        Register Now
+                      </Button>
                     </div>
-
-                    {event.registration_deadline && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <p className="text-sm text-yellow-800">
-                          <strong>Registration Deadline:</strong> {format(new Date(event.registration_deadline), 'PPP')}
-                        </p>
-                      </div>
-                    )}
-
-                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                      Register Now
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
+          </div>
+        )}
+
+        {filteredEvents.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <Calendar className="h-24 w-24 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+              No events found
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              Try adjusting your search criteria or check back later for new events.
+            </p>
           </div>
         )}
       </div>
