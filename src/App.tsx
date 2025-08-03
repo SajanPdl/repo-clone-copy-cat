@@ -1,102 +1,149 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SecureAuthProvider } from "@/hooks/useSecureAuth";
-import { AdsProvider } from "@/components/ads/AdsProvider";
-import SecurityMiddleware from "@/components/SecurityMiddleware";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/hooks/useAuth';
+import { AdsProvider } from '@/components/ads/AdsProvider';
 
-// Pages
-import Index from "./pages/Index";
-import StudyMaterialsPage from "./pages/StudyMaterialsPage";
-import PastPapersPage from "./pages/PastPapersPage";
-import LoginPage from "./pages/LoginPage";
-import ContactPage from "./pages/ContactPage";
-import { AdminPanel } from "./pages/AdminPanel";
-import { AdminSidebar } from "./components/admin/AdminSidebar";
-import StudentDashboard from "./pages/StudentDashboard";
-import StudentUploadPage from "./pages/StudentUploadPage";
-import MarketplacePage from "./pages/MarketplacePage";
-import EventsPage from "./pages/EventsPage";
-import JobsPage from "./pages/JobsPage";
-import MerchPage from "./pages/MerchPage";
-import BlogPage from "./pages/BlogPage";
-import StudentAchievementsPage from "./pages/StudentAchievementsPage";
+import Index from '@/pages/Index';
+import LoginPage from '@/pages/LoginPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
+import PastPapersPage from '@/pages/PastPapersPage';
+import PastPaperViewPage from '@/pages/PastPaperViewPage';
+import ContentViewPage from '@/pages/ContentViewPage';
+import BlogPage from '@/pages/BlogPage';
+import BlogPostView from '@/components/BlogPostView';
+import ContactPage from '@/pages/ContactPage';
+import MarketplacePage from '@/pages/MarketplacePage';
+import ProfilePage from '@/pages/ProfilePage';
+import StudentDashboard from '@/pages/StudentDashboard';
+import StudentUploadPage from '@/pages/StudentUploadPage';
+import StudentSavedPage from '@/pages/StudentSavedPage';
+import DashboardOverview from '@/pages/DashboardOverview';
+import DashboardInbox from '@/pages/DashboardInbox';
+import DashboardAchievements from '@/pages/DashboardAchievements';
+import DashboardRewards from '@/pages/DashboardRewards';
+import DashboardSettings from '@/pages/DashboardSettings';
+import AdminPanel from '@/pages/AdminPanel';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import NotFound from '@/pages/NotFound';
+
+import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
-      retryDelay: 1000,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SecureAuthProvider>
-      <AdsProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <SecurityMiddleware>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <AdsProvider>
+            <div className="App">
               <Routes>
-                {/* Public Routes */}
                 <Route path="/" element={<Index />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/study-materials" element={<StudyMaterialsPage />} />
                 <Route path="/past-papers" element={<PastPapersPage />} />
-                <Route path="/marketplace" element={<MarketplacePage />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/jobs" element={<JobsPage />} />
-                <Route path="/merch" element={<MerchPage />} />
+                <Route path="/past-paper/:id" element={<PastPaperViewPage />} />
+                <Route path="/content/:id" element={<ContentViewPage />} />
                 <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/:id" element={<BlogPostView />} />
                 <Route path="/contact" element={<ContactPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                
-                {/* Student Dashboard Routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <StudentDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/upload" element={
-                  <ProtectedRoute>
-                    <StudentUploadPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/achievements" element={
-                  <ProtectedRoute>
-                    <StudentAchievementsPage />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<LoginPage />} />
-                <Route path="/admin/*" element={
-                  <ProtectedRoute requireAdmin>
-                    <div className="flex min-h-screen">
-                      <AdminSidebar />
-                      <AdminPanel />
-                    </div>
-                  </ProtectedRoute>
-                } />
-                
-                {/* 404 Route */}
+                <Route path="/marketplace" element={<MarketplacePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <StudentDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/overview"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/upload"
+                  element={
+                    <ProtectedRoute>
+                      <StudentUploadPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/saved"
+                  element={
+                    <ProtectedRoute>
+                      <StudentSavedPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/inbox"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardInbox />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/achievements"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardAchievements />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/rewards"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardRewards />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/settings"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardSettings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout>
+                        <AdminPanel />
+                      </AdminLayout>
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </SecurityMiddleware>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AdsProvider>
-    </SecureAuthProvider>
-  </QueryClientProvider>
-);
+            </div>
+          </AdsProvider>
+        </Router>
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
