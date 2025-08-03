@@ -47,32 +47,44 @@ export type Grade = Tables<'grades'>;
 export type Advertisement = Tables<'advertisements'>;
 export type UserQuery = Tables<'user_queries'>;
 
-// Enhanced error logging
+// Enhanced error logging with more details
 const logError = (context: string, error: any) => {
-  console.error(`[QueryUtils] ${context}:`, error);
+  console.group(`[QueryUtils] ${context} Error`);
+  console.error('Full error:', error);
   if (error?.message) {
-    console.error(`Error message: ${error.message}`);
+    console.error(`Message: ${error.message}`);
   }
   if (error?.details) {
-    console.error(`Error details: ${error.details}`);
+    console.error(`Details: ${error.details}`);
   }
   if (error?.hint) {
-    console.error(`Error hint: ${error.hint}`);
+    console.error(`Hint: ${error.hint}`);
   }
+  if (error?.code) {
+    console.error(`Code: ${error.code}`);
+  }
+  console.groupEnd();
 };
 
-// Test Supabase connection
+// Test Supabase connection with better logging
 export const testConnection = async () => {
+  console.log('[QueryUtils] Testing Supabase connection...');
   try {
-    const { data, error } = await supabase.from('users').select('count').limit(1);
+    const { data, error, count } = await supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .limit(1);
+    
     if (error) {
       logError('Connection test', error);
       return false;
     }
-    console.log('[QueryUtils] Supabase connection successful');
+    
+    console.log('[QueryUtils] ✅ Supabase connection successful');
+    console.log(`[QueryUtils] Database appears to have ${count || 0} users`);
     return true;
   } catch (error) {
-    logError('Connection test failed', error);
+    logError('Connection test exception', error);
     return false;
   }
 };
@@ -175,47 +187,78 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
   }
 };
 
-// Enhanced study materials fetch
+// Enhanced study materials fetch with better logging
 export const fetchStudyMaterials = async (params?: {
   grade?: string;
   subject?: string;
   category?: string;
   search?: string;
 }): Promise<StudyMaterial[]> => {
-  console.log('[QueryUtils] Fetching study materials with params:', params);
+  console.log('[QueryUtils] 📚 Fetching study materials...');
+  console.log('[QueryUtils] Parameters:', params);
   
   try {
-    let query = supabase.from('study_materials').select('*');
+    // Test connection first
+    const connectionOk = await testConnection();
+    if (!connectionOk) {
+      console.warn('[QueryUtils] Connection test failed, proceeding anyway...');
+    }
+
+    let query = supabase
+      .from('study_materials')
+      .select('*');
+    
+    let appliedFilters = [];
     
     if (params) {
       if (params.grade && params.grade !== 'All') {
         query = query.eq('grade', params.grade);
+        appliedFilters.push(`grade=${params.grade}`);
       }
       
       if (params.subject && params.subject !== 'All') {
         query = query.eq('subject', params.subject);
+        appliedFilters.push(`subject=${params.subject}`);
       }
       
       if (params.category && params.category !== 'All') {
         query = query.eq('category', params.category);
+        appliedFilters.push(`category=${params.category}`);
       }
       
       if (params.search) {
         query = query.or(`title.ilike.%${params.search}%,description.ilike.%${params.search}%`);
+        appliedFilters.push(`search=${params.search}`);
       }
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false });
+    console.log('[QueryUtils] Applied filters:', appliedFilters.join(', ') || 'none');
+    
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .limit(50); // Add reasonable limit
     
     if (error) {
       logError('Study materials fetch', error);
+      console.log('[QueryUtils] Returning empty array due to error');
       return [];
     }
     
-    console.log(`[QueryUtils] Fetched ${data?.length || 0} study materials`);
+    console.log(`[QueryUtils] ✅ Successfully fetched ${data?.length || 0} study materials`);
+    
+    if (data && data.length > 0) {
+      console.log('[QueryUtils] Sample material:', {
+        title: data[0].title,
+        grade: data[0].grade,
+        subject: data[0].subject,
+        category: data[0].category
+      });
+    }
+    
     return data || [];
   } catch (error) {
-    logError('Study materials fetch', error);
+    logError('Study materials fetch exception', error);
+    console.log('[QueryUtils] Returning empty array due to exception');
     return [];
   }
 };
@@ -315,7 +358,7 @@ export const fetchRecentQueries = async (limit: number = 5): Promise<RecentQuery
 };
 
 export const fetchStudyMaterialById = async (id: number) => {
-  console.log('[QueryUtils] Fetching study material by ID:', id);
+  console.log('[QueryUtils] 📖 Fetching study material by ID:', id);
   
   try {
     const { data, error } = await supabase
@@ -326,19 +369,19 @@ export const fetchStudyMaterialById = async (id: number) => {
 
     if (error) {
       logError('Study material by ID fetch', error);
-      throw new Error("Failed to fetch study material");
+      throw new Error(`Failed to fetch study material: ${error.message}`);
     }
 
-    console.log('[QueryUtils] Study material fetched successfully');
+    console.log('[QueryUtils] ✅ Study material fetched successfully');
     return data;
   } catch (error) {
-    logError('Study material by ID fetch', error);
+    logError('Study material by ID fetch exception', error);
     throw error;
   }
 };
 
 export const fetchPastPaperById = async (id: number) => {
-  console.log('[QueryUtils] Fetching past paper by ID:', id);
+  console.log('[QueryUtils] 📄 Fetching past paper by ID:', id);
   
   try {
     const { data, error } = await supabase
@@ -349,57 +392,89 @@ export const fetchPastPaperById = async (id: number) => {
 
     if (error) {
       logError('Past paper by ID fetch', error);
-      throw new Error("Failed to fetch past paper");
+      throw new Error(`Failed to fetch past paper: ${error.message}`);
     }
 
-    console.log('[QueryUtils] Past paper fetched successfully');
+    console.log('[QueryUtils] ✅ Past paper fetched successfully');
     return data;
   } catch (error) {
-    logError('Past paper by ID fetch', error);
+    logError('Past paper by ID fetch exception', error);
     throw error;
   }
 };
 
+// Enhanced past papers fetch
 export const fetchPastPapers = async (params?: {
   grade?: string;
   subject?: string;
   year?: number;
   search?: string;
 }): Promise<PastPaper[]> => {
-  console.log('[QueryUtils] Fetching past papers with params:', params);
+  console.log('[QueryUtils] 📑 Fetching past papers...');
+  console.log('[QueryUtils] Parameters:', params);
   
   try {
-    let query = supabase.from('past_papers').select('*');
+    // Test connection first
+    const connectionOk = await testConnection();
+    if (!connectionOk) {
+      console.warn('[QueryUtils] Connection test failed, proceeding anyway...');
+    }
+
+    let query = supabase
+      .from('past_papers')
+      .select('*');
+    
+    let appliedFilters = [];
     
     if (params) {
       if (params.grade && params.grade !== 'All') {
         query = query.eq('grade', params.grade);
+        appliedFilters.push(`grade=${params.grade}`);
       }
       
       if (params.subject && params.subject !== 'All') {
         query = query.eq('subject', params.subject);
+        appliedFilters.push(`subject=${params.subject}`);
       }
       
       if (params.year) {
         query = query.eq('year', params.year);
+        appliedFilters.push(`year=${params.year}`);
       }
       
       if (params.search) {
         query = query.or(`title.ilike.%${params.search}%,subject.ilike.%${params.search}%`);
+        appliedFilters.push(`search=${params.search}`);
       }
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false });
+    console.log('[QueryUtils] Applied filters:', appliedFilters.join(', ') || 'none');
+    
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(50); // Add reasonable limit
     
     if (error) {
       logError('Past papers fetch', error);
+      console.log('[QueryUtils] Returning empty array due to error');
       return [];
     }
     
-    console.log(`[QueryUtils] Fetched ${data?.length || 0} past papers`);
+    console.log(`[QueryUtils] ✅ Successfully fetched ${data?.length || 0} past papers`);
+    
+    if (data && data.length > 0) {
+      console.log('[QueryUtils] Sample paper:', {
+        title: data[0].title,
+        grade: data[0].grade,
+        subject: data[0].subject,
+        year: data[0].year
+      });
+    }
+    
     return data || [];
   } catch (error) {
-    logError('Past papers fetch', error);
+    logError('Past papers fetch exception', error);
+    console.log('[QueryUtils] Returning empty array due to exception');
     return [];
   }
 };
