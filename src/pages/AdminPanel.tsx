@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Navigate, useLocation } from 'react-router-dom';
 import StudyMaterialsManager from '@/components/admin/StudyMaterialsManager';
 import PastPapersManager from '@/components/admin/PastPapersManager';
 import BlogEditor from '@/components/admin/BlogEditor';
@@ -17,10 +16,15 @@ import AchievementManager from '@/components/admin/AchievementManager';
 import AdvertisementManager from '@/components/admin/AdvertisementManager';
 import AdPlacementManager from '@/components/admin/AdPlacementManager';
 import MarketplaceManager from '@/components/admin/MarketplaceManager';
+import EnhancedDashboard from '@/components/admin/EnhancedDashboard';
+import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
+import WithdrawalManager from '@/components/admin/WithdrawalManager';
+import EventsManager from '@/components/admin/EventsManager';
+import JobsManager from '@/components/admin/JobsManager';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -34,104 +38,38 @@ const AdminPanel = () => {
     return <Navigate to="/login" replace />;
   }
 
+  const renderContent = () => {
+    const path = location.pathname;
+    
+    if (path === '/admin' || path === '/admin/dashboard') {
+      return <EnhancedDashboard />;
+    }
+    
+    if (path.includes('/materials')) return <StudyMaterialsManager />;
+    if (path.includes('/papers')) return <PastPapersManager />;
+    if (path.includes('/blog')) return <BlogEditor />;
+    if (path.includes('/users')) return <UserManagement />;
+    if (path.includes('/stats')) return <UserStatsManager />;
+    if (path.includes('/achievements')) return <AchievementManager />;
+    if (path.includes('/categories')) return <CategoriesManager />;
+    if (path.includes('/grades')) return <GradesManager />;
+    if (path.includes('/marketplace')) return <MarketplaceManager />;
+    if (path.includes('/queries')) return <QueriesManager />;
+    if (path.includes('/analytics')) return <AnalyticsPage />;
+    if (path.includes('/ads')) return <AdvertisementManager />;
+    if (path.includes('/ad-placements')) return <AdPlacementManager />;
+    if (path.includes('/payments')) return <PaymentVerificationManager />;
+    if (path.includes('/withdrawals')) return <WithdrawalManager />;
+    if (path.includes('/events')) return <EventsManager />;
+    if (path.includes('/jobs')) return <JobsManager />;
+    if (path.includes('/settings')) return <AdminSettings />;
+    
+    return <EnhancedDashboard />;
+  };
+
   return (
-    <div className="p-6">      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12 mb-6">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="materials">Materials</TabsTrigger>
-          <TabsTrigger value="papers">Papers</TabsTrigger>
-          <TabsTrigger value="blog">Blog</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="stats">User Stats</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="grades">Grades</TabsTrigger>
-          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-          <TabsTrigger value="queries">Queries</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="ads">Ads</TabsTrigger>
-          <TabsTrigger value="ad-placements">Ad Areas</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-              <p className="text-3xl font-bold text-blue-600">1,234</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2">Study Materials</h3>
-              <p className="text-3xl font-bold text-green-600">456</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2">Past Papers</h3>
-              <p className="text-3xl font-bold text-purple-600">789</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2">Active Ads</h3>
-              <p className="text-3xl font-bold text-orange-600">12</p>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="materials">
-          <StudyMaterialsManager />
-        </TabsContent>
-
-        <TabsContent value="papers">
-          <PastPapersManager />
-        </TabsContent>
-
-        <TabsContent value="blog">
-          <BlogEditor />
-        </TabsContent>
-
-        <TabsContent value="users">
-          <UserManagement />
-        </TabsContent>
-
-        <TabsContent value="stats">
-          <UserStatsManager />
-        </TabsContent>
-
-        <TabsContent value="achievements">
-          <AchievementManager />
-        </TabsContent>
-
-        <TabsContent value="categories">
-          <CategoriesManager />
-        </TabsContent>
-
-        <TabsContent value="grades">
-          <GradesManager />
-        </TabsContent>
-
-        <TabsContent value="marketplace">
-          <MarketplaceManager />
-        </TabsContent>
-
-        <TabsContent value="queries">
-          <QueriesManager />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <AnalyticsPage />
-        </TabsContent>
-
-        <TabsContent value="ads">
-          <AdvertisementManager />
-        </TabsContent>
-
-        <TabsContent value="ad-placements">
-          <AdPlacementManager />
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <AdminSettings />
-        </TabsContent>
-      </Tabs>
+    <div className="w-full min-h-full">
+      {renderContent()}
     </div>
   );
 };

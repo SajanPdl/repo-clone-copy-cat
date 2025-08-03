@@ -1,65 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Switch } from "@/components/ui/switch"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import {
-  uploadStudyMaterial,
-  updateStudyMaterial,
-  deleteStudyMaterial,
-  toggleFeatured
-} from '@/utils/studyMaterialsUtils';
-import { StudyMaterial } from '@/utils/queryUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { StudyMaterial } from '@/utils/queryUtils';
+import { Edit, Trash2, Eye, Plus, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import StudyMaterialEditor from './StudyMaterialEditor';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 
 const StudyMaterialsManager = () => {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [materialData, setMaterialData] = useState({
-    title: '',
-    description: '',
-    subject: '',
-    category: '',
-    grade: '',
-    date: new Date().toISOString().split('T')[0],
-    downloads: 0,
-    is_featured: false,
-    file_url: '',
-    file_type: ''
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingMaterial, setEditingMaterial] = useState<StudyMaterial | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,295 +47,250 @@ const StudyMaterialsManager = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setMaterialData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveMaterial = async (materialData: StudyMaterial) => {
     try {
-      // Validate required fields
-      if (!materialData.title || !materialData.description || !materialData.subject || !materialData.category || !materialData.grade || !materialData.file_url || !materialData.file_type) {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (editingMaterial?.id) {
+        // Update existing material
+        const { error } = await supabase
+          .from('study_materials')
+          .update({
+            title: materialData.title,
+            description: materialData.description,
+            subject: materialData.subject,
+            grade: materialData.grade,
+            category: materialData.category,
+            file_url: materialData.file_url,
+            file_type: materialData.file_type,
+            tags: materialData.tags,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingMaterial.id);
+
+        if (error) throw error;
+
         toast({
-          title: "Error",
-          description: "Please fill in all required fields.",
-          variant: "destructive"
+          title: "Success",
+          description: "Study material updated successfully."
         });
-        return;
+      } else {
+        // Create new material
+        const { error } = await supabase
+          .from('study_materials')
+          .insert([{
+            title: materialData.title,
+            description: materialData.description,
+            subject: materialData.subject,
+            grade: materialData.grade,
+            category: materialData.category,
+            file_url: materialData.file_url,
+            file_type: materialData.file_type,
+            tags: materialData.tags,
+            author_id: userData?.user?.id,
+            downloads: 0,
+            views: 0,
+            rating: 0.0,
+            is_featured: false
+          }]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Study material created successfully."
+        });
       }
 
-      const newMaterial = await uploadStudyMaterial({
-        title: materialData.title,
-        description: materialData.description,
-        subject: materialData.subject,
-        category: materialData.category,
-        grade: materialData.grade,
-        author_id: null,
-        date: materialData.date,
-        views: 0,
-        rating: 0.0,
-        tags: [],
-        is_featured: false,
-        file_url: materialData.file_url,
-        file_type: materialData.file_type
-      });
-
-      setMaterials(prevMaterials => [...prevMaterials, newMaterial]);
-      setIsDialogOpen(false);
-      setMaterialData({
-        title: '',
-        description: '',
-        subject: '',
-        category: '',
-        grade: '',
-        date: new Date().toISOString().split('T')[0],
-        downloads: 0,
-        is_featured: false,
-        file_url: '',
-        file_type: ''
-      });
-      toast({
-        title: "Success",
-        description: "Study material uploaded successfully.",
-      });
+      setShowEditor(false);
+      setEditingMaterial(null);
       fetchStudyMaterials();
     } catch (error: any) {
-      console.error("Error uploading study material:", error);
+      console.error("Error saving material:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to upload study material. Please try again.",
+        description: error.message || "Failed to save material. Please try again.",
         variant: "destructive"
       });
     }
   };
 
   const handleDeleteMaterial = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this material?")) {
-      try {
-        await deleteStudyMaterial(id);
-        setMaterials(prevMaterials => prevMaterials.filter(material => material.id !== id));
-        toast({
-          title: "Success",
-          description: "Study material deleted successfully.",
-        });
-        fetchStudyMaterials();
-      } catch (error: any) {
-        console.error("Error deleting study material:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to delete study material. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }
-  };
+    if (!window.confirm("Are you sure you want to delete this material?")) return;
 
-  const handleToggleFeatured = async (id: number, isFeatured: boolean) => {
     try {
-      await toggleFeatured(id, !isFeatured);
-      setMaterials(prevMaterials =>
-        prevMaterials.map(material =>
-          material.id === id ? { ...material, is_featured: !isFeatured } : material
-        )
-      );
+      const { error } = await supabase
+        .from('study_materials')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       toast({
         title: "Success",
-        description: `Study material ${isFeatured ? 'unfeatured' : 'featured'} successfully.`,
+        description: "Study material deleted successfully."
       });
       fetchStudyMaterials();
     } catch (error: any) {
-      console.error("Error toggling featured status:", error);
+      console.error("Error deleting material:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to toggle featured status. Please try again.",
+        description: error.message || "Failed to delete material. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Manage Study Materials</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add New Material</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Study Material</DialogTitle>
-              <DialogDescription>
-                Upload a new study material to the database.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
-                  Title
-                </Label>
-                <Input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={materialData.title}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={materialData.description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subject" className="text-right">
-                  Subject
-                </Label>
-                <Input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={materialData.subject}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Category
-                </Label>
-                <Select onValueChange={(value) => setMaterialData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="Science">Science</SelectItem>
-                    <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="History">History</SelectItem>
-                    <SelectItem value="Computer Science">Computer Science</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="grade" className="text-right">
-                  Grade
-                </Label>
-                <Input
-                  type="text"
-                  id="grade"
-                  name="grade"
-                  value={materialData.grade}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Date
-                </Label>
-                <Input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={materialData.date}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="file_url" className="text-right">
-                  File URL
-                </Label>
-                <Input
-                  type="url"
-                  id="file_url"
-                  name="file_url"
-                  value={materialData.file_url}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="file_type" className="text-right">
-                  File Type
-                </Label>
-                <Input
-                  type="text"
-                  id="file_type"
-                  name="file_type"
-                  value={materialData.file_type}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <Button type="submit">Upload Material</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+  const handleToggleFeatured = async (id: number, isFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('study_materials')
+        .update({ is_featured: !isFeatured })
+        .eq('id', id);
 
-      {loading ? (
-        <div className="flex justify-center items-center">
-          <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[200px]">Title</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Downloads</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {materials.map((material) => (
-                <TableRow key={material.id}>
-                  <TableCell className="font-medium">{material.title}</TableCell>
-                  <TableCell>{material.subject}</TableCell>
-                  <TableCell>{material.category}</TableCell>
-                  <TableCell>{material.grade}</TableCell>
-                  <TableCell>{material.downloads}</TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={material.is_featured}
-                      onCheckedChange={() => handleToggleFeatured(material.id, material.is_featured)}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteMaterial(material.id)}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Material ${!isFeatured ? 'featured' : 'unfeatured'} successfully.`
+      });
+      fetchStudyMaterials();
+    } catch (error: any) {
+      console.error("Error toggling featured:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update material. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const filteredMaterials = materials.filter(material =>
+    material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    material.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    material.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (showEditor) {
+    return (
+      <StudyMaterialEditor
+        material={editingMaterial || undefined}
+        onSave={handleSaveMaterial}
+        onCancel={() => {
+          setShowEditor(false);
+          setEditingMaterial(null);
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Study Materials Management
+            <Button
+              onClick={() => {
+                setEditingMaterial(null);
+                setShowEditor(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Material
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search materials..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMaterials.map((material) => (
+                <Card key={material.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-lg line-clamp-2">{material.title}</h3>
+                        <div className="flex items-center">
+                          <Switch
+                            checked={material.is_featured}
+                            onCheckedChange={() => handleToggleFeatured(material.id, material.is_featured)}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">{material.subject}</Badge>
+                        <Badge variant="outline">{material.grade}</Badge>
+                        <Badge variant="outline">{material.category}</Badge>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>Downloads: {material.downloads || 0}</p>
+                        <p>Views: {material.views || 0}</p>
+                        <p>Created: {new Date(material.created_at || '').toLocaleDateString()}</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pt-3 border-t">
+                        <div className="flex gap-2">
+                          {material.file_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(material.file_url, '_blank')}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingMaterial(material);
+                              setShowEditor(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteMaterial(material.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            </div>
+          )}
+
+          {!loading && filteredMaterials.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No study materials found.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

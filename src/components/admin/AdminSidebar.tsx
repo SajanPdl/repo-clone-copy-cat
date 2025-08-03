@@ -1,250 +1,114 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   LayoutDashboard, 
-  BookText, 
+  BookOpen, 
   FileText, 
+  ShoppingBag, 
   Users, 
-  Bell, 
+  MessageSquare,
+  BarChart3,
   Settings,
+  ChevronLeft,
+  ChevronRight,
   Tag,
   GraduationCap,
-  ChevronRight,
-  User,
-  LogOut,
-  BarChart2,
-  MessageSquare,
-  Clock,
-  ChevronLeft,
-  ShoppingCart,
-  MapPin
+  CreditCard,
+  Wallet,
+  Calendar,
+  Briefcase,
+  UserPlus,
+  Store,
+  Megaphone
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
 
 interface AdminSidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  collapsed?: boolean;
-  setCollapsed?: (collapsed: boolean) => void;
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
 }
 
-const AdminSidebar = ({ activeTab, setActiveTab, collapsed = false, setCollapsed }: AdminSidebarProps) => {
-  const { toast } = useToast();
+const AdminSidebar = ({ collapsed, setCollapsed }: AdminSidebarProps) => {
   const location = useLocation();
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
-  
-  const sidebarItems = [
-    {
-      name: 'Dashboard',
-      icon: LayoutDashboard,
-      id: 'dashboard',
-      path: '/admin'
-    },
-    {
-      name: 'Study Materials',
-      icon: BookText,
-      id: 'materials',
-      path: '/admin/materials'
-    },
-    {
-      name: 'Past Papers',
-      icon: FileText,
-      id: 'papers',
-      path: '/admin/papers'
-    },
-    {
-      name: 'Marketplace',
-      icon: ShoppingCart,
-      id: 'marketplace',
-      path: '/admin/marketplace'
-    },
-    {
-      name: 'Categories',
-      icon: Tag,
-      id: 'categories',
-      path: '/admin/categories'
-    },
-    {
-      name: 'Grades',
-      icon: GraduationCap,
-      id: 'grades',
-      path: '/admin/grades'
-    },
-    {
-      name: 'Users',
-      icon: Users,
-      id: 'users',
-      path: '/admin/users'
-    },
-    {
-      name: 'Queries',
-      icon: MessageSquare,
-      id: 'queries',
-      path: '/admin/queries'
-    },
-    {
-      name: 'Advertisement',
-      icon: Bell,
-      id: 'ads',
-      path: '/admin/ads'
-    },
-    {
-      name: 'Ad Placements',
-      icon: MapPin,
-      id: 'ad-placements',
-      path: '/admin/ad-placements'
-    },
-    {
-      name: 'Analytics',
-      icon: BarChart2,
-      id: 'analytics',
-      path: '/admin/analytics'
-    },
-    {
-      name: 'Settings',
-      icon: Settings,
-      id: 'settings',
-      path: '/admin/settings'
-    }
+
+  const menuItems = [
+    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+    { title: 'Study Materials', icon: BookOpen, href: '/admin/materials' },
+    { title: 'Past Papers', icon: FileText, href: '/admin/papers' },
+    { title: 'Marketplace', icon: ShoppingBag, href: '/admin/marketplace' },
+    { title: 'Categories', icon: Tag, href: '/admin/categories' },
+    { title: 'Grades', icon: GraduationCap, href: '/admin/grades' },
+    { title: 'Users', icon: Users, href: '/admin/users' },
+    { title: 'User Queries', icon: MessageSquare, href: '/admin/queries' },
+    { title: 'Advertisements', icon: Megaphone, href: '/admin/ads' },
+    { title: 'Ad Placements', icon: BarChart3, href: '/admin/ad-placements' },
+    { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+    { title: 'Payments', icon: CreditCard, href: '/admin/payments' },
+    { title: 'Withdrawals', icon: Wallet, href: '/admin/withdrawals' },
+    { title: 'Events', icon: Calendar, href: '/admin/events' },
+    { title: 'Jobs/Internships', icon: Briefcase, href: '/admin/jobs' },
+    { title: 'Referral Program', icon: UserPlus, href: '/admin/referrals' },
+    { title: 'Merch Store', icon: Store, href: '/admin/merch' },
+    { title: 'Settings', icon: Settings, href: '/admin/settings' },
   ];
-  
-  useEffect(() => {
-    const updateDateTime = () => {
-      setCurrentTime(getNepaliTime());
-      setCurrentDate(getNepaliDate());
-    };
-    
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out of the admin panel.",
-    });
+
+  const isActive = (href: string) => {
+    return location.pathname === href || (href === '/admin/dashboard' && location.pathname === '/admin');
   };
-  
-  const toggleSidebar = () => {
-    if (setCollapsed) {
-      setCollapsed(!collapsed);
-    }
-  };
-  
+
   return (
-    <aside className="h-full w-full bg-indigo-900 text-white flex flex-col">
-      <div className={cn(
-        "p-6 border-b border-indigo-800 flex justify-between items-center",
-        collapsed && "px-4 py-6 justify-center"
-      )}>
+    <div className={cn(
+      "h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300",
+      collapsed ? "w-16" : "w-64"
+    )}>
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         {!collapsed && (
-          <div>
-            <h2 className="text-xl font-bold">EduSanskriti</h2>
-            <p className="text-indigo-300 text-sm">Admin Dashboard</p>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              EduAdmin
+            </span>
           </div>
         )}
-        {collapsed && (
-          <div className="flex justify-center">
-            <h2 className="text-2xl font-bold">ES</h2>
-          </div>
-        )}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-indigo-300 hover:text-white hover:bg-indigo-800"
-          onClick={toggleSidebar}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCollapsed(!collapsed)}
+          className="h-8 w-8"
         >
-          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
-      
-      {/* Nepali Date & Time Display */}
-      {!collapsed && (
-        <div className="p-4 border-b border-indigo-800 bg-indigo-800/50">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-indigo-300" />
-            <div className="text-sm">
-              <p className="font-semibold text-white">{currentTime}</p>
-              <p className="text-xs text-indigo-300">{currentDate}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="flex-1 overflow-y-auto py-6 px-3">
-        <nav className="space-y-1">
-          <TooltipProvider delayDuration={0}>
-            {sidebarItems.map((item) => (
-              <Tooltip key={item.id}>
-                <TooltipTrigger asChild>
-                  <Link to={item.path}>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start text-indigo-100 hover:text-white hover:bg-indigo-800 transition-all duration-200",
-                        (activeTab === item.id || location.pathname === item.path) && "bg-indigo-700 text-white shadow-lg",
-                        collapsed && "justify-center px-2"
-                      )}
-                      onClick={() => setActiveTab(item.id)}
-                    >
-                      <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-3")} />
-                      {!collapsed && <span>{item.name}</span>}
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right">
-                    {item.name}
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            ))}
-          </TooltipProvider>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1">
+        <nav className="p-2 space-y-1">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                isActive(item.href) 
+                  ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" 
+                  : "text-gray-700 dark:text-gray-300"
+              )}
+              title={collapsed ? item.title : undefined}
+            >
+              <item.icon className={cn("h-5 w-5", collapsed ? "mx-auto" : "mr-3")} />
+              {!collapsed && <span>{item.title}</span>}
+            </NavLink>
+          ))}
         </nav>
-      </div>
-      
-      <div className={cn(
-        "p-4 border-t border-indigo-800",
-        collapsed && "flex flex-col items-center"
-      )}>
-        {!collapsed ? (
-          <div className="flex items-center p-2 rounded-md bg-indigo-800 mb-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-3">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-indigo-300">admin@edusanskriti.com</p>
-            </div>
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center mb-2">
-            <User className="h-5 w-5 text-white" />
-          </div>
-        )}
-        <Link to="/login">
-          <Button 
-            variant="ghost" 
-            className={cn(
-              "w-full justify-start text-red-300 hover:text-red-200 hover:bg-indigo-800",
-              collapsed && "justify-center p-2"
-            )}
-            onClick={handleLogout}
-          >
-            <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
-            {!collapsed && "Logout"}
-          </Button>
-        </Link>
-      </div>
-    </aside>
+      </ScrollArea>
+    </div>
   );
 };
 

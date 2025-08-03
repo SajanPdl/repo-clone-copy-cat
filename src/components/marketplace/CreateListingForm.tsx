@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, X, Plus, MapPin, Phone, Mail } from 'lucide-react';
+import { Upload, X, Plus, MapPin, Phone, Mail, FileText } from 'lucide-react';
 import { createMarketplaceListing, MarketplaceListing } from '@/utils/marketplaceUtils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -43,6 +43,7 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -62,7 +63,7 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
   });
 
   const [images, setImages] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [pdfFile, setPdfFile] = useState<string>('');
 
   const handleInputChange = (key: string, value: any) => {
     if (key === 'is_free' && value) {
@@ -82,10 +83,10 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const handleImageUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    if (images.length + files.length > 5) {
+    if (images.length + files.length > 3) {
       toast({
         title: "Too many images",
-        description: "You can upload maximum 5 images per listing.",
+        description: "You can upload maximum 3 images per listing.",
         variant: "destructive"
       });
       return;
@@ -99,14 +100,14 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `marketplace/${fileName}`;
 
-        const { data, error } = await supabase.storage
-          .from('uploads')
+        const { error } = await supabase.storage
+          .from('documents')
           .upload(filePath, file);
 
         if (error) throw error;
 
         const { data: urlData } = supabase.storage
-          .from('uploads')
+          .from('documents')
           .getPublicUrl(filePath);
 
         return urlData.publicUrl;
@@ -114,7 +115,6 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
       const uploadedUrls = await Promise.all(uploadPromises);
       setImages(prev => [...prev, ...uploadedUrls]);
-      setImageFiles(prev => [...prev, ...Array.from(files)]);
 
       toast({
         title: "Images uploaded",
@@ -132,9 +132,59 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
     }
   };
 
+  const handlePdfUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF file only.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingPdf(true);
+
+    try {
+      const fileName = `${Math.random()}.pdf`;
+      const filePath = `marketplace/pdfs/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      setPdfFile(urlData.publicUrl);
+
+      toast({
+        title: "PDF uploaded",
+        description: "PDF file uploaded successfully."
+      });
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removePdf = () => {
+    setPdfFile('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,7 +216,10 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
         is_free: formData.is_free,
         condition: formData.condition || undefined,
         location: formData.location || undefined,
-        contact_info: formData.contact_info,
+        contact_info: {
+          ...formData.contact_info,
+          pdf_file: pdfFile || undefined
+        },
         images: images.length > 0 ? images : undefined,
         status: 'active' as const,
         is_featured: false
@@ -316,12 +369,54 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
               )}
             </div>
 
+            {/* PDF Upload */}
+            <div>
+              <Label>PDF File (Optional)</Label>
+              <div className="mt-2 space-y-4">
+                {pdfFile && (
+                  <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-red-500" />
+                      <span className="text-sm">PDF uploaded successfully</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={removePdf}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {!pdfFile && (
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handlePdfUpload(e.target.files)}
+                      className="hidden"
+                      id="pdf-upload"
+                      disabled={uploadingPdf}
+                    />
+                    <label htmlFor="pdf-upload" className="cursor-pointer">
+                      <FileText className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {uploadingPdf ? 'Uploading PDF...' : 'Click to upload PDF (Optional)'}
+                      </p>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Images */}
             <div>
-              <Label>Images (Max 5)</Label>
+              <Label>Images (Max 3)</Label>
               <div className="mt-2 space-y-4">
                 {images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {images.map((url, index) => (
                       <motion.div
                         key={index}
@@ -348,7 +443,7 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   </div>
                 )}
 
-                {images.length < 5 && (
+                {images.length < 3 && (
                   <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
                     <input
                       type="file"
@@ -362,7 +457,7 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     <label htmlFor="image-upload" className="cursor-pointer">
                       <Upload className="h-12 w-12 mx-auto text-gray-400 mb-2" />
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {uploadingImages ? 'Uploading...' : 'Click to upload images'}
+                        {uploadingImages ? 'Uploading...' : 'Click to upload images (Max 3)'}
                       </p>
                     </label>
                   </div>
@@ -453,7 +548,7 @@ const CreateListingForm: React.FC<CreateListingFormProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={loading || uploadingImages}
+                disabled={loading || uploadingImages || uploadingPdf}
                 className="px-8"
               >
                 {loading ? 'Creating...' : 'Create Listing'}

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,14 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Bell, User, LogOut, Settings, BookOpen } from 'lucide-react';
+import { User, LogOut, Settings, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import NotificationSystem from './NotificationSystem';
 
 const GlobalHeader = () => {
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [notifications] = useState([]);
 
   const handleSignOut = async () => {
     try {
@@ -70,31 +70,7 @@ const GlobalHeader = () => {
             {user ? (
               <>
                 {/* Notifications */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative">
-                      <Bell className="h-5 w-5" />
-                      {notifications.length > 0 && (
-                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                          {notifications.length}
-                        </span>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-80">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        No new notifications
-                      </div>
-                    ) : (
-                      notifications.map((notification, index) => (
-                        <DropdownMenuItem key={index}>
-                          {notification}
-                        </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <NotificationSystem />
 
                 {/* User Menu */}
                 <DropdownMenu>

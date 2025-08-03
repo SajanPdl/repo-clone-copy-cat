@@ -392,6 +392,87 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount: number
+          buyer_id: string
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          item_id: string
+          item_type: string
+          seller_amount: number | null
+          seller_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          seller_amount?: number | null
+          seller_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          seller_amount?: number | null
+          seller_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       past_papers: {
         Row: {
           author_id: string | null
@@ -442,6 +523,59 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      payment_verifications: {
+        Row: {
+          admin_notes: string | null
+          buyer_id: string
+          created_at: string | null
+          esewa_transaction_id: string | null
+          id: string
+          order_id: string
+          payment_amount: number | null
+          receipt_file_path: string | null
+          status: string | null
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          buyer_id: string
+          created_at?: string | null
+          esewa_transaction_id?: string | null
+          id?: string
+          order_id: string
+          payment_amount?: number | null
+          receipt_file_path?: string | null
+          status?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          buyer_id?: string
+          created_at?: string | null
+          esewa_transaction_id?: string | null
+          id?: string
+          order_id?: string
+          payment_amount?: number | null
+          receipt_file_path?: string | null
+          status?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_verifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       premium_subscriptions: {
         Row: {
@@ -552,6 +686,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      seller_wallets: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          esewa_id: string | null
+          esewa_qr_code: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          esewa_id?: string | null
+          esewa_qr_code?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          esewa_id?: string | null
+          esewa_qr_code?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       student_activities: {
         Row: {
@@ -783,6 +971,94 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "seller_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string | null
+          esewa_id: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          seller_id: string
+          status: string | null
+          updated_at: string | null
+          wallet_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string | null
+          esewa_id: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          seller_id: string
+          status?: string | null
+          updated_at?: string | null
+          wallet_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string | null
+          esewa_id?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          seller_id?: string
+          status?: string | null
+          updated_at?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "seller_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       user_dashboard_stats: {
@@ -848,6 +1124,20 @@ export type Database = {
       is_premium_user: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      process_order_payment: {
+        Args: { p_order_id: string; p_admin_id: string }
+        Returns: undefined
+      }
+      update_wallet_balance: {
+        Args: {
+          p_wallet_id: string
+          p_amount: number
+          p_transaction_type: string
+          p_description?: string
+          p_reference_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
