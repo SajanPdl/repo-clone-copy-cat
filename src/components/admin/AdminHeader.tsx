@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 const AdminHeader = () => {
   const { toast } = useToast();
