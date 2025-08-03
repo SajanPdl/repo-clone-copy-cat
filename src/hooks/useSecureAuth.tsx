@@ -170,17 +170,39 @@ export const SecureAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const signOut = async () => {
     try {
-      // Clear all local storage
-      localStorage.removeItem('secure_session');
-      localStorage.removeItem('eduUser');
-      sessionStorage.clear();
+      console.log('Starting sign out process...');
       
-      // Clear session state
+      // Clear local state first to prevent UI flickering
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
       setSessionToken(null);
       
-      await supabase.auth.signOut();
+      // Clear all local storage items
+      localStorage.removeItem('secure_session');
+      localStorage.removeItem('eduUser');
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Clear session storage
+      sessionStorage.clear();
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase signOut error:', error);
+        // Even if there's an error, we should still redirect
+      }
+      
+      console.log('Sign out completed, redirecting...');
+      
+      // Force redirect to home page
+      window.location.href = '/';
+      
     } catch (error) {
       console.error('Sign out error:', error);
+      // Force redirect even on error
+      window.location.href = '/';
     }
   };
 
