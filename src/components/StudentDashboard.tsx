@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +17,7 @@ import ProfileEditor from '@/components/ProfileEditor';
 import SellerWallet from '@/components/wallet/SellerWallet';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -35,7 +37,7 @@ import {
 } from 'lucide-react';
 
 const StudentDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { bookmarks, loading: bookmarksLoading } = useBookmarks();
@@ -69,38 +71,26 @@ const StudentDashboard = () => {
   };
 
   const handleSignOut = async () => {
-    if (signingOut) return; // Prevent multiple clicks
-    
     setSigningOut(true);
-    
     try {
-      console.log('Dashboard: Starting sign out...');
-      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
       toast({
-        title: 'Signing out...',
-        description: 'Please wait while we sign you out.',
+        title: 'Success',
+        description: 'Signed out successfully'
       });
-
-      // Call the sign out function from useSecureAuth
-      await signOut();
-      
-      // The signOut function will handle the redirect
-      
+      navigate('/');
     } catch (error) {
-      console.error('Dashboard sign out error:', error);
-      
-      setSigningOut(false);
-      
+      console.error('Sign out error:', error);
       toast({
         title: 'Error',
         description: 'Failed to sign out. Please try again.',
         variant: 'destructive'
       });
-      
-      // Force redirect even if there's an error
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
+    } finally {
+      setSigningOut(false);
     }
   };
 
@@ -348,11 +338,7 @@ const StudentDashboard = () => {
                   title="Sign Out"
                   className="hover:bg-white/80"
                 >
-                  {signingOut ? (
-                    <div className="animate-spin h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full"></div>
-                  ) : (
-                    <LogOut className="h-5 w-5" />
-                  )}
+                  <LogOut className="h-5 w-5" />
                 </Button>
               </div>
             </div>

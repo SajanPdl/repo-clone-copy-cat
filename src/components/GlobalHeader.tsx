@@ -22,31 +22,18 @@ const GlobalHeader = () => {
 
   const handleSignOut = async () => {
     try {
-      console.log('GlobalHeader: Starting sign out...');
-      
-      toast({
-        title: 'Signing out...',
-        description: 'Please wait while we sign you out.',
-      });
-
-      // Call the sign out function from useSecureAuth
       await signOut();
-      
-      // The signOut function will handle the redirect
-      
+      toast({
+        title: "Success",
+        description: "Signed out successfully"
+      });
+      navigate('/');
     } catch (error) {
-      console.error('GlobalHeader sign out error:', error);
-      
       toast({
         title: "Error", 
         description: "Failed to sign out",
         variant: "destructive"
       });
-      
-      // Force redirect even if there's an error
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
     }
   };
 
