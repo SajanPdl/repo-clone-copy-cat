@@ -38,14 +38,21 @@ export interface MarketplaceListing {
 const MarketplacePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedCondition, setSelectedCondition] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+    category: 'all',
+    subject: 'all',
+    university: 'all',
+    condition: 'all',
+    priceMin: 0,
+    priceMax: 10000,
+    freeOnly: false,
+    sortBy: 'latest'
+  });
 
   const { data: listings = [], isLoading, refetch } = useQuery({
-    queryKey: ['marketplace-listings', searchTerm, selectedCategory, selectedCondition],
+    queryKey: ['marketplace-listings', filters],
     queryFn: async () => {
       let query = supabase
         .from('marketplace_listings')
@@ -53,33 +60,80 @@ const MarketplacePage = () => {
         .eq('is_approved', true)
         .eq('status', 'active');
 
-      if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
+      if (filters.category !== 'all') {
+        query = query.eq('category', filters.category);
       }
 
-      if (selectedCondition !== 'all') {
-        query = query.eq('condition', selectedCondition);
+      if (filters.condition !== 'all') {
+        query = query.eq('condition', filters.condition);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      if (filters.subject !== 'all') {
+        query = query.eq('subject', filters.subject);
+      }
+
+      if (filters.university !== 'all') {
+        query = query.eq('university', filters.university);
+      }
+
+      if (filters.freeOnly) {
+        query = query.eq('is_free', true);
+      } else {
+        query = query
+          .gte('price', filters.priceMin)
+          .lte('price', filters.priceMax);
+      }
+
+      // Apply sorting
+      switch (filters.sortBy) {
+        case 'featured':
+          query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+          break;
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'views':
+          query = query.order('views_count', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching listings:', error);
         throw new Error('Failed to fetch listings');
       }
 
-      return (data || []).map(item => ({
-        ...item,
-        category: item.category as MarketplaceListing['category'],
-        condition: item.condition as MarketplaceListing['condition'],
-        status: item.status as MarketplaceListing['status']
-      })) as MarketplaceListing[];
+      return (data || []) as MarketplaceListing[];
     }
   });
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      category: 'all',
+      subject: 'all',
+      university: 'all',
+      condition: 'all',
+      priceMin: 0,
+      priceMax: 10000,
+      freeOnly: false,
+      sortBy: 'latest'
+    });
+  };
 
   const handleCreateSuccess = () => {
     setShowCreateForm(false);
@@ -90,10 +144,15 @@ const MarketplacePage = () => {
     });
   };
 
-  const filteredListings = listings.filter(listing => {
-    const matchesPrice = listing.is_free || (listing.price && listing.price >= priceRange[0] && listing.price <= priceRange[1]);
-    return matchesPrice;
-  });
+  const handleViewListing = (listing: MarketplaceListing) => {
+    // Handle view listing - could open a modal or navigate to detail page
+    console.log('View listing:', listing);
+  };
+
+  // Get unique values for filters
+  const categories = ['book', 'notes', 'pdf', 'question_bank', 'calculator', 'device', 'other'];
+  const subjects = [...new Set(listings.map(l => l.subject).filter(Boolean))] as string[];
+  const universities = [...new Set(listings.map(l => l.university).filter(Boolean))] as string[];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -133,14 +192,12 @@ const MarketplacePage = () => {
           </div>
 
           <MarketplaceFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            selectedCondition={selectedCondition}
-            onConditionChange={setSelectedCondition}
-            priceRange={priceRange}
-            onPriceRangeChange={setPriceRange}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+            categories={categories}
+            subjects={subjects}
+            universities={universities}
           />
         </motion.div>
 
@@ -150,7 +207,7 @@ const MarketplacePage = () => {
               <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
             ))}
           </div>
-        ) : filteredListings.length === 0 ? (
+        ) : listings.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -175,14 +232,17 @@ const MarketplacePage = () => {
             animate={{ opacity: 1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {filteredListings.map((listing, index) => (
+            {listings.map((listing, index) => (
               <motion.div
                 key={listing.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <MarketplaceCard listing={listing} />
+                <MarketplaceCard 
+                  listing={listing}
+                  onView={handleViewListing}
+                />
               </motion.div>
             ))}
           </motion.div>

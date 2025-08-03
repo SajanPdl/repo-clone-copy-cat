@@ -10,10 +10,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Pages
 import Index from "./pages/Index";
-import StudyMaterials from "./pages/StudyMaterials";
-import PastPapers from "./pages/PastPapers";
-import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminDashboard from "./pages/AdminDashboard";
+import StudyMaterialsPage from "./pages/StudyMaterialsPage";
+import PastPapersPage from "./pages/PastPapersPage";
+import LoginPage from "./pages/LoginPage";
 import { AdminPanel } from "./pages/AdminPanel";
 import { AdminSidebar } from "./components/admin/AdminSidebar";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -38,13 +37,14 @@ const App = () => (
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
-              <Route path="/study-materials" element={<StudyMaterials />} />
-              <Route path="/past-papers" element={<PastPapers />} />
+              <Route path="/study-materials" element={<StudyMaterialsPage />} />
+              <Route path="/past-papers" element={<PastPapersPage />} />
               <Route path="/marketplace" element={<MarketplacePage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/merch" element={<MerchPage />} />
               <Route path="/blog" element={<BlogPage />} />
+              <Route path="/login" element={<LoginPage />} />
               
               {/* Student Dashboard Routes */}
               <Route path="/dashboard" element={
@@ -64,15 +64,7 @@ const App = () => (
               } />
               
               {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLoginPage />} />
-              <Route path="/admin/dashboard" element={
-                <ProtectedRoute requireAdmin>
-                  <div className="flex min-h-screen">
-                    <AdminSidebar />
-                    <AdminDashboard />
-                  </div>
-                </ProtectedRoute>
-              } />
+              <Route path="/admin/login" element={<LoginPage />} />
               <Route path="/admin/*" element={
                 <ProtectedRoute requireAdmin>
                   <div className="flex min-h-screen">
