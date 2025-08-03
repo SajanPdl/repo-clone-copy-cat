@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, RotateCw, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Printer, Share, Heart, Eye, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBookmarks } from '@/hooks/useBookmarks';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import AdPlacement from '@/components/ads/AdPlacement';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+import { incrementDownloads } from '@/utils/studyMaterialsUtils';
 
 interface PdfViewerProps {
   fileUrl: string;
@@ -18,184 +18,266 @@ interface PdfViewerProps {
   materialType?: 'study_material' | 'past_paper';
 }
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ 
-  fileUrl, 
-  title, 
-  height = 600,
-  materialId,
-  materialType 
-}) => {
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+const PdfViewer = ({ fileUrl, title, height = 600, materialId, materialType = 'study_material' }: PdfViewerProps) => {
   const [scale, setScale] = useState<number>(1.0);
-  const [rotation, setRotation] = useState<number>(0);
-  const [searchText, setSearchText] = useState<string>('');
+  const [hasTrackedView, setHasTrackedView] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const { toast } = useToast();
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setIsLoading(false);
-  };
+  const materialIdStr = materialId?.toString() || '';
+  const isCurrentlyBookmarked = isBookmarked(materialType, materialIdStr);
 
-  const onDocumentLoadError = (error: Error) => {
-    console.error('Error loading PDF:', error);
-    setIsLoading(false);
-    toast({
-      title: "Error",
-      description: "Failed to load PDF file",
-      variant: "destructive"
-    });
-  };
+  useEffect(() => {
+    if (materialId && !hasTrackedView) {
+      trackView();
+      setHasTrackedView(true);
+    }
+  }, [materialId, hasTrackedView]);
 
-  const goToPrevPage = () => {
-    setPageNumber(page => Math.max(1, page - 1));
-  };
+  const trackView = async () => {
+    if (!materialId) return;
 
-  const goToNextPage = () => {
-    setPageNumber(page => Math.min(numPages, page + 1));
-  };
-
-  const zoomIn = () => {
-    setScale(scale => Math.min(3.0, scale + 0.2));
-  };
-
-  const zoomOut = () => {
-    setScale(scale => Math.max(0.5, scale - 0.2));
-  };
-
-  const rotate = () => {
-    setRotation(rotation => (rotation + 90) % 360);
-  };
-
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = title || 'document.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= numPages) {
-      setPageNumber(page);
+    try {
+      await supabase.rpc('increment_material_views', {
+        material_id: materialId,
+        table_name: materialType === 'study_material' ? 'study_materials' : 'past_papers'
+      });
+    } catch (error) {
+      console.error('Error tracking view:', error);
     }
   };
 
-  return (
-    <div className="pdf-viewer-container bg-white rounded-lg shadow-lg">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between p-4 bg-gray-50 border-b gap-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToPrevPage}
-            disabled={pageNumber <= 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Input
-              type="number"
-              value={pageNumber}
-              onChange={(e) => goToPage(parseInt(e.target.value))}
-              className="w-16 text-center"
-              min={1}
-              max={numPages}
-            />
-            <span className="text-sm text-gray-600">of {numPages}</span>
-          </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToNextPage}
-            disabled={pageNumber >= numPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+  const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 3.0));
+  const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
 
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={zoomOut}>
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-gray-600 min-w-[60px] text-center">
+  const handleDownload = async () => {
+    if (materialId) {
+      await incrementDownloads(materialId);
+      
+      if (user) {
+        try {
+          await supabase.rpc('add_student_activity', {
+            p_user_id: user.id,
+            p_activity_type: 'download',
+            p_points: 2,
+            p_description: `Downloaded: ${title || 'Document'}`
+          });
+        } catch (error) {
+          console.error('Error tracking download activity:', error);
+        }
+      }
+    }
+
+    toast({
+      title: "Download Started",
+      description: `${title || 'Document'} is being downloaded.`,
+    });
+    
+    window.open(fileUrl, '_blank');
+  };
+
+  const handleBookmark = async () => {
+    if (!user) {
+      toast({
+        title: 'Login Required',
+        description: 'Please login to bookmark materials',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!materialId) return;
+
+    if (isCurrentlyBookmarked) {
+      await removeBookmark(materialType, materialIdStr);
+    } else {
+      await addBookmark(materialType, materialIdStr);
+      
+      try {
+        await supabase.rpc('add_student_activity', {
+          p_user_id: user.id,
+          p_activity_type: 'bookmark',
+          p_points: 1,
+          p_description: `Bookmarked: ${title || 'Document'}`
+        });
+      } catch (error) {
+        console.error('Error tracking bookmark activity:', error);
+      }
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: title || 'Study Material',
+      text: `Check out this study material: ${title}`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: 'Link Copied',
+          description: 'Material link copied to clipboard'
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to share material',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Simple iframe-based PDF viewer
+  return (
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden" style={{ height: height ? `${height}px` : 'auto' }}>
+      {/* PDF Viewer Header */}
+      <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate max-w-md">
+          {title || 'Document Viewer'}
+        </h2>
+        
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={zoomOut}
+                  disabled={scale <= 0.5}
+                  className="h-8 w-8"
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Zoom Out</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <span className="text-sm text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
             {Math.round(scale * 100)}%
           </span>
-          <Button variant="outline" size="sm" onClick={zoomIn}>
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={rotate}>
-            <RotateCw className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-          </Button>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={zoomIn}
+                  disabled={scale >= 3.0}
+                  className="h-8 w-8"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Zoom In</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          {user && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isCurrentlyBookmarked ? "default" : "outline"}
+                    size="icon"
+                    onClick={handleBookmark}
+                    className={`h-8 w-8 ${isCurrentlyBookmarked ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                  >
+                    <Heart className={`h-4 w-4 ${isCurrentlyBookmarked ? 'fill-current text-white' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isCurrentlyBookmarked ? 'Remove Bookmark' : 'Bookmark'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleDownload}
+                  className="h-8 w-8"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleShare}
+                  className="h-8 w-8"
+                >
+                  <Share className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Share</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search in document..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-48"
+      </div>
+      
+      {/* PDF Viewer Content */}
+      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+        {fileUrl ? (
+          <iframe
+            src={fileUrl}
+            title={title || 'PDF Document'}
+            className="w-full h-full border-0"
+            style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setError('Failed to load PDF');
+              setIsLoading(false);
+            }}
           />
-        </div>
-      </div>
-
-      {/* Ad Placement */}
-      <div className="p-2 bg-gray-100 border-b">
-        <AdPlacement position="content" />
-      </div>
-
-      {/* PDF Content */}
-      <div 
-        className="pdf-content overflow-auto bg-gray-100 flex justify-center p-4"
-        style={{ height: `${height}px` }}
-      >
-        {isLoading && (
+        ) : (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            <div className="text-center p-10">
+              <p className="text-red-500 mb-4">No PDF file available</p>
+              <Button onClick={handleDownload}>
+                Download Instead
+              </Button>
+            </div>
           </div>
         )}
         
-        <Document
-          file={fileUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onDocumentLoadError}
-          loading={
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <Skeleton className="h-[600px] w-full max-w-2xl mx-auto rounded-md" />
+          </div>
+        )}
+        
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="text-center p-10">
+              <p className="text-red-500 mb-4">{error}</p>
+              <Button onClick={handleDownload}>
+                Download Instead
+              </Button>
             </div>
-          }
-          className="shadow-lg"
-        >
-          <Page
-            pageNumber={pageNumber}
-            scale={scale}
-            rotate={rotation}
-            renderTextLayer={true}
-            renderAnnotationLayer={true}
-            className="border border-gray-300"
-          />
-        </Document>
-      </div>
-
-      {/* Bottom Ad Placement */}
-      <div className="p-2 bg-gray-100 border-t">
-        <AdPlacement position="footer" />
-      </div>
-
-      {/* Page Info */}
-      <div className="p-2 text-center text-sm text-gray-600 bg-gray-50 border-t">
-        {title && <span className="font-medium">{title}</span>}
-        {title && <span className="mx-2">•</span>}
-        <span>Page {pageNumber} of {numPages}</span>
+          </div>
+        )}
       </div>
     </div>
   );
