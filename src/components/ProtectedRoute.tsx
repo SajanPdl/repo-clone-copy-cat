@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  adminOnly?: boolean;
+  requireAdmin?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
-  const { user, loading, isAdmin } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
+  const { user, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -23,8 +23,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />;
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
