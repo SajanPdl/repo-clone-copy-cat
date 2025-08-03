@@ -1,29 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
-import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
-import CreateListingForm from '@/components/marketplace/CreateListingForm';
-import { 
-  fetchMarketplaceListings, 
-  MarketplaceListing,
-  addToFavorites,
-  removeFromFavorites,
-  fetchUserFavorites,
-  incrementListingViews
-} from '@/utils/marketplaceUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { useSecureAuth as useAuth } from '@/hooks/useSecureAuth';
+import { useToast } from '@/hooks/use-toast';
+import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
+import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
+import CreateListingForm from '@/components/marketplace/CreateListingForm';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const MarketplacePage: React.FC = () => {
+export interface MarketplaceListing {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  category: 'book' | 'notes' | 'pdf' | 'question_bank' | 'calculator' | 'device' | 'other';
+  subject?: string;
+  university?: string;
+  price?: number;
+  is_free: boolean;
+  condition: 'new' | 'used' | 'excellent' | 'fair';
+  location?: string;
+  contact_info?: any;
+  images?: string[];
+  status: 'active' | 'sold' | 'exchanged' | 'inactive';
+  is_featured: boolean;
+  is_approved: boolean;
+  views_count: number;
+  interest_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+const MarketplacePage = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [userFavorites, setUserFavorites] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
-
   const [filters, setFilters] = useState({
     search: '',
     category: 'all',
@@ -36,43 +51,70 @@ const MarketplacePage: React.FC = () => {
     sortBy: 'latest'
   });
 
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      setUser(userData.user);
-    };
-    getUser();
-  }, []);
-
-  // Fetch user favorites
-  useEffect(() => {
-    const loadUserFavorites = async () => {
-      if (user) {
-        try {
-          const favorites = await fetchUserFavorites(user.id);
-          setUserFavorites(favorites.map(f => f.listing_id!));
-        } catch (error) {
-          console.error('Error loading favorites:', error);
-        }
-      }
-    };
-    loadUserFavorites();
-  }, [user]);
-
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ['marketplace-listings', filters],
-    queryFn: () => fetchMarketplaceListings({
-      category: filters.category !== 'all' ? filters.category : undefined,
-      subject: filters.subject !== 'all' ? filters.subject : undefined,
-      university: filters.university !== 'all' ? filters.university : undefined,
-      condition: filters.condition !== 'all' ? filters.condition : undefined,
-      priceMin: filters.priceMin,
-      priceMax: filters.priceMax,
-      freeOnly: filters.freeOnly,
-      search: filters.search,
-      sortBy: filters.sortBy as any
-    })
+    queryFn: async () => {
+      let query = supabase
+        .from('marketplace_listings')
+        .select('*')
+        .eq('is_approved', true)
+        .eq('status', 'active');
+
+      if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      }
+
+      if (filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+
+      if (filters.condition !== 'all') {
+        query = query.eq('condition', filters.condition);
+      }
+
+      if (filters.subject !== 'all') {
+        query = query.eq('subject', filters.subject);
+      }
+
+      if (filters.university !== 'all') {
+        query = query.eq('university', filters.university);
+      }
+
+      if (filters.freeOnly) {
+        query = query.eq('is_free', true);
+      } else {
+        query = query
+          .gte('price', filters.priceMin)
+          .lte('price', filters.priceMax);
+      }
+
+      // Apply sorting
+      switch (filters.sortBy) {
+        case 'featured':
+          query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+          break;
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'views':
+          query = query.order('views_count', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching listings:', error);
+        throw new Error('Failed to fetch listings');
+      }
+
+      return (data || []) as MarketplaceListing[];
+    }
   });
 
   const handleFilterChange = (key: string, value: any) => {
@@ -93,103 +135,62 @@ const MarketplacePage: React.FC = () => {
     });
   };
 
-  const handleViewListing = async (listing: MarketplaceListing) => {
-    // Increment view count
-    await incrementListingViews(listing.id);
-    // Navigate to listing detail (you can implement this)
-    console.log('View listing:', listing);
-  };
-
-  const handleToggleFavorite = async (listingId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to add items to favorites.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const isFavorited = userFavorites.includes(listingId);
-      
-      if (isFavorited) {
-        await removeFromFavorites(user.id, listingId);
-        setUserFavorites(prev => prev.filter(id => id !== listingId));
-        toast({
-          title: "Removed from favorites",
-          description: "Item removed from your favorites."
-        });
-      } else {
-        await addToFavorites(user.id, listingId);
-        setUserFavorites(prev => [...prev, listingId]);
-        toast({
-          title: "Added to favorites",
-          description: "Item added to your favorites."
-        });
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleListingCreated = (newListing: MarketplaceListing) => {
+  const handleCreateSuccess = () => {
     setShowCreateForm(false);
     refetch();
     toast({
-      title: "Success!",
+      title: "Success",
       description: "Your listing has been created and is pending approval."
     });
   };
 
-  // Extract unique values for filter options
-  const categories = ['book', 'notes', 'pdf', 'question_bank', 'calculator', 'device', 'other'];
-  const subjects = [...new Set(listings.map(l => l.subject).filter(Boolean))];
-  const universities = [...new Set(listings.map(l => l.university).filter(Boolean))];
+  const handleViewListing = (listing: MarketplaceListing) => {
+    // Handle view listing - could open a modal or navigate to detail page
+    console.log('View listing:', listing);
+  };
 
-  if (showCreateForm) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 px-4">
-        <CreateListingForm
-          onSuccess={handleListingCreated}
-          onCancel={() => setShowCreateForm(false)}
-        />
-      </div>
-    );
-  }
+  // Get unique values for filters
+  const categories = ['book', 'notes', 'pdf', 'question_bank', 'calculator', 'device', 'other'];
+  const subjects = [...new Set(listings.map(l => l.subject).filter(Boolean))] as string[];
+  const universities = [...new Set(listings.map(l => l.university).filter(Boolean))] as string[];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            📚 Academic Marketplace
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-            Buy, sell, or exchange academic materials with fellow students
-          </p>
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            size="lg"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Create Listing
-          </Button>
-        </motion.div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Student Marketplace
+              </h1>
+              <p className="text-gray-600 text-lg mt-2">Buy, sell, and exchange study materials</p>
+            </div>
+            
+            {user && (
+              <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Create Listing
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create New Listing</DialogTitle>
+                  </DialogHeader>
+                  <CreateListingForm 
+                    onSuccess={handleCreateSuccess}
+                    onCancel={() => setShowCreateForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
 
-        {/* Filters */}
-        <div className="mb-8">
           <MarketplaceFilters
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -198,71 +199,54 @@ const MarketplacePage: React.FC = () => {
             subjects={subjects}
             universities={universities}
           />
-        </div>
-
-        {/* Results Summary */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6"
-        >
-          <p className="text-gray-600 dark:text-gray-300">
-            {isLoading ? 'Loading...' : `${listings.length} listing${listings.length !== 1 ? 's' : ''} found`}
-          </p>
         </motion.div>
 
-        {/* Listings Grid */}
-        <AnimatePresence>
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : listings.length > 0 ? (
-            <motion.div
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            >
-              {listings.map((listing, index) => (
-                <motion.div
-                  key={listing.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <MarketplaceCard
-                    listing={listing}
-                    onView={handleViewListing}
-                    onFavorite={handleToggleFavorite}
-                    isFavorited={userFavorites.includes(listing.id)}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No listings found</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Try adjusting your filters or create the first listing!
-              </p>
-              <Button
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : listings.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <Search className="h-16 w-16 mx-auto text-gray-400 mb-6" />
+            <h3 className="text-2xl font-semibold mb-3">No items found</h3>
+            <p className="text-gray-600 mb-8">Try adjusting your filters or create a new listing</p>
+            {user && (
+              <Button 
                 onClick={() => setShowCreateForm(true)}
-                variant="outline"
+                className="bg-gradient-to-r from-blue-500 to-purple-500"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-5 w-5 mr-2" />
                 Create First Listing
               </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {listings.map((listing, index) => (
+              <motion.div
+                key={listing.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <MarketplaceCard 
+                  listing={listing}
+                  onView={handleViewListing}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
