@@ -2,10 +2,10 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
-import ReferralProgram from '@/components/referral/ReferralProgram';
+import DailyPlanner from '@/components/planner/DailyPlanner';
 import GlobalHeader from '@/components/GlobalHeader';
 
-const ReferralPage = () => {
+const DailyPlannerPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <GlobalHeader />
@@ -17,12 +17,12 @@ const ReferralPage = () => {
               <div className="flex items-center gap-3 px-4 py-3">
                 <SidebarTrigger className="lg:hidden" />
                 <h1 className="text-xl font-semibold text-gray-900">
-                  Referral Program
+                  Daily Planner
                 </h1>
               </div>
             </header>
             <main className="p-6">
-              <ReferralProgram />
+              <DailyPlanner />
             </main>
           </SidebarInset>
         </div>
@@ -31,4 +31,4 @@ const ReferralPage = () => {
   );
 };
 
-export default ReferralPage;
+export default DailyPlannerPage;

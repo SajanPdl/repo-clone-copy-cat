@@ -8,13 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 
 const StudentMaterialUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -39,17 +41,27 @@ const StudentMaterialUpload = () => {
       }
 
       // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png', 
+        'image/jpg',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+      
       if (!allowedTypes.includes(selectedFile.type)) {
         toast({
           title: 'Invalid file type',
-          description: 'Please select a PDF or image file',
+          description: 'Please select a PDF, Word document, or image file',
           variant: 'destructive'
         });
         return;
       }
 
       setFile(selectedFile);
+      console.log('File selected:', selectedFile.name, selectedFile.type, selectedFile.size);
     }
   };
 
@@ -57,22 +69,45 @@ const StudentMaterialUpload = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFileToStorage = async (file: File): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+    // Create a unique file name
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `study-materials/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    console.log('Uploading file to path:', filePath);
+    
+    // Start progress tracking
+    setUploadProgress(10);
+
+    // Upload file to Supabase storage
+    const { error: uploadError, data } = await supabase.storage
       .from('documents')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type
+      });
 
     if (uploadError) {
-      throw uploadError;
+      console.error('Upload error:', uploadError);
+      throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
-    return filePath;
+    setUploadProgress(70);
+    console.log('File uploaded successfully:', data);
+
+    // Get the public URL for the uploaded file
+    const { data: urlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath);
+
+    console.log('Public URL generated:', urlData.publicUrl);
+    setUploadProgress(90);
+
+    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,27 +141,38 @@ const StudentMaterialUpload = () => {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
+      console.log('Starting file upload process...');
+      
       // Upload file to storage
-      const filePath = await uploadFile(file);
+      const fileUrl = await uploadFileToStorage(file);
+      console.log('File URL received:', fileUrl);
+
+      setUploadProgress(95);
 
       // Insert into pending_study_materials table
-      const { error } = await supabase
+      const { error: dbError } = await supabase
         .from('pending_study_materials')
         .insert({
           title: formData.title,
-          description: formData.description,
+          description: formData.description || null,
           subject: formData.subject,
           grade: formData.grade,
           category: formData.category,
-          file_url: filePath,
-          tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+          file_url: fileUrl,
+          tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
           author_id: user.id,
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
+      setUploadProgress(100);
 
       toast({
         title: 'Upload successful!',
@@ -143,18 +189,22 @@ const StudentMaterialUpload = () => {
         tags: ''
       });
       setFile(null);
+      setUploadProgress(0);
 
       // Reset file input
       const fileInput = document.getElementById('file-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
 
-    } catch (error) {
+      console.log('Upload process completed successfully');
+
+    } catch (error: any) {
       console.error('Upload error:', error);
       toast({
         title: 'Upload failed',
-        description: 'Failed to upload your material. Please try again.',
+        description: error.message || 'Failed to upload your material. Please try again.',
         variant: 'destructive'
       });
+      setUploadProgress(0);
     } finally {
       setIsUploading(false);
     }
@@ -175,7 +225,7 @@ const StudentMaterialUpload = () => {
               <p className="font-medium mb-1">Upload Guidelines:</p>
               <ul className="space-y-1 text-xs">
                 <li>• File size must be less than 10MB</li>
-                <li>• Accepted formats: PDF, JPG, PNG</li>
+                <li>• Accepted formats: PDF, Word, JPG, PNG, TXT</li>
                 <li>• All uploads are reviewed before publishing</li>
                 <li>• Earn points for approved uploads</li>
               </ul>
@@ -301,24 +351,36 @@ const StudentMaterialUpload = () => {
                   id="file-upload"
                   type="file"
                   onChange={handleFileChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                   required
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
               </div>
               {file && (
                 <div className="mt-2 flex items-center space-x-2 text-sm text-gray-600">
                   <FileText className="h-4 w-4" />
                   <span>{file.name} ({Math.round(file.size / 1024)} KB)</span>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                 </div>
               )}
             </div>
+
+            {isUploading && uploadProgress > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Uploading...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+              </div>
+            )}
 
             <Button 
               type="submit" 
               disabled={isUploading || !file}
               className="w-full"
             >
-              {isUploading ? 'Uploading...' : 'Upload Material'}
+              {isUploading ? `Uploading... ${uploadProgress}%` : 'Upload Material'}
             </Button>
           </form>
         </CardContent>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -5,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Gift, Trophy, Share2, Copy, Star } from 'lucide-react';
 
@@ -93,7 +93,7 @@ const ReferralProgram = () => {
         setStats(referralData);
       }
 
-      // Fetch referral transactions with proper type conversion
+      // Fetch referral transactions
       const { data: transactionData, error: transactionError } = await supabase
         .from('referral_transactions')
         .select('*')
@@ -101,14 +101,7 @@ const ReferralProgram = () => {
         .order('created_at', { ascending: false });
 
       if (transactionError) throw transactionError;
-      
-      // Convert the data to proper types
-      const typedTransactions: ReferralTransaction[] = (transactionData || []).map(item => ({
-        ...item,
-        status: item.status as 'pending' | 'approved' | 'paid'
-      }));
-      
-      setTransactions(typedTransactions);
+      setTransactions(transactionData || []);
 
       // Fetch leaderboard
       const { data: leaderboardData, error: leaderboardError } = await supabase
@@ -262,46 +255,6 @@ const ReferralProgram = () => {
           <div className="text-center text-sm text-gray-600">
             Share your code and earn rewards when friends sign up and engage!
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Reward Structure */}
-      
-
-      {/* Leaderboard & Recent Transactions */}
-      
-
-      {/* Recent Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Rewards</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No rewards yet</p>
-          ) : (
-            <div className="space-y-3">
-              {transactions.slice(0, 5).map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{transaction.reward_type.replace('_', ' ')}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(transaction.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-600">+Rs. {transaction.reward_amount}</p>
-                    <Badge variant={
-                      transaction.status === 'approved' ? 'default' :
-                      transaction.status === 'pending' ? 'secondary' : 'destructive'
-                    } className="text-xs">
-                      {transaction.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

@@ -2,10 +2,10 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
-import ReferralProgram from '@/components/referral/ReferralProgram';
 import GlobalHeader from '@/components/GlobalHeader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const ReferralPage = () => {
+const SettingsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <GlobalHeader />
@@ -17,12 +17,19 @@ const ReferralPage = () => {
               <div className="flex items-center gap-3 px-4 py-3">
                 <SidebarTrigger className="lg:hidden" />
                 <h1 className="text-xl font-semibold text-gray-900">
-                  Referral Program
+                  Settings
                 </h1>
               </div>
             </header>
             <main className="p-6">
-              <ReferralProgram />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">Settings page coming soon...</p>
+                </CardContent>
+              </Card>
             </main>
           </SidebarInset>
         </div>
@@ -31,4 +38,4 @@ const ReferralPage = () => {
   );
 };
 
-export default ReferralPage;
+export default SettingsPage;

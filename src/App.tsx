@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginPage from '@/pages/LoginPage';
@@ -34,6 +35,8 @@ import EventCalendar from '@/components/events/EventCalendar';
 import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
 import WalletManagementPanel from '@/components/admin/WalletManagementPanel';
 import StudyAssistantPage from '@/pages/StudyAssistantPage';
+import PlannerPage from '@/pages/PlannerPage';
+import ReferralPage from '@/pages/ReferralPage';
 
 function App() {
   return (
@@ -46,7 +49,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutUsPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/study-material/:id" element={<StudyMaterialPage />} />
+          <Route path="/study-materials" element={<StudyMaterialPage />} />
           <Route path="/past-papers" element={<PastPapersPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/premium" element={<PremiumPage />} />
@@ -54,18 +57,20 @@ function App() {
           <Route path="/esewa-payment" element={<ESewaPaymentPage />} />
 
           {/* Student Routes */}
-          <Route element={<ProtectedRoute requiredRole="student" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/daily-planner" element={<DailyPlannerPage />} />
+            <Route path="/planner" element={<PlannerPage />} />
             <Route path="/upload-material" element={<StudentMaterialUploadPage />} />
             <Route path="/study-assistant" element={<StudyAssistantPage />} />
+            <Route path="/referral" element={<ReferralPage />} />
           </Route>
           
           {/* Admin Routes */}
-          <Route element={<ProtectedRoute requiredRole="admin" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/materials" element={<EnhancedAdminLayout><StudyMaterialsManager /></EnhancedAdminLayout>} />
             <Route path="/admin/papers" element={<EnhancedAdminLayout><PastPapersManager /></EnhancedAdminLayout>} />
@@ -81,8 +86,6 @@ function App() {
             <Route path="/admin/events" element={<EnhancedAdminLayout><EventCalendar /></EnhancedAdminLayout>} />
             <Route path="/admin/referrals" element={<EnhancedAdminLayout><ReferralProgram /></EnhancedAdminLayout>} />
           </Route>
-
-          {/* Add more routes as needed */}
         </Routes>
       </div>
     </Router>
