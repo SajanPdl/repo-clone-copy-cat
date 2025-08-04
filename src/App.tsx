@@ -1,190 +1,91 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/hooks/useAuth';
-import { AdsProvider } from '@/components/ads/AdsProvider';
-
-import Index from '@/pages/Index';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginPage from '@/pages/LoginPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
-import PastPapersPage from '@/pages/PastPapersPage';
-import PastPaperViewPage from '@/pages/PastPaperViewPage';
-import ContentViewPage from '@/pages/ContentViewPage';
-import BlogPage from '@/pages/BlogPage';
-import BlogPostView from '@/components/BlogPostView';
-import ContactPage from '@/pages/ContactPage';
-import MarketplacePage from '@/pages/MarketplacePage';
+import RegisterPage from '@/pages/RegisterPage';
+import HomePage from '@/pages/HomePage';
 import ProfilePage from '@/pages/ProfilePage';
-import StudentDashboard from '@/pages/StudentDashboard';
-import StudentUploadPage from '@/pages/StudentUploadPage';
-import StudentSavedPage from '@/pages/StudentSavedPage';
-import DashboardOverview from '@/pages/DashboardOverview';
-import DashboardInbox from '@/pages/DashboardInbox';
-import DashboardAchievements from '@/pages/DashboardAchievements';
-import DashboardRewards from '@/pages/DashboardRewards';
-import DashboardSettings from '@/pages/DashboardSettings';
+import SettingsPage from '@/pages/SettingsPage';
+import StudyMaterialPage from '@/pages/StudyMaterialPage';
+import PastPapersPage from '@/pages/PastPapersPage';
+import MarketplacePage from '@/pages/MarketplacePage';
+import PremiumPage from '@/pages/PremiumPage';
+import ContactPage from '@/pages/ContactPage';
+import AboutUsPage from '@/pages/AboutUsPage';
+import NotFoundPage from '@/pages/NotFoundPage';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminPanel from '@/components/admin/AdminPanel';
+import StudyMaterialsManager from '@/components/admin/StudyMaterialsManager';
+import PastPapersManager from '@/components/admin/PastPapersManager';
+import CategoriesManager from '@/components/admin/CategoriesManager';
+import GradesManager from '@/components/admin/GradesManager';
+import UserManagement from '@/components/admin/UserManagement';
+import QueriesManager from '@/components/admin/QueriesManager';
+import MarketplaceManager from '@/components/admin/MarketplaceManager';
+import AdvertisementManager from '@/components/admin/AdvertisementManager';
+import AdminSettings from '@/components/admin/AdminSettings';
+import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
+import ESewaPaymentPage from '@/pages/ESewaPaymentPage';
 import WalletPage from '@/pages/WalletPage';
 import EventsPage from '@/pages/EventsPage';
+import DailyPlannerPage from '@/pages/DailyPlannerPage';
+import StudentMaterialUploadPage from '@/pages/StudentMaterialUploadPage';
+import ReferralProgram from '@/components/admin/ReferralProgram';
+import EventCalendar from '@/components/events/EventCalendar';
+import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
+import WalletManagementPanel from '@/components/admin/WalletManagementPanel';
 import StudyAssistantPage from '@/pages/StudyAssistantPage';
-import ReferralPage from '@/pages/ReferralPage';
-import PlannerPage from '@/pages/PlannerPage';
-import AdminPanel from '@/pages/AdminPanel';
-import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import NotFound from '@/pages/NotFound';
-
-import './App.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <AdsProvider>
-            <div className="App min-h-screen bg-gray-50">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/study-materials" element={<StudyMaterialsPage />} />
-                <Route path="/past-papers" element={<PastPapersPage />} />
-                <Route path="/past-paper/:id" element={<PastPaperViewPage />} />
-                <Route path="/content/:id" element={<ContentViewPage />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/blog/:id" element={<BlogPostView />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/marketplace" element={<MarketplacePage />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                
-                {/* Protected Student Routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <StudentDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/overview"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardOverview />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/upload"
-                  element={
-                    <ProtectedRoute>
-                      <StudentUploadPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/saved"
-                  element={
-                    <ProtectedRoute>
-                      <StudentSavedPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/inbox"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardInbox />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/achievements"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardAchievements />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/rewards"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardRewards />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/settings"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardSettings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/wallet"
-                  element={
-                    <ProtectedRoute>
-                      <WalletPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ai-assistant"
-                  element={
-                    <ProtectedRoute>
-                      <StudyAssistantPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/referral"
-                  element={
-                    <ProtectedRoute>
-                      <ReferralPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/planner"
-                  element={
-                    <ProtectedRoute>
-                      <PlannerPage />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                {/* Admin Routes */}
-                <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute>
-                      <EnhancedAdminLayout>
-                        <AdminPanel />
-                      </EnhancedAdminLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          </AdsProvider>
-        </Router>
-        <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/study-material/:id" element={<StudyMaterialPage />} />
+          <Route path="/past-papers" element={<PastPapersPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/premium" element={<PremiumPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/esewa-payment" element={<ESewaPaymentPage />} />
+
+          {/* Student Routes */}
+          <Route element={<ProtectedRoute requiredRole="student" />}>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/daily-planner" element={<DailyPlannerPage />} />
+            <Route path="/upload-material" element={<StudentMaterialUploadPage />} />
+            <Route path="/study-assistant" element={<StudyAssistantPage />} />
+          </Route>
+          
+          {/* Admin Routes */}
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/materials" element={<EnhancedAdminLayout><StudyMaterialsManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/papers" element={<EnhancedAdminLayout><PastPapersManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/categories" element={<EnhancedAdminLayout><CategoriesManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/grades" element={<EnhancedAdminLayout><GradesManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/users" element={<EnhancedAdminLayout><UserManagement /></EnhancedAdminLayout>} />
+            <Route path="/admin/queries" element={<EnhancedAdminLayout><QueriesManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/marketplace" element={<EnhancedAdminLayout><MarketplaceManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/ads" element={<EnhancedAdminLayout><AdvertisementManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/settings" element={<EnhancedAdminLayout><AdminSettings /></EnhancedAdminLayout>} />
+            <Route path="/admin/payments" element={<EnhancedAdminLayout><PaymentVerificationManager /></EnhancedAdminLayout>} />
+            <Route path="/admin/wallets" element={<EnhancedAdminLayout><WalletManagementPanel /></EnhancedAdminLayout>} />
+            <Route path="/admin/events" element={<EnhancedAdminLayout><EventCalendar /></EnhancedAdminLayout>} />
+            <Route path="/admin/referrals" element={<EnhancedAdminLayout><ReferralProgram /></EnhancedAdminLayout>} />
+          </Route>
+
+          {/* Add more routes as needed */}
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

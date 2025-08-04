@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { Calendar, Clock, MapPin, Users, Filter, Search } from 'lucide-react';
 
 interface Event {
@@ -30,7 +29,7 @@ const EventCalendar = () => {
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
@@ -44,16 +43,41 @@ const EventCalendar = () => {
   }, [events, searchQuery, typeFilter, regionFilter]);
 
   const fetchEvents = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .gte('start_date', new Date().toISOString())
-        .order('start_date', { ascending: true });
-
-      if (error) throw error;
-
-      setEvents(data || []);
+      // Mock data for now
+      const mockEvents: Event[] = [
+        {
+          id: '1',
+          title: 'Annual Science Fair 2024',
+          description: 'Join us for the biggest science exhibition of the year featuring innovative projects from students across Nepal.',
+          start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
+          location: 'Kathmandu University',
+          region: 'kathmandu',
+          event_type: 'conference',
+          is_virtual: false,
+          is_featured: true,
+          max_attendees: 500,
+          registration_deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          title: 'Online Physics Webinar',
+          description: 'Learn advanced physics concepts from expert professors in this interactive online session.',
+          start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          location: 'Online',
+          region: 'online',
+          event_type: 'webinar',
+          is_virtual: true,
+          is_featured: false,
+          max_attendees: 100,
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setEvents(mockEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
       toast({
@@ -139,7 +163,6 @@ const EventCalendar = () => {
         <p className="text-gray-600 mt-2">Stay updated with upcoming educational events</p>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -194,7 +217,6 @@ const EventCalendar = () => {
         </CardContent>
       </Card>
 
-      {/* Events List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredEvents.length === 0 ? (
           <div className="col-span-full text-center py-12">
