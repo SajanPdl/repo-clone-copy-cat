@@ -25,6 +25,11 @@ import DashboardInbox from '@/pages/DashboardInbox';
 import DashboardAchievements from '@/pages/DashboardAchievements';
 import DashboardRewards from '@/pages/DashboardRewards';
 import DashboardSettings from '@/pages/DashboardSettings';
+import WalletPage from '@/pages/WalletPage';
+import EventsPage from '@/pages/EventsPage';
+import StudyAssistantPage from '@/pages/StudyAssistantPage';
+import ReferralPage from '@/pages/ReferralPage';
+import PlannerPage from '@/pages/PlannerPage';
 import AdminPanel from '@/pages/AdminPanel';
 import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -60,7 +65,10 @@ function App() {
                 <Route path="/blog/:id" element={<BlogPostView />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/marketplace" element={<MarketplacePage />} />
+                <Route path="/events" element={<EventsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                
+                {/* Protected Student Routes */}
                 <Route
                   path="/dashboard"
                   element={
@@ -125,6 +133,40 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/wallet"
+                  element={
+                    <ProtectedRoute>
+                      <WalletPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-assistant"
+                  element={
+                    <ProtectedRoute>
+                      <StudyAssistantPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/referral"
+                  element={
+                    <ProtectedRoute>
+                      <ReferralPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/planner"
+                  element={
+                    <ProtectedRoute>
+                      <PlannerPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Admin Routes */}
                 <Route
                   path="/admin/*"
                   element={

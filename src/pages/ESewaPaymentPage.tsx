@@ -1,0 +1,26 @@
+
+import React from 'react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import ESewaPayment from '@/components/payment/ESewaPayment';
+
+const ESewaPaymentPage = () => {
+  return (
+    <div className="min-h-screen w-full flex flex-col">
+      <Navbar />
+      <main className="flex-grow py-8 w-full">
+        <div className="container mx-auto px-4">
+          <ESewaPayment
+            itemId="test-item"
+            itemType="study_material"
+            amount={500}
+            onPaymentComplete={() => console.log('Payment completed')}
+          />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default ESewaPaymentPage;

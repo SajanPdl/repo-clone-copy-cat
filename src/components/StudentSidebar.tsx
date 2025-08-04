@@ -26,7 +26,11 @@ import {
   Trophy,
   Wallet,
   FileText,
-  Calendar
+  Calendar,
+  Bot,
+  Users,
+  Timer,
+  CreditCard
 } from 'lucide-react';
 
 const mainItems = [
@@ -35,14 +39,22 @@ const mainItems = [
   { title: 'My Notes', url: '/study-materials', icon: BookOpen },
   { title: 'Upload Material', url: '/dashboard/upload', icon: Upload },
   { title: 'Marketplace', url: '/marketplace', icon: ShoppingCart },
+  { title: 'Events', url: '/events', icon: Calendar },
+  { title: 'AI Assistant', url: '/ai-assistant', icon: Bot },
+  { title: 'Daily Planner', url: '/planner', icon: Timer },
+];
+
+const toolsItems = [
   { title: 'Saved Items', url: '/dashboard/saved', icon: Heart },
   { title: 'Messages', url: '/dashboard/inbox', icon: MessageSquare },
+  { title: 'Seller Wallet', url: '/wallet', icon: Wallet },
+  { title: 'Ambassador', url: '/referral', icon: Users },
 ];
 
 const profileItems = [
   { title: 'Profile', url: '/profile', icon: User },
   { title: 'Achievements', url: '/dashboard/achievements', icon: Trophy },
-  { title: 'Rewards', url: '/dashboard/rewards', icon: Wallet },
+  { title: 'Rewards', url: '/dashboard/rewards', icon: CreditCard },
   { title: 'Settings', url: '/dashboard/settings', icon: Settings },
 ];
 
@@ -72,6 +84,24 @@ export function StudentSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls(item.url)}>
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Tools</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls(item.url)}>

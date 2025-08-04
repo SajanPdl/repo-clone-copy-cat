@@ -1,55 +1,63 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { validateAndSanitizeFormData } from '@/utils/inputValidation';
-import { Upload, FileText, CheckCircle, Clock, X } from 'lucide-react';
+import { Upload, FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 
 interface MaterialSubmission {
-  id: number;
+  id: string;
   title: string;
+  description: string;
+  subject: string;
   category: string;
   grade: string;
-  subject: string;
-  description: string;
+  document_type: string;
+  file_path: string;
+  preview_image: string;
+  is_approved: boolean;
+  is_featured: boolean;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
-  admin_notes?: string;
+  updated_at: string;
+  user_id: string;
+  downloads_count: number;
+  pages_count: number;
+  university: string;
+  rating: number;
 }
 
 const StudentMaterialUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
   const [submissions, setSubmissions] = useState<MaterialSubmission[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [submissionLoading, setSubmissionLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    category: 'notes',
-    grade: '',
-    subject: '',
     description: '',
-    tags: [] as string[]
+    subject: '',
+    category: '',
+    grade: '',
+    document_type: 'notes',
+    university: ''
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
-      fetchSubmissions();
+      fetchUserSubmissions();
     }
   }, [user]);
 
-  const fetchSubmissions = async () => {
+  const fetchUserSubmissions = async () => {
     if (!user) return;
-    
-    setLoading(true);
+
     try {
       const { data, error } = await supabase
         .from('documents')
@@ -58,174 +66,137 @@ const StudentMaterialUpload = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSubmissions(data || []);
+
+      // Map the database fields to match our interface
+      const mappedData: MaterialSubmission[] = (data || []).map(item => ({
+        ...item,
+        category: item.subject || 'General',
+        grade: item.university || 'Not specified',
+        status: item.is_approved ? 'approved' : 'pending'
+      }));
+
+      setSubmissions(mappedData);
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch your submissions',
+        description: 'Failed to load your submissions',
         variant: 'destructive'
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      // Check file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(selectedFile.type)) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please upload PDF or Word documents only.',
-          variant: 'destructive'
-        });
-        return;
-      }
-      
-      // Check file size (max 10MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
-          description: 'Please upload files smaller than 10MB.',
-          variant: 'destructive'
-        });
-        return;
-      }
-      
-      setFile(selectedFile);
-    }
-  };
+  const handleFileUpload = async (file: File) => {
+    if (!user) return null;
 
-  const uploadFile = async (file: File): Promise<string> => {
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = `study-materials/${user!.id}/${fileName}`;
-    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `documents/${user.id}/${fileName}`;
+
     const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(filePath, file);
-      
+
     if (uploadError) {
       throw uploadError;
     }
-    
+
     const { data: { publicUrl } } = supabase.storage
       .from('documents')
       .getPublicUrl(filePath);
-      
-    return publicUrl;
+
+    return { filePath, publicUrl };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user || !file) {
+    if (!user) return;
+
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
       toast({
-        title: 'Missing information',
-        description: 'Please fill all fields and upload a file.',
+        title: 'Error',
+        description: 'Please select a file to upload',
         variant: 'destructive'
       });
       return;
     }
 
-    setSubmissionLoading(true);
-    
-    try {
-      const sanitizedData = validateAndSanitizeFormData(formData);
-      
-      if (!sanitizedData.title || !sanitizedData.category || !sanitizedData.grade || !sanitizedData.subject) {
-        toast({
-          title: 'Validation Error',
-          description: 'Please fill all required fields.',
-          variant: 'destructive'
-        });
-        return;
-      }
+    setIsUploading(true);
 
-      // Upload file first
-      const fileUrl = await uploadFile(file);
-      
-      // Create submission record
+    try {
+      const uploadResult = await handleFileUpload(file);
+      if (!uploadResult) throw new Error('File upload failed');
+
       const { error } = await supabase
         .from('documents')
         .insert({
           user_id: user.id,
-          title: sanitizedData.title,
-          document_type: sanitizedData.category,
-          grade: sanitizedData.grade,
-          subject: sanitizedData.subject,
-          university: 'General',
-          description: sanitizedData.description,
-          file_path: fileUrl,
+          title: formData.title,
+          description: formData.description,
+          subject: formData.subject,
+          university: formData.university,
+          document_type: formData.document_type,
+          file_path: uploadResult.filePath,
           is_approved: false,
-          is_featured: false
+          is_featured: false,
+          rating: 0,
+          downloads_count: 0,
+          pages_count: 1
         });
 
       if (error) throw error;
 
       toast({
-        title: 'Success!',
-        description: 'Your material has been submitted for review.'
+        title: 'Success',
+        description: 'Your material has been submitted for review',
       });
 
       // Reset form
       setFormData({
         title: '',
-        category: 'notes',
-        grade: '',
-        subject: '',
         description: '',
-        tags: []
+        subject: '',
+        category: '',
+        grade: '',
+        document_type: 'notes',
+        university: ''
       });
-      setFile(null);
-      
+
       // Refresh submissions
-      fetchSubmissions();
-      
+      fetchUserSubmissions();
+
     } catch (error) {
-      console.error('Error submitting material:', error);
+      console.error('Error uploading material:', error);
       toast({
         title: 'Error',
-        description: 'Failed to submit material. Please try again.',
+        description: 'Failed to upload material. Please try again.',
         variant: 'destructive'
       });
     } finally {
-      setSubmissionLoading(false);
+      setIsUploading(false);
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const getStatusIcon = (status: string, isApproved: boolean) => {
+    if (isApproved) return <CheckCircle className="h-4 w-4 text-green-600" />;
+    if (status === 'rejected') return <XCircle className="h-4 w-4 text-red-600" />;
+    return <Clock className="h-4 w-4 text-yellow-600" />;
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'rejected':
-        return <X className="h-5 w-5 text-red-500" />;
-      default:
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
+  const getStatusBadge = (status: string, isApproved: boolean) => {
+    if (isApproved) return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+    if (status === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+    return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Upload Study Material</h2>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Upload Study Material</h1>
+        <p className="text-gray-600 mt-2">Share your knowledge with fellow students</p>
       </div>
 
       {/* Upload Form */}
@@ -233,147 +204,118 @@ const StudentMaterialUpload = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5" />
-            <span>Submit New Material</span>
+            <span>Upload New Material</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Title *</label>
+                <Label htmlFor="title">Title</Label>
                 <Input
+                  id="title"
                   value={formData.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Enter material title"
                   required
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Category *</label>
-                <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
+                <Label htmlFor="subject">Subject</Label>
+                <Input
+                  id="subject"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  placeholder="e.g., Mathematics, Physics"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="university">University/Board</Label>
+                <Input
+                  id="university"
+                  value={formData.university}
+                  onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                  placeholder="e.g., Tribhuvan University"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="document_type">Document Type</Label>
+                <Select value={formData.document_type} onValueChange={(value) => setFormData({ ...formData, document_type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="notes">Notes</SelectItem>
-                    <SelectItem value="textbook">Textbook</SelectItem>
                     <SelectItem value="assignment">Assignment</SelectItem>
                     <SelectItem value="project">Project</SelectItem>
-                    <SelectItem value="reference">Reference Material</SelectItem>
+                    <SelectItem value="presentation">Presentation</SelectItem>
+                    <SelectItem value="textbook">Textbook</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Grade *</label>
-                <Select value={formData.grade} onValueChange={(value) => handleChange('grade', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="grade-9">Grade 9</SelectItem>
-                    <SelectItem value="grade-10">Grade 10</SelectItem>
-                    <SelectItem value="grade-11">Grade 11</SelectItem>
-                    <SelectItem value="grade-12">Grade 12</SelectItem>
-                    <SelectItem value="bachelor">Bachelor</SelectItem>
-                    <SelectItem value="master">Master</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Subject *</label>
-                <Input
-                  value={formData.subject}
-                  onChange={(e) => handleChange('subject', e.target.value)}
-                  placeholder="Enter subject name"
-                  required
-                />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
+                id="description"
                 value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Brief description of the material"
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe your material"
                 rows={3}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Upload File *</label>
+              <Label htmlFor="file-upload">Upload File</Label>
               <Input
+                id="file-upload"
                 type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.ppt,.pptx"
                 required
               />
-              {file && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                </p>
-              )}
+              <p className="text-sm text-gray-500 mt-1">
+                Supported formats: PDF, DOC, DOCX, PPT, PPTX (Max 10MB)
+              </p>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={submissionLoading}
-            >
-              {submissionLoading ? 'Uploading...' : 'Submit Material'}
+            <Button type="submit" disabled={isUploading} className="w-full">
+              {isUploading ? 'Uploading...' : 'Upload Material'}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Submissions List */}
+      {/* Previous Submissions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <FileText className="h-5 w-5" />
-            <span>Your Submissions</span>
-          </CardTitle>
+          <CardTitle>Your Submissions</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading your submissions...</div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center py-8">
-              <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No submissions yet</h3>
-              <p className="text-gray-600">Upload your first study material to get started.</p>
-            </div>
+          {submissions.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No submissions yet</p>
           ) : (
             <div className="space-y-4">
               {submissions.map((submission) => (
-                <div key={submission.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{submission.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{submission.description}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>{submission.document_type}</span>
-                        <span>•</span>
-                        <span>{submission.grade}</span>
-                        <span>•</span>
-                        <span>{submission.subject}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(submission.is_approved ? 'approved' : 'pending')}
-                      <Badge variant="outline" className={getStatusColor(submission.is_approved ? 'approved' : 'pending')}>
-                        {submission.is_approved ? 'Approved' : 'Pending'}
-                      </Badge>
+                <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <h3 className="font-medium">{submission.title}</h3>
+                      <p className="text-sm text-gray-500">{submission.subject} • {submission.document_type}</p>
+                      <p className="text-xs text-gray-400">
+                        Uploaded on {new Date(submission.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="text-xs text-gray-400">
-                    Submitted: {new Date(submission.created_at).toLocaleDateString()}
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(submission.status, submission.is_approved)}
+                    {getStatusBadge(submission.status, submission.is_approved)}
                   </div>
                 </div>
               ))}
