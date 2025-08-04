@@ -24,8 +24,11 @@ const AdminPanel = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin panel...</p>
+        </div>
       </div>
     );
   }
@@ -38,28 +41,95 @@ const AdminPanel = () => {
     const path = location.pathname;
     
     if (path === '/admin' || path === '/admin/dashboard') {
-      return <EnhancedDashboard />;
+      return (
+        <div className="p-6">
+          <EnhancedDashboard />
+        </div>
+      );
     }
     
-    if (path.includes('/materials')) return <StudyMaterialsManager />;
-    if (path.includes('/papers')) return <PastPapersManager />;
-    if (path.includes('/blog')) return <BlogEditor />;
-    if (path.includes('/users')) return <UserManagement />;
-    if (path.includes('/stats')) return <UserStatsManager />;
-    if (path.includes('/achievements')) return <AchievementManager />;
-    if (path.includes('/categories')) return <CategoriesManager />;
-    if (path.includes('/grades')) return <GradesManager />;
-    if (path.includes('/marketplace')) return <MarketplaceManager />;
-    if (path.includes('/queries')) return <QueriesManager />;
-    if (path.includes('/analytics')) return <AnalyticsPage />;
-    if (path.includes('/ads')) return <AdvertisementManager />;
-    if (path.includes('/ad-placements')) return <AdPlacementManager />;
-    if (path.includes('/settings')) return <AdminSettings />;
+    if (path.includes('/materials')) return (
+      <div className="p-6">
+        <StudyMaterialsManager />
+      </div>
+    );
+    if (path.includes('/papers')) return (
+      <div className="p-6">
+        <PastPapersManager />
+      </div>
+    );
+    if (path.includes('/blog')) return (
+      <div className="p-6">
+        <BlogEditor />
+      </div>
+    );
+    if (path.includes('/users')) return (
+      <div className="p-6">
+        <UserManagement />
+      </div>
+    );
+    if (path.includes('/stats')) return (
+      <div className="p-6">
+        <UserStatsManager />
+      </div>
+    );
+    if (path.includes('/achievements')) return (
+      <div className="p-6">
+        <AchievementManager />
+      </div>
+    );
+    if (path.includes('/categories')) return (
+      <div className="p-6">
+        <CategoriesManager />
+      </div>
+    );
+    if (path.includes('/grades')) return (
+      <div className="p-6">
+        <GradesManager />
+      </div>
+    );
+    if (path.includes('/marketplace')) return (
+      <div className="p-6">
+        <MarketplaceManager />
+      </div>
+    );
+    if (path.includes('/queries')) return (
+      <div className="p-6">
+        <QueriesManager />
+      </div>
+    );
+    if (path.includes('/analytics')) return (
+      <div className="p-6">
+        <AnalyticsPage />
+      </div>
+    );
+    if (path.includes('/ads')) return (
+      <div className="p-6">
+        <AdvertisementManager />
+      </div>
+    );
+    if (path.includes('/ad-placements')) return (
+      <div className="p-6">
+        <AdPlacementManager />
+      </div>
+    );
+    if (path.includes('/settings')) return (
+      <div className="p-6">
+        <AdminSettings />
+      </div>
+    );
     
-    return <div className="p-6">Page not found</div>;
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Page Not Found</h2>
+          <p className="text-gray-600">The requested admin page could not be found.</p>
+        </div>
+      </div>
+    );
   };
 
-  return <div className="w-full">{renderContent()}</div>;
+  return <div className="w-full min-h-screen bg-gray-50">{renderContent()}</div>;
 };
 
 export default AdminPanel;

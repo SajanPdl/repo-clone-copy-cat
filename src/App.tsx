@@ -26,7 +26,7 @@ import DashboardAchievements from '@/pages/DashboardAchievements';
 import DashboardRewards from '@/pages/DashboardRewards';
 import DashboardSettings from '@/pages/DashboardSettings';
 import AdminPanel from '@/pages/AdminPanel';
-import AdminLayout from '@/components/admin/AdminLayout';
+import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 
@@ -47,7 +47,7 @@ function App() {
       <AuthProvider>
         <Router>
           <AdsProvider>
-            <div className="App">
+            <div className="App min-h-screen bg-gray-50">
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<LoginPage />} />
@@ -129,9 +129,9 @@ function App() {
                   path="/admin/*"
                   element={
                     <ProtectedRoute>
-                      <AdminLayout>
+                      <EnhancedAdminLayout>
                         <AdminPanel />
-                      </AdminLayout>
+                      </EnhancedAdminLayout>
                     </ProtectedRoute>
                   }
                 />
