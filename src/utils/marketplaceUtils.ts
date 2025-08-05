@@ -107,6 +107,37 @@ export const fetchMarketplaceListings = async (filters: MarketplaceFilters = {})
   }
 };
 
+export const updateMarketplaceListing = async (listingId: string, updates: Partial<MarketplaceListing>): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('marketplace_listings')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', listingId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error updating marketplace listing:', error);
+    throw error;
+  }
+};
+
+export const deleteMarketplaceListing = async (listingId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('marketplace_listings')
+      .delete()
+      .eq('id', listingId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting marketplace listing:', error);
+    throw error;
+  }
+};
+
 export const incrementListingViews = async (listingId: string): Promise<void> => {
   try {
     const { error } = await supabase.rpc('increment_listing_views', {
@@ -167,7 +198,7 @@ export const fetchUserFavorites = async (userId: string) => {
   }
 };
 
-export const createMarketplaceListing = async (listingData: Partial<MarketplaceListing>): Promise<MarketplaceListing> => {
+export const createMarketplaceListing = async (listingData: Omit<MarketplaceListing, 'id' | 'created_at' | 'updated_at' | 'views_count' | 'interest_count'>): Promise<MarketplaceListing> => {
   try {
     const { data, error } = await supabase
       .from('marketplace_listings')

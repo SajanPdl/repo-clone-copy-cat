@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,7 @@ const AchievementsPage = () => {
     name: '',
     description: '',
     points_required: 0,
-    rarity: 'common' as const,
+    rarity: 'common' as 'common' | 'rare' | 'epic' | 'legendary',
     icon: 'trophy'
   });
 
@@ -64,7 +63,14 @@ const AchievementsPage = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAchievements(data || []);
+      
+      // Type cast the rarity field to ensure it matches our interface
+      const typedAchievements = (data || []).map(achievement => ({
+        ...achievement,
+        rarity: achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+      }));
+      
+      setAchievements(typedAchievements);
     } catch (error) {
       console.error('Error fetching achievements:', error);
       toast({
@@ -230,7 +236,7 @@ const AchievementsPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Rarity</label>
-                <Select value={formData.rarity} onValueChange={(value: any) => setFormData({...formData, rarity: value})}>
+                <Select value={formData.rarity} onValueChange={(value: 'common' | 'rare' | 'epic' | 'legendary') => setFormData({...formData, rarity: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
