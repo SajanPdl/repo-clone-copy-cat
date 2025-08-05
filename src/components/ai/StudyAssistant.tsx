@@ -3,10 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bot, Send, BookOpen, Brain, FileQuestion, History } from 'lucide-react';
+import { Bot, Send, BookOpen, Brain, FileQuestion, History, Loader } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatMessage {
   id: string;
@@ -39,7 +39,6 @@ const StudyAssistant = () => {
 
   useEffect(() => {
     if (user) {
-      // Initialize with welcome message
       startNewSession();
     }
   }, [user, mode]);
@@ -58,22 +57,51 @@ const StudyAssistant = () => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response for now
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: {
+          messages: newMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          mode
+        }
+      });
+
+      if (error) throw error;
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I understand you're asking about "${input}". This is a demo response. In the full implementation, this would connect to an AI service to provide detailed explanations, quiz questions, or flashcards based on your selected mode.`,
+        content: data.response,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling AI:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Add fallback message
+      const fallbackMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, fallbackMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const startNewSession = () => {
@@ -145,7 +173,7 @@ const StudyAssistant = () => {
             <Bot className="h-8 w-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold">AI Study Assistant</h1>
-              <p className="text-gray-600">Your personal AI tutor</p>
+              <p className="text-gray-600">Your personal AI tutor powered by OpenAI</p>
             </div>
           </div>
           <Button onClick={startNewSession} variant="outline">
@@ -224,8 +252,8 @@ const StudyAssistant = () => {
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    <span className="text-gray-600">Thinking...</span>
+                    <Loader className="h-4 w-4 animate-spin text-blue-600" />
+                    <span className="text-gray-600">AI is thinking...</span>
                   </div>
                 </div>
               </div>
@@ -242,9 +270,10 @@ const StudyAssistant = () => {
                 placeholder={`Ask me anything about ${mode}...`}
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
                 className="flex-1"
+                disabled={isLoading}
               />
               <Button onClick={sendMessage} disabled={!input.trim() || isLoading}>
-                <Send className="h-4 w-4" />
+                {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -256,7 +285,7 @@ const StudyAssistant = () => {
             Recent Sessions
           </h3>
           
-          <p className="text-gray-500 text-sm">No sessions yet. Start chatting to create your first session!</p>
+          <p className="text-gray-500 text-sm">Session history coming soon! For now, use "New Session" to start fresh conversations.</p>
         </div>
       </div>
     </div>
