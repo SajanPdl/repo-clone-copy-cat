@@ -1,57 +1,29 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar as CalendarIcon, MapPin, Clock, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales: {
-    'en-US': enUS,
-  },
-});
+const localizer = momentLocalizer(moment);
 
 interface Event {
   id: string;
   title: string;
-  description: string;
-  start_date: string;
-  end_date?: string;
-  location?: string;
-  region?: string;
-  event_type: string;
-  is_virtual: boolean;
-  is_featured: boolean;
-  max_attendees?: number;
-  registration_deadline?: string;
-  stream?: string;
-}
-
-interface CalendarEvent {
-  id: string;
-  title: string;
+  description?: string;
   start: Date;
   end: Date;
-  resource: Event;
+  location?: string;
+  category?: string;
 }
 
 const InteractiveEventCalendar = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [view, setView] = useState<'month' | 'week' | 'day' | 'agenda'>('month');
-  const [date, setDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,21 +37,42 @@ const InteractiveEventCalendar = () => {
         .select('*')
         .order('start_date', { ascending: true });
 
-      if (error) throw error;
-
-      const eventsData = data || [];
-      setEvents(eventsData);
-
-      // Convert to calendar format
-      const calendarEventsData = eventsData.map((event) => ({
-        id: event.id,
-        title: event.title,
-        start: new Date(event.start_date),
-        end: event.end_date ? new Date(event.end_date) : new Date(event.start_date),
-        resource: event,
-      }));
-
-      setCalendarEvents(calendarEventsData);
+      if (error) {
+        console.error('Error fetching events:', error);
+        // Use mock data as fallback
+        const mockEvents = [
+          {
+            id: '1',
+            title: 'Math Olympiad 2025',
+            description: 'National Mathematics Competition for high school students',
+            start: new Date(2025, 2, 15, 10, 0),
+            end: new Date(2025, 2, 15, 16, 0),
+            location: 'Kathmandu University',
+            category: 'competition'
+          },
+          {
+            id: '2',
+            title: 'Science Fair',
+            description: 'Annual science exhibition showcasing student projects',
+            start: new Date(2025, 3, 10, 9, 0),
+            end: new Date(2025, 3, 12, 17, 0),
+            location: 'Tribhuvan University',
+            category: 'exhibition'
+          }
+        ];
+        setEvents(mockEvents);
+      } else {
+        const formattedEvents = data.map(event => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          start: new Date(event.start_date),
+          end: new Date(event.end_date),
+          location: event.location,
+          category: event.category
+        }));
+        setEvents(formattedEvents);
+      }
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -87,93 +80,28 @@ const InteractiveEventCalendar = () => {
     }
   };
 
-  const handleSelectEvent = (event: CalendarEvent) => {
-    setSelectedEvent(event.resource);
-    setIsDialogOpen(true);
+  const handleSelectEvent = (event: Event) => {
+    setSelectedEvent(event);
   };
 
-  const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
-    console.log('Selected slot:', { start, end });
-    // Could implement "Add Event" functionality here for admins
-  };
-
-  const eventStyleGetter = (event: CalendarEvent) => {
-    const eventType = event.resource.event_type;
-    let backgroundColor = '#3174ad';
-    let borderColor = '#3174ad';
-
-    switch (eventType) {
-      case 'exam':
-        backgroundColor = '#dc2626';
-        borderColor = '#dc2626';
-        break;
-      case 'webinar':
-        backgroundColor = '#2563eb';
-        borderColor = '#2563eb';
-        break;
-      case 'workshop':
-        backgroundColor = '#059669';
-        borderColor = '#059669';
-        break;
-      case 'conference':
-        backgroundColor = '#7c3aed';
-        borderColor = '#7c3aed';
-        break;
-      case 'competition':
-        backgroundColor = '#ea580c';
-        borderColor = '#ea580c';
-        break;
-      case 'job-fair':
-        backgroundColor = '#ca8a04';
-        borderColor = '#ca8a04';
-        break;
-    }
-
+  const eventStyleGetter = (event: Event) => {
+    const backgroundColor = event.category === 'competition' ? '#3b82f6' : '#10b981';
     return {
       style: {
         backgroundColor,
-        borderColor,
+        borderRadius: '5px',
+        opacity: 0.8,
         color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '12px',
-        padding: '2px 4px',
-      },
+        border: '0px',
+        display: 'block'
+      }
     };
-  };
-
-  const getEventTypeColor = (type: string) => {
-    const colors: { [key: string]: string } = {
-      'exam': 'bg-red-100 text-red-800',
-      'webinar': 'bg-blue-100 text-blue-800',
-      'workshop': 'bg-green-100 text-green-800',
-      'conference': 'bg-purple-100 text-purple-800',
-      'competition': 'bg-orange-100 text-orange-800',
-      'job-fair': 'bg-yellow-100 text-yellow-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -183,137 +111,70 @@ const InteractiveEventCalendar = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CalendarIcon className="h-6 w-6" />
+            <CalendarIcon className="h-5 w-5" />
             Interactive Event Calendar
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Button
-              variant={view === 'month' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('month')}
-            >
-              Month
-            </Button>
-            <Button
-              variant={view === 'week' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('week')}
-            >
-              Week
-            </Button>
-            <Button
-              variant={view === 'day' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('day')}
-            >
-              Day
-            </Button>
-            <Button
-              variant={view === 'agenda' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('agenda')}
-            >
-              Agenda
-            </Button>
-          </div>
-
-          <div style={{ height: '600px' }}>
+          <div style={{ height: '500px' }}>
             <Calendar
               localizer={localizer}
-              events={calendarEvents}
+              events={events}
               startAccessor="start"
               endAccessor="end"
-              style={{ height: '100%' }}
               onSelectEvent={handleSelectEvent}
-              onSelectSlot={handleSelectSlot}
-              selectable
-              view={view}
-              onView={setView}
-              date={date}
-              onNavigate={setDate}
               eventPropGetter={eventStyleGetter}
+              views={['month', 'week', 'day', 'agenda']}
+              defaultView="month"
               popup
-              tooltipAccessor={(event) => event.resource.description || event.title}
+              tooltipAccessor="description"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Event Details Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedEvent?.title}</DialogTitle>
-          </DialogHeader>
-          {selectedEvent && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge className={getEventTypeColor(selectedEvent.event_type)}>
-                  {selectedEvent.event_type.replace('-', ' ')}
-                </Badge>
-                {selectedEvent.is_featured && (
-                  <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
-                )}
+      {selectedEvent && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>{selectedEvent.title}</CardTitle>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant={selectedEvent.category === 'competition' ? 'default' : 'secondary'}>
+                    {selectedEvent.category}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <Clock className="h-4 w-4" />
+                    {moment(selectedEvent.start).format('MMM DD, YYYY - h:mm A')}
+                  </div>
+                </div>
               </div>
-
-              {selectedEvent.description && (
-                <p className="text-gray-600">{selectedEvent.description}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedEvent(null)}
+              >
+                ×
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-gray-700">{selectedEvent.description}</p>
+              {selectedEvent.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">{selectedEvent.location}</span>
+                </div>
               )}
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 text-gray-500" />
-                  <span>{formatDate(selectedEvent.start_date)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{formatTime(selectedEvent.start_date)}</span>
-                  {selectedEvent.end_date && (
-                    <span> - {formatTime(selectedEvent.end_date)}</span>
-                  )}
-                </div>
-
-                {selectedEvent.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span>{selectedEvent.is_virtual ? 'Online' : selectedEvent.location}</span>
-                    {selectedEvent.region && (
-                      <Badge variant="outline">{selectedEvent.region}</Badge>
-                    )}
-                  </div>
-                )}
-
-                {selectedEvent.max_attendees && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span>Max {selectedEvent.max_attendees} attendees</span>
-                  </div>
-                )}
-
-                {selectedEvent.registration_deadline && (
-                  <div className="text-red-600 text-sm">
-                    Registration deadline: {formatDate(selectedEvent.registration_deadline)}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button className="flex-1">
-                  Add to Calendar
-                </Button>
-                {selectedEvent.stream && (
-                  <Button variant="outline" className="flex-1">
-                    Register
-                  </Button>
-                )}
+              <div className="flex gap-2">
+                <Button size="sm">Register</Button>
+                <Button variant="outline" size="sm">Add to Calendar</Button>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

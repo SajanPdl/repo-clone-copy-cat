@@ -49,7 +49,7 @@ const GlobalHeader = () => {
             </span>
           </Link>
 
-          {/* Navigation */}
+          {/* Navigation - Removed AI Study Assistant nav item */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/study-materials" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
               Study Materials

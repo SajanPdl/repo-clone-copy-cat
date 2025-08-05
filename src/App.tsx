@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import AdsProvider from "@/components/ads/AdsProvider";
 import GlobalHeader from "@/components/GlobalHeader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import FloatingAIButton from "@/components/FloatingAIButton";
 
 // Pages
 import Index from "./pages/Index";
@@ -252,6 +252,9 @@ const App = () => (
                 {/* 404 */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
+              
+              {/* Floating AI Button - Available on all pages */}
+              <FloatingAIButton />
             </div>
           </BrowserRouter>
         </TooltipProvider>
