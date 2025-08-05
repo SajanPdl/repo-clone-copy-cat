@@ -57,35 +57,123 @@ function App() {
           <Route path="/esewa-payment" element={<ESewaPaymentPage />} />
 
           {/* Student Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/daily-planner" element={<DailyPlannerPage />} />
-            <Route path="/planner" element={<PlannerPage />} />
-            <Route path="/upload-material" element={<StudentMaterialUploadPage />} />
-            <Route path="/study-assistant" element={<StudyAssistantPage />} />
-            <Route path="/referral" element={<ReferralPage />} />
-          </Route>
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/wallet" element={
+            <ProtectedRoute>
+              <WalletPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/events" element={
+            <ProtectedRoute>
+              <EventsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/daily-planner" element={
+            <ProtectedRoute>
+              <DailyPlannerPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/planner" element={
+            <ProtectedRoute>
+              <PlannerPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/upload-material" element={
+            <ProtectedRoute>
+              <StudentMaterialUploadPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/study-assistant" element={
+            <ProtectedRoute>
+              <StudyAssistantPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/referral" element={
+            <ProtectedRoute>
+              <ReferralPage />
+            </ProtectedRoute>
+          } />
           
           {/* Admin Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin/materials" element={<EnhancedAdminLayout><StudyMaterialsManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/papers" element={<EnhancedAdminLayout><PastPapersManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/categories" element={<EnhancedAdminLayout><CategoriesManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/grades" element={<EnhancedAdminLayout><GradesManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/users" element={<EnhancedAdminLayout><UserManagement /></EnhancedAdminLayout>} />
-            <Route path="/admin/queries" element={<EnhancedAdminLayout><QueriesManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/marketplace" element={<EnhancedAdminLayout><MarketplaceManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/ads" element={<EnhancedAdminLayout><AdvertisementManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/settings" element={<EnhancedAdminLayout><AdminSettings /></EnhancedAdminLayout>} />
-            <Route path="/admin/payments" element={<EnhancedAdminLayout><PaymentVerificationManager /></EnhancedAdminLayout>} />
-            <Route path="/admin/wallets" element={<EnhancedAdminLayout><WalletManagementPanel /></EnhancedAdminLayout>} />
-            <Route path="/admin/events" element={<EnhancedAdminLayout><EventCalendar /></EnhancedAdminLayout>} />
-            <Route path="/admin/referrals" element={<EnhancedAdminLayout><ReferralProgram /></EnhancedAdminLayout>} />
-          </Route>
+          <Route path="/admin" element={
+            <ProtectedRoute adminOnly>
+              <AdminPanel />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/materials" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><StudyMaterialsManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/papers" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><PastPapersManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/categories" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><CategoriesManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/grades" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><GradesManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><UserManagement /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/queries" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><QueriesManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/marketplace" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><MarketplaceManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/ads" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><AdvertisementManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><AdminSettings /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/payments" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><PaymentVerificationManager /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/wallets" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><WalletManagementPanel /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/events" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><EventCalendar /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/referrals" element={
+            <ProtectedRoute adminOnly>
+              <EnhancedAdminLayout><ReferralProgram /></EnhancedAdminLayout>
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>

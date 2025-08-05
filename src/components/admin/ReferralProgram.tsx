@@ -93,7 +93,7 @@ const ReferralProgram = () => {
         setStats(referralData);
       }
 
-      // Fetch referral transactions
+      // Fetch referral transactions with proper type conversion
       const { data: transactionData, error: transactionError } = await supabase
         .from('referral_transactions')
         .select('*')
@@ -101,7 +101,14 @@ const ReferralProgram = () => {
         .order('created_at', { ascending: false });
 
       if (transactionError) throw transactionError;
-      setTransactions(transactionData || []);
+      
+      // Convert the data to proper types with explicit type assertion
+      const typedTransactions: ReferralTransaction[] = (transactionData || []).map(item => ({
+        ...item,
+        status: item.status as 'pending' | 'approved' | 'paid'
+      }));
+      
+      setTransactions(typedTransactions);
 
       // Fetch leaderboard
       const { data: leaderboardData, error: leaderboardError } = await supabase
