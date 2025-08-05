@@ -1,122 +1,263 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import HomePage from '@/pages/HomePage';
-import ProfilePage from '@/pages/ProfilePage';
-import SettingsPage from '@/pages/SettingsPage';
-import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
-import PastPapersPage from '@/pages/PastPapersPage';
-import MarketplacePage from '@/pages/MarketplacePage';
-import PremiumPage from '@/pages/PremiumPage';
-import ContactPage from '@/pages/ContactPage';
-import AboutUsPage from '@/pages/AboutUsPage';
-import NotFoundPage from '@/pages/NotFoundPage';
-import ContentViewPage from '@/pages/ContentViewPage';
-import BlogViewPage from '@/pages/BlogViewPage';
-import StudentAchievementsPage from '@/pages/StudentAchievementsPage';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import AdminPanel from '@/pages/AdminPanel';
-import ESewaPaymentPage from '@/pages/ESewaPaymentPage';
-import WalletPage from '@/pages/WalletPage';
-import EventsPage from '@/pages/EventsPage';
-import DailyPlannerPage from '@/pages/DailyPlannerPage';
-import StudentMaterialUploadPage from '@/pages/StudentMaterialUploadPage';
-import StudyAssistantPage from '@/pages/StudyAssistantPage';
-import PlannerPage from '@/pages/PlannerPage';
-import ReferralPage from '@/pages/ReferralPage';
-import StudentDashboard from '@/pages/StudentDashboard';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import AdsProvider from "@/components/ads/AdsProvider";
+import GlobalHeader from "@/components/GlobalHeader";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-function App() {
-  return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutUsPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/study-materials" element={<StudyMaterialsPage />} />
-          <Route path="/past-papers" element={<PastPapersPage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/premium" element={<PremiumPage />} />
-          <Route path="/content/:slug" element={<ContentViewPage />} />
-          <Route path="/blog/:slug" element={<BlogViewPage />} />
-          <Route path="/esewa-payment" element={<ESewaPaymentPage />} />
+// Pages
+import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import HomePage from "./pages/HomePage";
+import StudyMaterialsPage from "./pages/StudyMaterialsPage";
+import StudyMaterialPage from "./pages/StudyMaterialPage";
+import PastPapersPage from "./pages/PastPapersPage";
+import PastPaperViewPage from "./pages/PastPaperViewPage";
+import ContentViewPage from "./pages/ContentViewPage";
+import BlogPage from "./pages/BlogPage";
+import BlogViewPage from "./pages/BlogViewPage";
+import ContactPage from "./pages/ContactPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import EventsPage from "./pages/EventsPage";
+import StudyAssistantPage from "./pages/StudyAssistantPage";
+import DailyPlannerPage from "./pages/DailyPlannerPage";
+import PlannerPage from "./pages/PlannerPage";
+import ProfilePage from "./pages/ProfilePage";
+import WalletPage from "./pages/WalletPage";
+import ReferralPage from "./pages/ReferralPage";
+import PremiumPage from "./pages/PremiumPage";
+import ESewaPaymentPage from "./pages/ESewaPaymentPage";
+import SettingsPage from "./pages/SettingsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
-          {/* Student Routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <StudentDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/achievements" element={
-            <ProtectedRoute>
-              <StudentAchievementsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/wallet" element={
-            <ProtectedRoute>
-              <WalletPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/events" element={
-            <ProtectedRoute>
-              <EventsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/daily-planner" element={
-            <ProtectedRoute>
-              <DailyPlannerPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/planner" element={
-            <ProtectedRoute>
-              <PlannerPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/upload-material" element={
-            <ProtectedRoute>
-              <StudentMaterialUploadPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/study-assistant" element={
-            <ProtectedRoute>
-              <StudyAssistantPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/referral" element={
-            <ProtectedRoute>
-              <ReferralPage />
-            </ProtectedRoute>
-          } />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/*" element={
-            <ProtectedRoute adminOnly>
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
+// Student Dashboard Pages
+import StudentDashboard from "./pages/StudentDashboard";
+import DashboardOverview from "./pages/DashboardOverview";
+import StudentUploadPage from "./pages/StudentUploadPage";
+import StudentSavedPage from "./pages/StudentSavedPage";
+import DashboardInbox from "./pages/DashboardInbox";
+import StudentAchievementsPage from "./pages/StudentAchievementsPage";
+import DashboardRewards from "./pages/DashboardRewards";
+import DashboardSettings from "./pages/DashboardSettings";
 
-          {/* 404 Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </div>
-    </Router>
-  );
-}
+// Admin Pages
+import AdminPanel from "./pages/AdminPanel";
+import EnhancedAdminLayout from "./components/admin/EnhancedAdminLayout";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <AdsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <Routes>
+                {/* Public routes without global header */}
+                <Route path="/" element={<Index />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                
+                {/* Public routes with global header */}
+                <Route path="/study-materials" element={
+                  <div>
+                    <GlobalHeader />
+                    <StudyMaterialsPage />
+                  </div>
+                } />
+                <Route path="/study-material/:id" element={
+                  <div>
+                    <GlobalHeader />
+                    <StudyMaterialPage />
+                  </div>
+                } />
+                <Route path="/past-papers" element={
+                  <div>
+                    <GlobalHeader />
+                    <PastPapersPage />
+                  </div>
+                } />
+                <Route path="/past-paper/:id" element={
+                  <div>
+                    <GlobalHeader />
+                    <PastPaperViewPage />
+                  </div>
+                } />
+                <Route path="/content/:slug" element={
+                  <div>
+                    <GlobalHeader />
+                    <ContentViewPage />
+                  </div>
+                } />
+                <Route path="/blog" element={
+                  <div>
+                    <GlobalHeader />
+                    <BlogPage />
+                  </div>
+                } />
+                <Route path="/blog/:slug" element={
+                  <div>
+                    <GlobalHeader />
+                    <BlogViewPage />
+                  </div>
+                } />
+                <Route path="/contact" element={
+                  <div>
+                    <GlobalHeader />
+                    <ContactPage />
+                  </div>
+                } />
+                <Route path="/about" element={
+                  <div>
+                    <GlobalHeader />
+                    <AboutUsPage />
+                  </div>
+                } />
+                <Route path="/marketplace" element={
+                  <div>
+                    <GlobalHeader />
+                    <MarketplacePage />
+                  </div>
+                } />
+                <Route path="/events" element={
+                  <div>
+                    <GlobalHeader />
+                    <EventsPage />
+                  </div>
+                } />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <StudentDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/overview" element={
+                  <ProtectedRoute>
+                    <DashboardOverview />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/upload" element={
+                  <ProtectedRoute>
+                    <StudentUploadPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/saved" element={
+                  <ProtectedRoute>
+                    <StudentSavedPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/inbox" element={
+                  <ProtectedRoute>
+                    <DashboardInbox />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/achievements" element={
+                  <ProtectedRoute>
+                    <StudentAchievementsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/rewards" element={
+                  <ProtectedRoute>
+                    <DashboardRewards />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/settings" element={
+                  <ProtectedRoute>
+                    <DashboardSettings />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/ai-assistant" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <StudyAssistantPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/planner" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <DailyPlannerPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <ProfilePage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/wallet" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <WalletPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/referral" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <ReferralPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/premium" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <PremiumPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/esewa-payment" element={
+                  <ProtectedRoute>
+                    <ESewaPaymentPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <div>
+                      <GlobalHeader />
+                      <SettingsPage />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Admin routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <EnhancedAdminLayout />
+                  </ProtectedRoute>
+                } />
+                
+                {/* 404 */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AdsProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;
