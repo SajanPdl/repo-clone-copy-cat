@@ -1,182 +1,164 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Eye, MapPin, Star, Clock } from 'lucide-react';
+import { Heart, Eye, MapPin, Calendar, User } from 'lucide-react';
 import { MarketplaceListing } from '@/utils/marketplaceUtils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatNepaliCurrency } from '@/utils/currencyUtils';
+import { motion } from 'framer-motion';
 
 interface MarketplaceCardProps {
   listing: MarketplaceListing;
   onView: (listing: MarketplaceListing) => void;
-  onFavorite?: (listingId: string) => void;
-  isFavorited?: boolean;
-  className?: string;
+  onFavorite: (listingId: string) => void;
+  isFavorited: boolean;
 }
-
-const categoryIcons = {
-  book: '📚',
-  notes: '📝',
-  pdf: '📄',
-  question_bank: '❓',
-  calculator: '🧮',
-  device: '💻',
-  other: '🔍'
-};
-
-const conditionColors = {
-  new: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  excellent: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  used: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  fair: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
-};
 
 const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
   listing,
   onView,
   onFavorite,
-  isFavorited = false,
-  className = ''
+  isFavorited
 }) => {
-  const handleCardClick = () => {
+  const handleViewClick = () => {
     onView(listing);
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onFavorite) {
-      onFavorite(listing.id);
-    }
+    onFavorite(listing.id);
   };
-
-  const primaryImage = listing.images && listing.images.length > 0 ? listing.images[0] : null;
 
   return (
     <motion.div
-      whileHover={{ 
-        y: -8,
-        scale: 1.02,
-        rotateY: 2,
-        boxShadow: '0 20px 40px rgba(0,0,0,0.12)'
-      }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`relative ${className}`}
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ duration: 0.2 }}
     >
-      <Card 
-        className="cursor-pointer overflow-hidden border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300"
-        onClick={handleCardClick}
-      >
-        {/* Image Section */}
-        <div className="relative h-48 overflow-hidden">
-          {primaryImage ? (
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
+        <div className="relative">
+          {listing.images && listing.images.length > 0 ? (
             <img
-              src={primaryImage}
+              src={listing.images[0]}
               alt={listing.title}
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-              <span className="text-6xl opacity-50">
-                {categoryIcons[listing.category]}
-              </span>
+            <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">No Image</span>
             </div>
           )}
           
-          {/* Overlay Badges */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1">
-            {listing.is_featured && (
-              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-                ⭐ Featured
-              </Badge>
-            )}
-            {listing.is_free && (
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
-                🎁 Free
-              </Badge>
-            )}
-            {listing.condition && (
-              <Badge className={conditionColors[listing.condition]}>
-                {listing.condition.charAt(0).toUpperCase() + listing.condition.slice(1)}
-              </Badge>
-            )}
-          </div>
-
-          {/* Favorite Button */}
+          {/* Favorite button */}
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-3 right-3 p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800"
+            className={`absolute top-2 right-2 h-8 w-8 p-0 backdrop-blur-sm ${
+              isFavorited 
+                ? 'bg-red-500/80 hover:bg-red-600/80' 
+                : 'bg-white/80 hover:bg-white/90'
+            }`}
             onClick={handleFavoriteClick}
           >
-            <Heart 
-              className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-300'}`}
+            <Heart
+              className={`h-4 w-4 ${
+                isFavorited ? 'text-white fill-white' : 'text-gray-600'
+              }`}
             />
           </Button>
-
-          {/* Stats */}
-          <div className="absolute bottom-3 right-3 flex items-center gap-2 text-white text-xs">
-            <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2 py-1">
-              <Eye className="h-3 w-3" />
-              {listing.views_count}
-            </div>
-          </div>
+          
+          {/* Featured badge */}
+          {listing.is_featured && (
+            <Badge className="absolute top-2 left-2 bg-yellow-500 text-white">
+              Featured
+            </Badge>
+          )}
+          
+          {/* Free badge */}
+          {listing.is_free && (
+            <Badge className="absolute bottom-2 left-2 bg-green-500 text-white">
+              Free
+            </Badge>
+          )}
         </div>
-
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-lg line-clamp-2 text-gray-900 dark:text-white">
-              {listing.title}
-            </h3>
-            <div className="flex flex-col items-end gap-1">
-              {listing.is_free ? (
-                <span className="text-lg font-bold text-green-600 dark:text-green-400">FREE</span>
-              ) : (
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  ${listing.price?.toFixed(2)}
-                </span>
+        
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            {/* Title and Category */}
+            <div>
+              <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {listing.title}
+              </h3>
+              <Badge variant="outline" className="mt-1 text-xs">
+                {listing.category}
+              </Badge>
+            </div>
+            
+            {/* Price */}
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold text-green-600">
+                {listing.is_free ? 'Free' : formatNepaliCurrency(listing.price || 0)}
+              </span>
+              {listing.condition && (
+                <Badge variant="secondary" className="text-xs">
+                  {listing.condition}
+                </Badge>
               )}
             </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          <div className="space-y-3">
+            
+            {/* Description */}
             {listing.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+              <p className="text-sm text-gray-600 line-clamp-2">
                 {listing.description}
               </p>
             )}
-
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-xs">
-                {categoryIcons[listing.category]} {listing.category}
-              </Badge>
+            
+            {/* Subject and University */}
+            <div className="flex flex-wrap gap-1">
               {listing.subject && (
                 <Badge variant="outline" className="text-xs">
                   {listing.subject}
                 </Badge>
               )}
+              {listing.university && (
+                <Badge variant="outline" className="text-xs">
+                  {listing.university}
+                </Badge>
+              )}
             </div>
-
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            
+            {/* Location and Stats */}
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                {listing.location || 'Location not specified'}
+                <span>{listing.location || 'Location not specified'}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {formatDistanceToNow(new Date(listing.created_at), { addSuffix: true })}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  <span>{listing.views_count || 0}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  <span>{listing.interest_count || 0}</span>
+                </div>
               </div>
             </div>
-
-            {listing.university && (
-              <div className="text-xs text-gray-600 dark:text-gray-300">
-                🎓 {listing.university}
-              </div>
-            )}
+            
+            {/* Posted date */}
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Calendar className="h-3 w-3" />
+              <span>Posted {new Date(listing.created_at).toLocaleDateString()}</span>
+            </div>
+            
+            {/* Action button */}
+            <Button
+              onClick={handleViewClick}
+              className="w-full mt-3"
+              variant="outline"
+            >
+              View Details
+            </Button>
           </div>
         </CardContent>
       </Card>

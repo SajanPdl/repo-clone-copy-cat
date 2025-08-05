@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
+import GlobalHeader from '@/components/GlobalHeader';
 import Footer from '@/components/Footer';
 import StudyMaterialView from '@/components/StudyMaterialView';
 import { fetchStudyMaterialById, fetchPastPaperById } from '@/utils/queryUtils';
@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ContentViewPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [content, setContent] = useState<StudyMaterial | PastPaper | null>(null);
   const [contentType, setContentType] = useState<'study-material' | 'past-paper' | null>(null);
@@ -19,8 +19,8 @@ const ContentViewPage = () => {
 
   useEffect(() => {
     const loadContent = async () => {
-      if (!id) {
-        setError("Content ID not found");
+      if (!slug) {
+        setError("Content not found");
         setLoading(false);
         return;
       }
@@ -28,6 +28,16 @@ const ContentViewPage = () => {
       try {
         setLoading(true);
         
+        // Extract ID from slug (assuming format: "title-id")
+        const parts = slug.split('-');
+        const id = parts[parts.length - 1];
+        
+        if (!id || isNaN(parseInt(id))) {
+          setError("Invalid content URL");
+          setLoading(false);
+          return;
+        }
+
         // Try to fetch as study material first
         try {
           const studyMaterial = await fetchStudyMaterialById(parseInt(id));
@@ -38,7 +48,6 @@ const ContentViewPage = () => {
             return;
           }
         } catch (err) {
-          // If not found as study material, try as past paper
           console.log("Not found as study material, trying as past paper");
         }
         
@@ -65,7 +74,13 @@ const ContentViewPage = () => {
     };
     
     loadContent();
-  }, [id]);
+  }, [slug]);
+
+  const createSlug = (title: string, id: number) => {
+    return title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-' + id;
+  };
 
   const handleBack = () => {
     if (contentType === 'study-material') {
@@ -80,7 +95,7 @@ const ContentViewPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <GlobalHeader />
         <div className="flex-grow flex items-center justify-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
         </div>
@@ -92,7 +107,7 @@ const ContentViewPage = () => {
   if (error || !content) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <GlobalHeader />
         <div className="flex-grow flex flex-col items-center justify-center p-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Content Not Found</h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">{error || "The content you're looking for doesn't exist or has been removed."}</p>
@@ -112,7 +127,7 @@ const ContentViewPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <GlobalHeader />
       <main className="flex-grow container mx-auto px-4 py-12">
         <div className="mb-6">
           <Button

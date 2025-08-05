@@ -6,37 +6,27 @@ import RegisterPage from '@/pages/RegisterPage';
 import HomePage from '@/pages/HomePage';
 import ProfilePage from '@/pages/ProfilePage';
 import SettingsPage from '@/pages/SettingsPage';
-import StudyMaterialPage from '@/pages/StudyMaterialPage';
+import StudyMaterialsPage from '@/pages/StudyMaterialsPage';
 import PastPapersPage from '@/pages/PastPapersPage';
 import MarketplacePage from '@/pages/MarketplacePage';
 import PremiumPage from '@/pages/PremiumPage';
 import ContactPage from '@/pages/ContactPage';
 import AboutUsPage from '@/pages/AboutUsPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import ContentViewPage from '@/pages/ContentViewPage';
+import BlogViewPage from '@/pages/BlogViewPage';
+import StudentAchievementsPage from '@/pages/StudentAchievementsPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import AdminPanel from '@/components/admin/AdminPanel';
-import StudyMaterialsManager from '@/components/admin/StudyMaterialsManager';
-import PastPapersManager from '@/components/admin/PastPapersManager';
-import CategoriesManager from '@/components/admin/CategoriesManager';
-import GradesManager from '@/components/admin/GradesManager';
-import UserManagement from '@/components/admin/UserManagement';
-import QueriesManager from '@/components/admin/QueriesManager';
-import MarketplaceManager from '@/components/admin/MarketplaceManager';
-import AdvertisementManager from '@/components/admin/AdvertisementManager';
-import AdminSettings from '@/components/admin/AdminSettings';
-import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
+import AdminPanel from '@/pages/AdminPanel';
 import ESewaPaymentPage from '@/pages/ESewaPaymentPage';
 import WalletPage from '@/pages/WalletPage';
 import EventsPage from '@/pages/EventsPage';
 import DailyPlannerPage from '@/pages/DailyPlannerPage';
 import StudentMaterialUploadPage from '@/pages/StudentMaterialUploadPage';
-import ReferralProgram from '@/components/admin/ReferralProgram';
-import EventCalendar from '@/components/events/EventCalendar';
-import PaymentVerificationManager from '@/components/admin/PaymentVerificationManager';
-import WalletManagementPanel from '@/components/admin/WalletManagementPanel';
 import StudyAssistantPage from '@/pages/StudyAssistantPage';
 import PlannerPage from '@/pages/PlannerPage';
 import ReferralPage from '@/pages/ReferralPage';
+import StudentDashboard from '@/pages/StudentDashboard';
 
 function App() {
   return (
@@ -49,14 +39,20 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutUsPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/study-materials" element={<StudyMaterialPage />} />
+          <Route path="/study-materials" element={<StudyMaterialsPage />} />
           <Route path="/past-papers" element={<PastPapersPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/premium" element={<PremiumPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/content/:slug" element={<ContentViewPage />} />
+          <Route path="/blog/:slug" element={<BlogViewPage />} />
           <Route path="/esewa-payment" element={<ESewaPaymentPage />} />
 
           {/* Student Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/profile" element={
             <ProtectedRoute>
               <ProfilePage />
@@ -65,6 +61,11 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/achievements" element={
+            <ProtectedRoute>
+              <StudentAchievementsPage />
             </ProtectedRoute>
           } />
           <Route path="/wallet" element={
@@ -104,76 +105,14 @@ function App() {
           } />
           
           {/* Admin Routes */}
-          <Route path="/admin" element={
+          <Route path="/admin/*" element={
             <ProtectedRoute adminOnly>
               <AdminPanel />
             </ProtectedRoute>
           } />
-          <Route path="/admin/materials" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><StudyMaterialsManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/papers" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><PastPapersManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/categories" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><CategoriesManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/grades" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><GradesManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/users" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><UserManagement /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/queries" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><QueriesManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/marketplace" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><MarketplaceManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/ads" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><AdvertisementManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/settings" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><AdminSettings /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/payments" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><PaymentVerificationManager /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/wallets" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><WalletManagementPanel /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/events" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><EventCalendar /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/referrals" element={
-            <ProtectedRoute adminOnly>
-              <EnhancedAdminLayout><ReferralProgram /></EnhancedAdminLayout>
-            </ProtectedRoute>
-          } />
+
+          {/* 404 Route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
     </Router>
