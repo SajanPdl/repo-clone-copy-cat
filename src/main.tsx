@@ -5,18 +5,10 @@ import App from './App.tsx';
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/hooks/useAuth';
+import { AdsProvider } from '@/components/ads/AdsProvider';
 
 const queryClient = new QueryClient();
-
-// Create AuthProvider component
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
-};
-
-// Create AdsProvider component
-const AdsProvider = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
-};
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
