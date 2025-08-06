@@ -1,229 +1,225 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { UploadCloud, Plus, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Eye, Heart, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import GlobalHeader from '@/components/GlobalHeader';
+import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
+import { CreateListingForm } from '@/components/marketplace/CreateListingForm';
+import { MarketplaceListing, fetchMarketplaceListings } from '@/utils/marketplaceUtils';
 
 const MarketplacePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [listings, setListings] = useState([
-    {
-      id: '1',
-      title: 'Mathematics Textbook - Grade 10',
-      description: 'Gives a comprehensive overview of all topics prescribed by the curriculum.',
-      price: 500,
-      isNegotiable: true,
-      isAvailable: true,
-      imageUrl: 'https://images.unsplash.com/photo-1589829277958-4237cb91ade9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGV4dGJvb2tzfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60',
-      category: 'Textbooks',
-      condition: 'New',
-      sellerInfo: {
-        name: 'Sandesh Bhattarai',
-        location: 'Bhaktapur'
-      }
-    },
-    {
-      id: '2',
-      title: 'Physics Practical Copy - Class 12',
-      description: 'Well maintained practical copy with all experiments completed.',
-      price: 300,
-      isNegotiable: false,
-      isAvailable: true,
-      imageUrl: 'https://images.unsplash.com/photo-1628155944357-5849934954bc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGNvcHl8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60',
-      category: 'Lab Materials',
-      condition: 'Used',
-      sellerInfo: {
-        name: 'Kusum Shrestha',
-        location: 'Kathmandu'
-      }
-    },
-    {
-      id: '3',
-      title: 'Accountancy Notes - BBA 2nd Sem',
-      description: 'Comprehensive notes covering all important topics with solved examples.',
-      price: 400,
-      isNegotiable: true,
-      isAvailable: false,
-      imageUrl: 'https://images.unsplash.com/photo-1503758772605-9473a5977f48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bm90ZXN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60',
-      category: 'Notes',
-      condition: 'Like New',
-      sellerInfo: {
-        name: 'Ayush Maharjan',
-        location: 'Lalitpur'
-      }
-    },
-  ]);
+  const [listings, setListings] = useState<MarketplaceListing[]>([]);
+  const [filteredListings, setFilteredListings] = useState<MarketplaceListing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newListing, setNewListing] = useState({
-    title: '',
-    description: '',
-    price: 0,
-    isNegotiable: false,
-    isAvailable: true,
-    imageUrl: '',
+  const [filters, setFilters] = useState({
     category: '',
+    subject: '',
+    university: '',
     condition: '',
+    priceMin: 0,
+    priceMax: 0,
+    freeOnly: false,
+    search: '',
+    sortBy: 'latest' as 'latest' | 'price_low' | 'price_high' | 'popular'
   });
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewListing(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [listings, filters]);
+
+  const fetchListings = async () => {
+    try {
+      const data = await fetchMarketplaceListings(filters);
+      setListings(data);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch marketplace listings',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...listings];
+
+    if (filters.search) {
+      filtered = filtered.filter(listing => 
+        listing.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        (listing.description && listing.description.toLowerCase().includes(filters.search.toLowerCase()))
+      );
+    }
+
+    if (filters.category && filters.category !== 'all') {
+      filtered = filtered.filter(listing => listing.category === filters.category);
+    }
+
+    if (filters.freeOnly) {
+      filtered = filtered.filter(listing => listing.is_free);
+    }
+
+    setFilteredListings(filtered);
   };
 
   const handleCreateListing = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     setShowCreateForm(true);
   };
 
-  const handleSubmitListing = () => {
-    if (!newListing.title || !newListing.description || !newListing.price || !newListing.category || !newListing.condition) {
-      toast({
-        title: "Error",
-        description: "Please fill in all the fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newId = Math.random().toString(36).substring(2, 15);
-    const listingToAdd = {
-      ...newListing,
-      id: newId,
-      sellerInfo: {
-        name: user?.email || 'Unknown',
-        location: 'Unknown'
-      }
-    };
-
-    setListings(prev => [...prev, listingToAdd]);
-    setNewListing({
-      title: '',
-      description: '',
-      price: 0,
-      isNegotiable: false,
-      isAvailable: true,
-      imageUrl: '',
-      category: '',
-      condition: '',
-    });
-    setShowCreateForm(false);
-    toast({
-      title: "Success",
-      description: "Your listing has been created successfully."
-    });
+  const handleListingClick = (listingId: string) => {
+    navigate(`/marketplace/${listingId}`);
   };
 
-  return (
-    <div className="container mx-auto py-12">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Marketplace</h1>
-        <Button onClick={handleCreateListing}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Listing
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {listings.map(listing => (
-          <Card key={listing.id}>
-            <CardHeader>
-              <CardTitle>{listing.title}</CardTitle>
-              <CardDescription>
-                {listing.sellerInfo.name} - {listing.sellerInfo.location}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <img src={listing.imageUrl} alt={listing.title} className="rounded-md aspect-video object-cover mb-3" />
-              <p className="text-gray-700">{listing.description}</p>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="text-xl font-semibold">Rs. {listing.price}</div>
-                {listing.isNegotiable && (
-                  <span className="text-sm text-gray-500">Negotiable</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Condition: {listing.condition}</span>
-                {!listing.isAvailable && (
-                  <span className="text-sm text-red-500">Sold Out</span>
-                )}
-              </div>
-              <Button variant="outline">View Details</Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Create Listing Form */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>Create a New Listing</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input type="text" id="title" name="title" value={newListing.title} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" name="description" value={newListing.description} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input type="number" id="price" name="price" value={newListing.price} onChange={handleInputChange} />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="isNegotiable">Negotiable</Label>
-                  <Switch id="isNegotiable" name="isNegotiable" checked={newListing.isNegotiable} onCheckedChange={(checked) => handleInputChange({ target: { name: 'isNegotiable', type: 'checkbox', checked } })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input type="text" id="imageUrl" name="imageUrl" value={newListing.imageUrl} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input type="text" id="category" name="category" value={newListing.category} onChange={handleInputChange} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="condition">Condition</Label>
-                  <Input type="text" id="condition" name="condition" value={newListing.condition} onChange={handleInputChange} />
-                </div>
-                <Button onClick={handleSubmitListing}>Submit Listing</Button>
-              </div>
-            </CardContent>
-          </Card>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <GlobalHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">Loading marketplace listings...</div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <GlobalHeader />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Marketplace</h1>
+            <p className="text-gray-600 mt-2">Buy and sell study materials, books, and more</p>
+          </div>
+          <Button onClick={handleCreateListing}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Listing
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <MarketplaceFilters filters={filters} onFiltersChange={setFilters} />
+          </div>
+
+          {/* Listings Grid */}
+          <div className="lg:col-span-3">
+            {filteredListings.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredListings.map((listing) => (
+                  <Card 
+                    key={listing.id} 
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => handleListingClick(listing.id)}
+                  >
+                    <CardContent className="p-0">
+                      {listing.images && listing.images.length > 0 ? (
+                        <img
+                          src={listing.images[0]}
+                          alt={listing.title}
+                          className="w-full h-48 object-cover rounded-t-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                          <span className="text-gray-500">No image</span>
+                        </div>
+                      )}
+                    </CardContent>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="line-clamp-1">{listing.title}</CardTitle>
+                        <Heart className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary">{listing.category}</Badge>
+                        {listing.condition && (
+                          <Badge variant="outline">{listing.condition}</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {listing.description && (
+                        <p className="text-gray-600 text-sm line-clamp-2">
+                          {listing.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        {listing.is_free ? (
+                          <div className="text-xl font-semibold text-green-600">FREE</div>
+                        ) : (
+                          <div className="text-xl font-semibold">Rs. {listing.price}</div>
+                        )}
+                      </div>
+
+                      {listing.location && (
+                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <MapPin className="h-3 w-3" />
+                          <span>{listing.location}</span>
+                        </div>
+                      )}
+
+                      <Separator />
+
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Eye className="h-3 w-3" />
+                          <span>{listing.views_count} views</span>
+                        </div>
+                        <span>{new Date(listing.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📚</div>
+                <h3 className="text-xl font-semibold mb-2">No listings found</h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filters or be the first to create a listing!
+                </p>
+                <Button onClick={handleCreateListing}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Listing
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Create Listing Modal */}
+        {showCreateForm && (
+          <CreateListingForm 
+            onClose={() => setShowCreateForm(false)}
+            onSuccess={() => {
+              setShowCreateForm(false);
+              fetchListings();
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };
