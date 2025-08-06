@@ -45,7 +45,13 @@ const AdPlacement: React.FC<AdPlacementProps> = ({ position, className = '' }) =
 
       if (error) throw error;
 
-      setAds(data || []);
+      // Convert id to string to match our AdData interface
+      const processedAds = (data || []).map(ad => ({
+        ...ad,
+        id: ad.id.toString()
+      }));
+
+      setAds(processedAds);
     } catch (error) {
       console.error('Error fetching ads:', error);
     } finally {

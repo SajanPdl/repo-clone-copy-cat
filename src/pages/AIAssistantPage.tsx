@@ -2,7 +2,7 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
-import { StudyAssistant } from '@/components/ai/StudyAssistant';
+import StudyAssistant from '@/components/ai/StudyAssistant';
 import GlobalHeader from '@/components/GlobalHeader';
 
 const AIAssistantPage = () => {

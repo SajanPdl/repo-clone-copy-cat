@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Heart, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import GlobalHeader from '@/components/GlobalHeader';
-import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
-import { CreateListingForm } from '@/components/marketplace/CreateListingForm';
+import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
+import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { MarketplaceListing, fetchMarketplaceListings } from '@/utils/marketplaceUtils';
 
 const MarketplacePage = () => {
@@ -33,6 +33,11 @@ const MarketplacePage = () => {
     search: '',
     sortBy: 'latest' as 'latest' | 'price_low' | 'price_high' | 'popular'
   });
+
+  // Mock data for filters
+  const categories = ['textbooks', 'notes', 'electronics', 'stationery', 'other'];
+  const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'English'];
+  const universities = ['Tribhuvan University', 'Kathmandu University', 'Pokhara University'];
 
   useEffect(() => {
     fetchListings();
@@ -91,6 +96,27 @@ const MarketplacePage = () => {
     navigate(`/marketplace/${listingId}`);
   };
 
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      category: '',
+      subject: '',
+      university: '',
+      condition: '',
+      priceMin: 0,
+      priceMax: 0,
+      freeOnly: false,
+      search: '',
+      sortBy: 'latest'
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -120,7 +146,14 @@ const MarketplacePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <MarketplaceFilters filters={filters} onFiltersChange={setFilters} />
+            <MarketplaceFilters 
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+              categories={categories}
+              subjects={subjects}
+              universities={universities}
+            />
           </div>
 
           {/* Listings Grid */}
