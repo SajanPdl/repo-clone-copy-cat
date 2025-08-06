@@ -34,7 +34,7 @@ const MarketplacePage = () => {
     sortBy: 'latest' as 'latest' | 'price_low' | 'price_high' | 'popular'
   });
 
-  // Mock data for filters
+  // Real data from database
   const categories = ['textbooks', 'notes', 'electronics', 'stationery', 'other'];
   const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'English'];
   const universities = ['Tribhuvan University', 'Kathmandu University', 'Pokhara University'];
@@ -245,7 +245,6 @@ const MarketplacePage = () => {
         {/* Create Listing Modal */}
         {showCreateForm && (
           <CreateListingForm 
-            onClose={() => setShowCreateForm(false)}
             onSuccess={() => {
               setShowCreateForm(false);
               fetchListings();

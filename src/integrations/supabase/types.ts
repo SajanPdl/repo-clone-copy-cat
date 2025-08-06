@@ -222,12 +222,15 @@ export type Database = {
           document_type: string
           downloads_count: number | null
           file_path: string | null
+          file_size: number | null
           id: string
           is_approved: boolean | null
           is_featured: boolean | null
+          mime_type: string | null
           pages_count: number | null
           preview_image: string | null
           rating: number | null
+          storage_path: string | null
           subject: string
           title: string
           university: string
@@ -240,12 +243,15 @@ export type Database = {
           document_type: string
           downloads_count?: number | null
           file_path?: string | null
+          file_size?: number | null
           id?: string
           is_approved?: boolean | null
           is_featured?: boolean | null
+          mime_type?: string | null
           pages_count?: number | null
           preview_image?: string | null
           rating?: number | null
+          storage_path?: string | null
           subject: string
           title: string
           university: string
@@ -258,12 +264,15 @@ export type Database = {
           document_type?: string
           downloads_count?: number | null
           file_path?: string | null
+          file_size?: number | null
           id?: string
           is_approved?: boolean | null
           is_featured?: boolean | null
+          mime_type?: string | null
           pages_count?: number | null
           preview_image?: string | null
           rating?: number | null
+          storage_path?: string | null
           subject?: string
           title?: string
           university?: string
@@ -331,6 +340,51 @@ export type Database = {
           stream?: string | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      file_uploads: {
+        Row: {
+          bucket_name: string
+          created_at: string | null
+          file_name: string
+          file_size: number
+          id: string
+          metadata: Json | null
+          mime_type: string
+          original_name: string
+          storage_path: string
+          updated_at: string | null
+          upload_status: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name?: string
+          created_at?: string | null
+          file_name: string
+          file_size: number
+          id?: string
+          metadata?: Json | null
+          mime_type: string
+          original_name: string
+          storage_path: string
+          updated_at?: string | null
+          upload_status?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string | null
+          file_name?: string
+          file_size?: number
+          id?: string
+          metadata?: Json | null
+          mime_type?: string
+          original_name?: string
+          storage_path?: string
+          updated_at?: string | null
+          upload_status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1571,6 +1625,10 @@ export type Database = {
       }
       check_and_grant_achievements: {
         Args: { p_user_id: string; p_points: number }
+        Returns: undefined
+      }
+      complete_file_upload: {
+        Args: { p_upload_id: string; p_storage_path: string }
         Returns: undefined
       }
       increment_download_count: {

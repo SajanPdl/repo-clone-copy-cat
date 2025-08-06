@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadFileToStorage } from '@/utils/fileUploadUtils';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 
 const StudentMaterialUpload = () => {
@@ -30,36 +30,6 @@ const StudentMaterialUpload = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Validate file size (max 10MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
-          description: 'Please select a file smaller than 10MB',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'image/jpeg',
-        'image/png', 
-        'image/jpg',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain'
-      ];
-      
-      if (!allowedTypes.includes(selectedFile.type)) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please select a PDF, Word document, or image file',
-          variant: 'destructive'
-        });
-        return;
-      }
-
       setFile(selectedFile);
       console.log('File selected:', selectedFile.name, selectedFile.type, selectedFile.size);
     }
@@ -67,47 +37,6 @@ const StudentMaterialUpload = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const uploadFileToStorage = async (file: File): Promise<string> => {
-    if (!user) throw new Error('User not authenticated');
-
-    // Create a unique file name
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
-    const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `study-materials/${fileName}`;
-
-    console.log('Uploading file to path:', filePath);
-    
-    // Start progress tracking
-    setUploadProgress(10);
-
-    // Upload file to Supabase storage
-    const { error: uploadError, data } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type
-      });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw new Error(`Upload failed: ${uploadError.message}`);
-    }
-
-    setUploadProgress(70);
-    console.log('File uploaded successfully:', data);
-
-    // Get the public URL for the uploaded file
-    const { data: urlData } = supabase.storage
-      .from('documents')
-      .getPublicUrl(filePath);
-
-    console.log('Public URL generated:', urlData.publicUrl);
-    setUploadProgress(90);
-
-    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,12 +74,12 @@ const StudentMaterialUpload = () => {
 
     try {
       console.log('Starting file upload process...');
-      
-      // Upload file to storage
-      const fileUrl = await uploadFileToStorage(file);
-      console.log('File URL received:', fileUrl);
+      setUploadProgress(10);
 
-      setUploadProgress(95);
+      // Upload file using new upload utility
+      const { fileUrl, uploadId } = await uploadFileToStorage(file, 'study-materials');
+      console.log('File uploaded successfully:', fileUrl);
+      setUploadProgress(70);
 
       // Insert into pending_study_materials table
       const { error: dbError } = await supabase
@@ -224,7 +153,7 @@ const StudentMaterialUpload = () => {
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Upload Guidelines:</p>
               <ul className="space-y-1 text-xs">
-                <li>• File size must be less than 10MB</li>
+                <li>• File size must be less than 50MB</li>
                 <li>• Accepted formats: PDF, Word, JPG, PNG, TXT</li>
                 <li>• All uploads are reviewed before publishing</li>
                 <li>• Earn points for approved uploads</li>
