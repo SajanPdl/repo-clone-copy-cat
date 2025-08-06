@@ -161,7 +161,7 @@ function App() {
               } />
 
               {/* Protected Admin Routes */}
-              <Route path="/admin" element={
+              <Route path="/admin/*" element={
                 <ProtectedRoute>
                   <AdminPanel />
                 </ProtectedRoute>
