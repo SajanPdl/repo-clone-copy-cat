@@ -17,7 +17,7 @@ import {
   Globe
 } from 'lucide-react';
 import GlobalHeader from '@/components/GlobalHeader';
-import StudentSidebar from '@/components/StudentSidebar';
+import { StudentSidebar } from '@/components/StudentSidebar';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
