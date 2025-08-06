@@ -15,7 +15,8 @@ import AdminSettings from './AdminSettings';
 import AchievementsPage from './AchievementsPage';
 import PaymentVerificationManager from './PaymentVerificationManager';
 import WalletManagementPanel from './WalletManagementPanel';
-import EventCalendar from '@/components/events/EventCalendar';
+import EventsManager from './EventsManager';
+import MerchManager from './MerchManager';
 import ReferralProgram from './ReferralProgram';
 import AnalyticsPage from './AnalyticsPage';
 import { Button } from '@/components/ui/button';
@@ -34,12 +35,13 @@ const EnhancedAdminLayout = () => {
     if (path.includes('/grades')) return 'Grades';
     if (path.includes('/users')) return 'User Management';
     if (path.includes('/queries')) return 'User Queries';
-    if (path.includes('/marketplace')) return 'Marketplace';
+    if (path.includes('/marketplace')) return 'Marketplace Management';
     if (path.includes('/ads')) return 'Advertisements';
     if (path.includes('/achievements')) return 'Achievements';
     if (path.includes('/payments')) return 'Payment Verification';
     if (path.includes('/wallets')) return 'Wallet Management';
-    if (path.includes('/events')) return 'Event Management';
+    if (path.includes('/events')) return 'Events Management';
+    if (path.includes('/merch')) return 'Merchandise Management';
     if (path.includes('/referrals')) return 'Referral Program';
     if (path.includes('/analytics')) return 'Analytics';
     if (path.includes('/settings')) return 'Settings';
@@ -97,7 +99,8 @@ const EnhancedAdminLayout = () => {
             <Route path="/achievements" element={<AchievementsPage />} />
             <Route path="/payments" element={<PaymentVerificationManager />} />
             <Route path="/wallets" element={<WalletManagementPanel />} />
-            <Route path="/events" element={<EventCalendar />} />
+            <Route path="/events" element={<EventsManager />} />
+            <Route path="/merch" element={<MerchManager />} />
             <Route path="/referrals" element={<ReferralProgram />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<AdminSettings />} />

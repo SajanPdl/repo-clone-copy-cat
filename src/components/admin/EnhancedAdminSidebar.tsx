@@ -81,6 +81,12 @@ const EnhancedAdminSidebar = ({ collapsed = false, setCollapsed }: EnhancedAdmin
       path: '/admin/marketplace'
     },
     {
+      name: 'Merchandise',
+      icon: Tag,
+      id: 'merch',
+      path: '/admin/merch'
+    },
+    {
       name: 'Payment Verification',
       icon: Receipt,
       id: 'payments',

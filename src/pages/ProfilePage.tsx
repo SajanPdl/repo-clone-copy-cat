@@ -1,20 +1,30 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import ProfileManager from '@/components/profile/ProfileManager';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { StudentSidebar } from '@/components/StudentSidebar';
+import GlobalHeader from '@/components/GlobalHeader';
+import UserProfile from '@/components/UserProfile';
 
 const ProfilePage = () => {
   return (
-    <div className="min-h-screen w-full flex flex-col">
-      <Navbar />
-      <main className="flex-grow py-8 w-full">
-        <div className="w-full px-4">
-          <h1 className="text-3xl font-bold mb-8 text-center">User Profile</h1>
-          <ProfileManager />
+    <div className="min-h-screen bg-gray-50">
+      <GlobalHeader />
+      <SidebarProvider>
+        <div className="flex w-full">
+          <StudentSidebar />
+          <SidebarInset className="flex-1">
+            <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <SidebarTrigger className="lg:hidden" />
+                <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+              </div>
+            </header>
+            <main className="p-6">
+              <UserProfile />
+            </main>
+          </SidebarInset>
         </div>
-      </main>
-      <Footer />
+      </SidebarProvider>
     </div>
   );
 };

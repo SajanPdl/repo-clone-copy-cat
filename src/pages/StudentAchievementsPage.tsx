@@ -1,20 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { StudentSidebar } from '@/components/StudentSidebar';
+import GlobalHeader from '@/components/GlobalHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/hooks/useAuth';
+import { Trophy, Star, Award, Medal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Trophy, Award, Medal, Star, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface Achievement {
   id: string;
   name: string;
   description: string;
-  points_required: number;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
   icon: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  points_required: number;
   is_system_generated: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface UserAchievement {
@@ -25,101 +30,87 @@ interface UserAchievement {
   achievement: Achievement;
 }
 
-const rarityColors = {
-  common: 'bg-gray-500',
-  rare: 'bg-blue-500',
-  epic: 'bg-purple-500',
-  legendary: 'bg-yellow-500'
-};
-
-const rarityIcons = {
-  common: Star,
-  rare: Medal,
-  epic: Award,
-  legendary: Trophy
-};
-
 const StudentAchievementsPage = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
-  const [userPoints, setUserPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchAchievements();
-      fetchUserAchievements();
-      fetchUserPoints();
     }
   }, [user]);
 
   const fetchAchievements = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch all achievements
+      const { data: allAchievements, error: achievementsError } = await supabase
         .from('achievements')
         .select('*')
         .order('points_required', { ascending: true });
 
-      if (error) throw error;
-      
-      // Type cast the rarity field
-      const typedAchievements = (data || []).map(achievement => ({
+      if (achievementsError) throw achievementsError;
+
+      // Type assertion to ensure proper typing
+      const typedAchievements = (allAchievements || []).map(achievement => ({
         ...achievement,
         rarity: achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
       }));
-      
+
       setAchievements(typedAchievements);
-    } catch (error) {
-      console.error('Error fetching achievements:', error);
-    }
-  };
 
-  const fetchUserAchievements = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
+      // Fetch user achievements
+      const { data: userAchievementsData, error: userAchievementsError } = await supabase
         .from('user_achievements')
         .select(`
           *,
           achievement:achievements(*)
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user?.id);
 
-      if (error) throw error;
-      
-      // Type cast the nested achievement data
-      const typedUserAchievements = (data || []).map(userAchievement => ({
+      if (userAchievementsError) throw userAchievementsError;
+
+      const typedUserAchievements = (userAchievementsData || []).map(userAchievement => ({
         ...userAchievement,
         achievement: {
           ...userAchievement.achievement,
           rarity: userAchievement.achievement.rarity as 'common' | 'rare' | 'epic' | 'legendary'
         }
       }));
-      
+
       setUserAchievements(typedUserAchievements);
+
     } catch (error) {
-      console.error('Error fetching user achievements:', error);
+      console.error('Error fetching achievements:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load achievements',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchUserPoints = async () => {
-    if (!user) return;
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'bg-gray-100 text-gray-800';
+      case 'rare': return 'bg-blue-100 text-blue-800';
+      case 'epic': return 'bg-purple-100 text-purple-800';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-    try {
-      const { data, error } = await supabase
-        .from('student_profiles')
-        .select('points')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setUserPoints(data?.points || 0);
-    } catch (error) {
-      console.error('Error fetching user points:', error);
-    } finally {
-      setLoading(false);
+  const getAchievementIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'trophy': return Trophy;
+      case 'star': return Star;
+      case 'award': return Award;
+      case 'medal': return Medal;
+      default: return Trophy;
     }
   };
 
@@ -127,137 +118,129 @@ const StudentAchievementsPage = () => {
     return userAchievements.some(ua => ua.achievement_id === achievementId);
   };
 
-  const canEarnAchievement = (achievement: Achievement) => {
-    return userPoints >= achievement.points_required && !isAchievementEarned(achievement.id);
-  };
-
-  const getProgressPercentage = (achievement: Achievement) => {
-    if (isAchievementEarned(achievement.id)) return 100;
-    return Math.min((userPoints / achievement.points_required) * 100, 100);
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen bg-gray-50">
+        <GlobalHeader />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Achievements</h1>
-          <p className="text-gray-600">Track your progress and unlock achievements</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600">Current Points</p>
-          <p className="text-2xl font-bold text-blue-600">{userPoints}</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <GlobalHeader />
+      <SidebarProvider>
+        <div className="flex w-full">
+          <StudentSidebar />
+          <SidebarInset className="flex-1">
+            <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <SidebarTrigger className="lg:hidden" />
+                <h1 className="text-xl font-semibold text-gray-900">Achievements</h1>
+              </div>
+            </header>
+            <main className="p-6">
+              <div className="space-y-6">
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Total Earned</p>
+                          <p className="text-2xl font-bold">{userAchievements.length}</p>
+                        </div>
+                        <Trophy className="h-8 w-8 text-yellow-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Available</p>
+                          <p className="text-2xl font-bold">{achievements.length}</p>
+                        </div>
+                        <Star className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Progress</p>
+                          <p className="text-2xl font-bold">
+                            {Math.round((userAchievements.length / achievements.length) * 100)}%
+                          </p>
+                        </div>
+                        <Award className="h-8 w-8 text-green-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-      {/* Earned Achievements */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Earned Achievements ({userAchievements.length})</h2>
-        {userAchievements.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userAchievements.map((userAchievement) => {
-              const achievement = userAchievement.achievement;
-              const Icon = rarityIcons[achievement.rarity];
-              return (
-                <Card key={userAchievement.id} className="relative overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-16 h-16 ${rarityColors[achievement.rarity]} transform rotate-45 translate-x-4 -translate-y-4`} />
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`p-2 ${rarityColors[achievement.rarity]} rounded-full`}>
-                        <Icon className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                        <Badge variant="outline" className={`${rarityColors[achievement.rarity]} text-white text-xs`}>
-                          {achievement.rarity}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
-                    <div className="flex justify-between items-center text-xs">
-                      <span>Points Required: {achievement.points_required}</span>
-                      <span className="text-green-600">Earned!</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Earned on {new Date(userAchievement.earned_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Trophy className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No achievements yet</h3>
-              <p className="text-gray-600">Start earning points to unlock your first achievement!</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Available Achievements */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Available Achievements</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {achievements
-            .filter(achievement => !isAchievementEarned(achievement.id))
-            .map((achievement) => {
-              const Icon = rarityIcons[achievement.rarity];
-              const progress = getProgressPercentage(achievement);
-              const canEarn = canEarnAchievement(achievement);
-              
-              return (
-                <Card key={achievement.id} className={`relative ${canEarn ? 'border-green-300' : 'border-gray-200'}`}>
-                  {canEarn && (
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-green-500">Ready to Earn!</Badge>
-                    </div>
-                  )}
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`p-2 ${progress < 100 ? 'bg-gray-400' : rarityColors[achievement.rarity]} rounded-full`}>
-                        {progress < 100 ? (
-                          <Lock className="h-6 w-6 text-white" />
-                        ) : (
-                          <Icon className="h-6 w-6 text-white" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                        <Badge variant="outline" className={`${rarityColors[achievement.rarity]} text-white text-xs`}>
-                          {achievement.rarity}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span>Progress: {userPoints} / {achievement.points_required} points</span>
-                        <span>{Math.round(progress)}%</span>
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                      {progress < 100 && (
-                        <p className="text-xs text-gray-500">
-                          {achievement.points_required - userPoints} more points needed
-                        </p>
-                      )}
+                {/* Achievements Grid */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>All Achievements</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {achievements.map((achievement) => {
+                        const IconComponent = getAchievementIcon(achievement.icon);
+                        const earned = isAchievementEarned(achievement.id);
+                        
+                        return (
+                          <div
+                            key={achievement.id}
+                            className={`p-4 rounded-lg border transition-all ${
+                              earned 
+                                ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' 
+                                : 'bg-gray-50 border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className={`p-2 rounded-full ${earned ? 'bg-yellow-200' : 'bg-gray-200'}`}>
+                                <IconComponent 
+                                  className={`h-6 w-6 ${earned ? 'text-yellow-700' : 'text-gray-500'}`} 
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-gray-900">{achievement.name}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{achievement.description}</p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={getRarityColor(achievement.rarity)}
+                                  >
+                                    {achievement.rarity}
+                                  </Badge>
+                                  <span className="text-xs text-gray-500">
+                                    {achievement.points_required} pts
+                                  </span>
+                                </div>
+                                {earned && (
+                                  <Badge className="mt-2 bg-green-100 text-green-800">
+                                    Earned!
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
-              );
-            })}
+              </div>
+            </main>
+          </SidebarInset>
         </div>
-      </div>
+      </SidebarProvider>
     </div>
   );
 };
