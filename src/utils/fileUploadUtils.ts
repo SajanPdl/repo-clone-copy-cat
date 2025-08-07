@@ -158,7 +158,7 @@ export const getUserUploads = async (): Promise<FileUpload[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as FileUpload[];
   } catch (error) {
     console.error('Error fetching user uploads:', error);
     throw error;

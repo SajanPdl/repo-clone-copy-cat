@@ -14,7 +14,8 @@ import {
   ShoppingCart,
   LogOut,
   Settings,
-  Bell
+  Bell,
+  Shield
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const GlobalHeader = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -53,7 +54,7 @@ const GlobalHeader = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-blue-600">EduSanskriti</span>
+              <span className="text-2xl font-bold text-blue-600">MeroAcademy</span>
             </Link>
           </div>
 
@@ -87,20 +88,29 @@ const GlobalHeader = () => {
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{user.email}</p>
                       <Badge variant="secondary" className="w-fit text-xs">
-                        Student
+                        {isAdmin ? 'Admin' : 'Student'}
                       </Badge>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
+                  
+                  {isAdmin ? (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Admin Panel</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard/inbox')}>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
                     <Bell className="mr-2 h-4 w-4" />
                     <span>Messages</span>
                   </DropdownMenuItem>
