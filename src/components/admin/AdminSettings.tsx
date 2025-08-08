@@ -42,6 +42,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { fetchRealNepaliDate } from '@/utils/nepaliDate';
+import { uploadSettingFile } from '@/utils/settingsUtils';
 
 import {
   fetchAllSettings,
@@ -398,7 +399,28 @@ const AdminSettings = () => {
                 <Label htmlFor="logoUrl">Logo Upload</Label>
                 <div className="flex items-center gap-4">
                   <img src={generalSettings.logoUrl} alt="Logo" className="w-12 h-12 object-cover rounded" />
-                  <Button variant="outline" size="sm">
+                  <input
+                    id="logo-upload-input"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const url = await uploadSettingFile(file, 'logo_url', 'site-assets', 'branding');
+                        setGeneralSettings((prev) => ({ ...prev, logoUrl: url }));
+                        toast({ title: 'Logo uploaded', description: 'Logo updated successfully.' });
+                      } catch (err) {
+                        toast({ title: 'Error', description: 'Failed to upload logo', variant: 'destructive' });
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('logo-upload-input')?.click()}
+                  >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Logo
                   </Button>
@@ -473,7 +495,28 @@ const AdminSettings = () => {
                 <Label htmlFor="faviconUrl">Favicon Upload</Label>
                 <div className="flex items-center gap-4">
                   <img src={seoSettings.faviconUrl} alt="Favicon" className="w-8 h-8 object-cover" />
-                  <Button variant="outline" size="sm">
+                  <input
+                    id="favicon-upload-input"
+                    type="file"
+                    accept="image/x-icon,image/png,image/svg+xml"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const url = await uploadSettingFile(file, 'favicon_url', 'site-assets', 'branding');
+                        setSeoSettings((prev) => ({ ...prev, faviconUrl: url }));
+                        toast({ title: 'Favicon uploaded', description: 'Favicon updated successfully.' });
+                      } catch (err) {
+                        toast({ title: 'Error', description: 'Failed to upload favicon', variant: 'destructive' });
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('favicon-upload-input')?.click()}
+                  >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Favicon
                   </Button>
