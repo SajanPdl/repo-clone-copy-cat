@@ -43,33 +43,37 @@ import {
 } from 'lucide-react';
 import { fetchRealNepaliDate } from '@/utils/nepaliDate';
 
+import {
+  fetchAllSettings,
+  upsertSettings,
+  SiteSetting
+} from '@/utils/settingsUtils';
+
 const AdminSettings = () => {
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
-  
+
   // General Settings
   const [generalSettings, setGeneralSettings] = useState({
-    siteName: 'EduSanskriti',
-    siteDescription: 'Educational platform for students',
+    siteName: '',
+    siteDescription: '',
     defaultLanguage: 'en',
     theme: 'light',
     maintenanceMode: false,
-    logoUrl: '/logo.png'
+    logoUrl: ''
   });
-
   // SEO Settings
   const [seoSettings, setSeoSettings] = useState({
-    metaTitle: 'EduSanskriti - Learn & Grow',
-    metaDescription: 'Best educational platform for Nepali students',
-    faviconUrl: '/favicon.ico',
-    ogImage: '/og-image.jpg',
-    ogTitle: 'EduSanskriti',
-    ogDescription: 'Educational platform for students',
+    metaTitle: '',
+    metaDescription: '',
+    faviconUrl: '',
+    ogImage: '',
+    ogTitle: '',
+    ogDescription: '',
     googleAnalyticsId: '',
     enableSitemap: true
   });
-
   // Payment Settings
   const [paymentSettings, setPaymentSettings] = useState({
     enablePaidPlans: true,
@@ -82,34 +86,96 @@ const AdminSettings = () => {
     esewaId: '',
     currency: 'NPR'
   });
-
   // Email Configuration
   const [emailSettings, setEmailSettings] = useState({
     smtpHost: '',
     smtpPort: 587,
     smtpUsername: '',
     smtpPassword: '',
-    senderName: 'EduSanskriti',
-    senderEmail: 'no-reply@edusanskriti.com',
+    senderName: '',
+    senderEmail: '',
     enableTLS: true
   });
-
   // Footer & Contact
   const [contactSettings, setContactSettings] = useState({
-    contactEmail: 'contact@edusanskriti.com',
-    contactPhone: '+977-1-4567890',
+    contactEmail: '',
+    contactPhone: '',
     facebookUrl: '',
     linkedinUrl: '',
     discordUrl: '',
-    footerText: '© 2024 EduSanskriti. All rights reserved.'
+    footerText: ''
   });
-
   // Backup & Version
   const [systemSettings, setSystemSettings] = useState({
-    currentVersion: '1.0.0',
+    currentVersion: '',
     autoBackupFrequency: 'daily',
     changeLog: ''
   });
+
+  // Load settings from DB on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const all = await fetchAllSettings();
+        // Helper to get value by key or fallback
+        const get = (key: string, fallback: any) => all.find(s => s.setting_key === key)?.setting_value ?? fallback;
+        setGeneralSettings({
+          siteName: get('site_name', 'EduSanskriti'),
+          siteDescription: get('site_description', 'Educational platform for students'),
+          defaultLanguage: get('default_language', 'en'),
+          theme: get('theme', 'light'),
+          maintenanceMode: get('maintenance_mode', 'false') === 'true',
+          logoUrl: get('logo_url', '/logo.png')
+        });
+        setSeoSettings({
+          metaTitle: get('meta_title', 'EduSanskriti - Learn & Grow'),
+          metaDescription: get('meta_description', 'Best educational platform for Nepali students'),
+          faviconUrl: get('favicon_url', '/favicon.ico'),
+          ogImage: get('og_image', '/og-image.jpg'),
+          ogTitle: get('og_title', 'EduSanskriti'),
+          ogDescription: get('og_description', 'Educational platform for students'),
+          googleAnalyticsId: get('google_analytics_id', ''),
+          enableSitemap: get('enable_sitemap', 'true') === 'true'
+        });
+        setPaymentSettings({
+          enablePaidPlans: get('enable_paid_plans', 'true') === 'true',
+          enableStripe: get('enable_stripe', 'false') === 'true',
+          enableKhalti: get('enable_khalti', 'false') === 'true',
+          enableEsewa: get('enable_esewa', 'false') === 'true',
+          stripePublicKey: get('stripe_public_key', ''),
+          stripeSecretKey: get('stripe_secret_key', ''),
+          khaltiPublicKey: get('khalti_public_key', ''),
+          esewaId: get('esewa_id', ''),
+          currency: get('currency', 'NPR')
+        });
+        setEmailSettings({
+          smtpHost: get('smtp_host', ''),
+          smtpPort: parseInt(get('smtp_port', '587')), 
+          smtpUsername: get('smtp_username', ''),
+          smtpPassword: get('smtp_password', ''),
+          senderName: get('sender_name', 'EduSanskriti'),
+          senderEmail: get('sender_email', 'no-reply@edusanskriti.com'),
+          enableTLS: get('enable_tls', 'true') === 'true'
+        });
+        setContactSettings({
+          contactEmail: get('contact_email', 'contact@edusanskriti.com'),
+          contactPhone: get('contact_phone', '+977-1-4567890'),
+          facebookUrl: get('facebook_url', ''),
+          linkedinUrl: get('linkedin_url', ''),
+          discordUrl: get('discord_url', ''),
+          footerText: get('footer_text', '© 2024 EduSanskriti. All rights reserved.')
+        });
+        setSystemSettings({
+          currentVersion: get('current_version', '1.0.0'),
+          autoBackupFrequency: get('auto_backup_frequency', 'daily'),
+          changeLog: get('change_log', '')
+        });
+      } catch (e) {
+        toast({ title: 'Error', description: 'Failed to load settings', variant: 'destructive' });
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Update Nepali time
   useEffect(() => {
@@ -170,11 +236,81 @@ const AdminSettings = () => {
     }));
   };
 
-  const handleSaveSettings = (section: string) => {
-    toast({
-      title: "Settings Saved",
-      description: `${section} settings have been updated successfully.`,
-    });
+
+  // Save settings to DB
+  const handleSaveSettings = async (section: string) => {
+    let settings: SiteSetting[] = [];
+    if (section === 'General') {
+      settings = [
+        { setting_key: 'site_name', setting_value: generalSettings.siteName },
+        { setting_key: 'site_description', setting_value: generalSettings.siteDescription },
+        { setting_key: 'default_language', setting_value: generalSettings.defaultLanguage },
+        { setting_key: 'theme', setting_value: generalSettings.theme },
+        { setting_key: 'maintenance_mode', setting_value: generalSettings.maintenanceMode ? 'true' : 'false' },
+        { setting_key: 'logo_url', setting_value: generalSettings.logoUrl }
+      ];
+    } else if (section === 'SEO') {
+      settings = [
+        { setting_key: 'meta_title', setting_value: seoSettings.metaTitle },
+        { setting_key: 'meta_description', setting_value: seoSettings.metaDescription },
+        { setting_key: 'favicon_url', setting_value: seoSettings.faviconUrl },
+        { setting_key: 'og_image', setting_value: seoSettings.ogImage },
+        { setting_key: 'og_title', setting_value: seoSettings.ogTitle },
+        { setting_key: 'og_description', setting_value: seoSettings.ogDescription },
+        { setting_key: 'google_analytics_id', setting_value: seoSettings.googleAnalyticsId },
+        { setting_key: 'enable_sitemap', setting_value: seoSettings.enableSitemap ? 'true' : 'false' }
+      ];
+    } else if (section === 'Payment') {
+      settings = [
+        { setting_key: 'enable_paid_plans', setting_value: paymentSettings.enablePaidPlans ? 'true' : 'false' },
+        { setting_key: 'enable_stripe', setting_value: paymentSettings.enableStripe ? 'true' : 'false' },
+        { setting_key: 'enable_khalti', setting_value: paymentSettings.enableKhalti ? 'true' : 'false' },
+        { setting_key: 'enable_esewa', setting_value: paymentSettings.enableEsewa ? 'true' : 'false' },
+        { setting_key: 'stripe_public_key', setting_value: paymentSettings.stripePublicKey },
+        { setting_key: 'stripe_secret_key', setting_value: paymentSettings.stripeSecretKey },
+        { setting_key: 'khalti_public_key', setting_value: paymentSettings.khaltiPublicKey },
+        { setting_key: 'esewa_id', setting_value: paymentSettings.esewaId },
+        { setting_key: 'currency', setting_value: paymentSettings.currency }
+      ];
+    } else if (section === 'Email') {
+      settings = [
+        { setting_key: 'smtp_host', setting_value: emailSettings.smtpHost },
+        { setting_key: 'smtp_port', setting_value: emailSettings.smtpPort.toString() },
+        { setting_key: 'smtp_username', setting_value: emailSettings.smtpUsername },
+        { setting_key: 'smtp_password', setting_value: emailSettings.smtpPassword },
+        { setting_key: 'sender_name', setting_value: emailSettings.senderName },
+        { setting_key: 'sender_email', setting_value: emailSettings.senderEmail },
+        { setting_key: 'enable_tls', setting_value: emailSettings.enableTLS ? 'true' : 'false' }
+      ];
+    } else if (section === 'Contact') {
+      settings = [
+        { setting_key: 'contact_email', setting_value: contactSettings.contactEmail },
+        { setting_key: 'contact_phone', setting_value: contactSettings.contactPhone },
+        { setting_key: 'facebook_url', setting_value: contactSettings.facebookUrl },
+        { setting_key: 'linkedin_url', setting_value: contactSettings.linkedinUrl },
+        { setting_key: 'discord_url', setting_value: contactSettings.discordUrl },
+        { setting_key: 'footer_text', setting_value: contactSettings.footerText }
+      ];
+    } else if (section === 'System') {
+      settings = [
+        { setting_key: 'current_version', setting_value: systemSettings.currentVersion },
+        { setting_key: 'auto_backup_frequency', setting_value: systemSettings.autoBackupFrequency },
+        { setting_key: 'change_log', setting_value: systemSettings.changeLog }
+      ];
+    }
+    try {
+      await upsertSettings(settings);
+      toast({
+        title: 'Settings Saved',
+        description: `${section} settings have been updated successfully.`,
+      });
+    } catch (e) {
+      toast({
+        title: 'Error',
+        description: `Failed to save ${section} settings.`,
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleTestEmailConnection = () => {
