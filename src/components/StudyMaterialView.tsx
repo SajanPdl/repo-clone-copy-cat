@@ -123,6 +123,13 @@ const StudyMaterialView = ({ material, type = 'study_material' }: StudyMaterialV
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="mb-6">
+        {isStudyMaterial(material) && (material as any).featured_image && (
+          <img
+            src={(material as any).featured_image}
+            alt={material.title}
+            className="w-full max-h-80 object-cover rounded-lg mb-6"
+          />
+        )}
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">{material.title}</h1>
         
         <div className="flex flex-wrap items-center gap-4 mb-6">

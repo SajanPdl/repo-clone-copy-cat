@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 interface MaterialCardProps {
-  material: StudyMaterial;
+  material: StudyMaterial & { featured_image?: string };
   linkTo?: string;
 }
 
@@ -17,7 +17,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, linkTo }) => {
     <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">
       <div className="relative">
         <img 
-          src="/placeholder.svg"
+          src={(material as any).featured_image || "/placeholder.svg"}
           alt={material.title} 
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />

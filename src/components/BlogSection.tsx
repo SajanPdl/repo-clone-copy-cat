@@ -16,6 +16,7 @@ interface BlogPost {
   category: string;
   featured_image: string;
   created_at: string;
+  slug: string;
 }
 
 const BlogSection = () => {
@@ -36,7 +37,7 @@ const BlogSection = () => {
         .limit(3);
 
       if (error) throw error;
-      setPosts(data || []);
+  setPosts((data as BlogPost[]) || []);
     } catch (error) {
       console.error('Error fetching blog posts:', error);
       // Fallback to dummy data if database fetch fails
@@ -49,7 +50,8 @@ const BlogSection = () => {
           category: "Study Tips",
           featured_image: "/placeholder.svg",
           content: "",
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          slug: "effective-study-techniques-1"
         },
         {
           id: 2,
@@ -59,7 +61,8 @@ const BlogSection = () => {
           category: "Technology",
           featured_image: "/placeholder.svg",
           content: "",
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          slug: "digital-note-taking-2"
         },
         {
           id: 3,
@@ -69,7 +72,8 @@ const BlogSection = () => {
           category: "Exam Prep",
           featured_image: "/placeholder.svg",
           content: "",
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          slug: "preparing-for-competitive-exams-3"
         }
       ]);
     } finally {
@@ -128,7 +132,7 @@ const BlogSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {posts.map((post) => (
-            <Link key={post.id} to={`/blog/${post.id}`} className="block group">
+            <Link key={post.id} to={`/blog/${post.slug}`} className="block group">
               <Card className="h-full hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 cursor-pointer">
                 <div className="aspect-video overflow-hidden rounded-t-lg">
                   <img 
