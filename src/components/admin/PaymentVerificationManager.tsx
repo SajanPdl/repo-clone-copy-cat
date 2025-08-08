@@ -29,40 +29,34 @@ const PaymentVerificationManager = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [processing, setProcessing] = useState(false);
 
+
   useEffect(() => {
     fetchPaymentVerifications();
   }, []);
 
+  // Fetch payment verifications from invoices table
   const fetchPaymentVerifications = async () => {
     setLoading(true);
     try {
-      // Mock data for now
-      const mockVerifications: PaymentVerification[] = [
-        {
-          id: '1',
-          order_id: 'order_123',
-          buyer_id: 'buyer_1',
-          payment_amount: 500,
-          esewa_transaction_id: 'ESW001234567',
-          receipt_file_path: 'receipts/buyer_1/receipt_123.jpg',
-          status: 'pending',
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: '2',
-          order_id: 'order_124',
-          buyer_id: 'buyer_2',
-          payment_amount: 750,
-          esewa_transaction_id: 'ESW001234568',
-          receipt_file_path: 'receipts/buyer_2/receipt_124.jpg',
-          status: 'approved',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          verified_at: new Date(Date.now() - 86400000).toISOString(),
-          admin_notes: 'Payment verified successfully'
-        }
-      ];
-      
-      setVerifications(mockVerifications);
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      // Map invoices to PaymentVerification type
+      const verifications: PaymentVerification[] = (data || []).map((inv: any) => ({
+        id: inv.id,
+        order_id: inv.id,
+        buyer_id: inv.user_id,
+        payment_amount: Number(inv.amount),
+        esewa_transaction_id: inv.items?.esewa_transaction_id || '',
+        receipt_file_path: inv.items?.receipt_file_path || '',
+        status: inv.status === 'paid' ? 'approved' : (inv.status === 'cancelled' ? 'rejected' : 'pending'),
+        created_at: inv.created_at,
+        verified_at: inv.paid_at,
+        admin_notes: inv.items?.admin_notes || ''
+      }));
+      setVerifications(verifications);
     } catch (error) {
       console.error('Error fetching payment verifications:', error);
       toast({
@@ -75,29 +69,49 @@ const PaymentVerificationManager = () => {
     }
   };
 
+
+  // Approve or reject payment by updating invoices table
   const handleVerifyPayment = async (verificationId: string, status: 'approved' | 'rejected') => {
     setProcessing(true);
     try {
-      // Update verification status
-      setVerifications(prev => prev.map(verification => 
-        verification.id === verificationId 
-          ? { 
-              ...verification, 
-              status,
-              verified_at: new Date().toISOString(),
-              admin_notes: adminNotes || undefined
-            }
-          : verification
-      ));
-
+      // Map status to invoice status
+      let invoiceStatus = status === 'approved' ? 'paid' : 'cancelled';
+      // Fetch the current invoice to update items JSON
+      const { data: invoiceData, error: fetchError } = await supabase
+        .from('invoices')
+        .select('items')
+        .eq('id', verificationId)
+        .single();
+      if (fetchError) throw fetchError;
+      let items = invoiceData?.items || {};
+      if (typeof items === 'string') {
+        try {
+          items = JSON.parse(items);
+        } catch {
+          items = {};
+        }
+      }
+      if (typeof items !== 'object' || Array.isArray(items)) {
+        items = {};
+      }
+      items.admin_notes = adminNotes || '';
+      const { error } = await supabase
+        .from('invoices')
+        .update({
+          status: invoiceStatus,
+          paid_at: status === 'approved' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+          items
+        })
+        .eq('id', verificationId);
+      if (error) throw error;
       toast({
         title: 'Success',
         description: `Payment ${status} successfully`,
       });
-
       setSelectedVerification(null);
       setAdminNotes('');
-
+      fetchPaymentVerifications();
     } catch (error) {
       console.error('Error verifying payment:', error);
       toast({
@@ -110,13 +124,18 @@ const PaymentVerificationManager = () => {
     }
   };
 
+
+  // View receipt by opening the file from Supabase Storage (if available)
   const viewReceipt = async (receiptPath: string) => {
     try {
-      // In a real implementation, this would fetch the receipt from storage
-      toast({
-        title: 'Receipt Viewer',
-        description: 'Receipt viewer would open here',
-      });
+      if (!receiptPath) {
+        toast({ title: 'No receipt', description: 'No receipt file available.' });
+        return;
+      }
+      // Generate a public URL for the receipt file
+      const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(receiptPath, 60);
+      if (error || !data?.signedUrl) throw error || new Error('No signed URL');
+      window.open(data.signedUrl, '_blank');
     } catch (error) {
       console.error('Error viewing receipt:', error);
       toast({

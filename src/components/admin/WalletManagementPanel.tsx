@@ -37,56 +37,34 @@ const WalletManagementPanel = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [processing, setProcessing] = useState(false);
 
+
   useEffect(() => {
     fetchWalletData();
   }, []);
 
+  // Fetch withdrawal requests and wallets from Supabase
   const fetchWalletData = async () => {
     setLoading(true);
     try {
-      // Mock data for now
-      const mockRequests: WithdrawalRequest[] = [
-        {
-          id: '1',
-          user_id: 'user_1',
-          amount: 2500,
-          esewa_id: '9841234567',
-          status: 'pending',
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: '2',
-          user_id: 'user_2',
-          amount: 1800,
-          esewa_id: '9861234567',
-          status: 'approved',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          processed_at: new Date(Date.now() - 86400000).toISOString(),
-          admin_notes: 'Payment processed successfully'
-        }
-      ];
+      // Fetch withdrawal requests
+      const { data: requests, error: reqError } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (reqError) throw reqError;
+      // Map seller_id to user_id for compatibility with WithdrawalRequest interface
+      const mappedRequests = (requests || []).map((req: any) => ({
+        ...req,
+        user_id: req.user_id || req.seller_id // fallback to seller_id if user_id missing
+      }));
+      setWithdrawalRequests(mappedRequests);
 
-      const mockWallets: SellerWallet[] = [
-        {
-          id: '1',
-          user_id: 'user_1',
-          balance: 3200,
-          esewa_id: '9841234567',
-          total_earnings: 15000,
-          total_withdrawals: 11800
-        },
-        {
-          id: '2',
-          user_id: 'user_2',
-          balance: 450,
-          esewa_id: '9861234567',
-          total_earnings: 8500,
-          total_withdrawals: 8050
-        }
-      ];
-      
-      setWithdrawalRequests(mockRequests);
-      setWallets(mockWallets);
+      // Fetch seller wallets
+      const { data: wallets, error: walletError } = await supabase
+        .from('seller_wallets')
+        .select('*');
+      if (walletError) throw walletError;
+      setWallets(wallets || []);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       toast({
@@ -99,32 +77,38 @@ const WalletManagementPanel = () => {
     }
   };
 
+
+  // Approve or reject withdrawal request and update wallet balance
   const handleWithdrawalRequest = async (requestId: string, status: 'approved' | 'rejected') => {
     setProcessing(true);
     try {
-      // Update request status
-      setWithdrawalRequests(prev => prev.map(request => 
-        request.id === requestId 
-          ? { 
-              ...request, 
-              status,
-              processed_at: new Date().toISOString(),
-              admin_notes: adminNotes || undefined
-            }
-          : request
-      ));
+      // Update withdrawal request status
+      const { error: updateError } = await supabase
+        .from('withdrawal_requests')
+        .update({
+          status,
+          processed_at: new Date().toISOString(),
+          admin_notes: adminNotes || null
+        })
+        .eq('id', requestId);
+      if (updateError) throw updateError;
 
       // If approved, update wallet balance
       if (status === 'approved' && selectedRequest) {
-        setWallets(prev => prev.map(wallet => 
-          wallet.user_id === selectedRequest.user_id
-            ? { 
-                ...wallet, 
-                balance: wallet.balance - selectedRequest.amount,
-                total_withdrawals: (wallet.total_withdrawals || 0) + selectedRequest.amount
-              }
-            : wallet
-        ));
+        // Find the wallet for this user
+        const wallet = wallets.find(w => w.user_id === selectedRequest.user_id);
+        if (wallet) {
+          const newBalance = Number(wallet.balance) - Number(selectedRequest.amount);
+          const newWithdrawals = (wallet.total_withdrawals || 0) + Number(selectedRequest.amount);
+          const { error: walletError } = await supabase
+            .from('seller_wallets')
+            .update({
+              balance: newBalance,
+              total_withdrawals: newWithdrawals
+            })
+            .eq('id', wallet.id);
+          if (walletError) throw walletError;
+        }
       }
 
       toast({
@@ -134,7 +118,7 @@ const WalletManagementPanel = () => {
 
       setSelectedRequest(null);
       setAdminNotes('');
-
+      fetchWalletData();
     } catch (error) {
       console.error('Error processing withdrawal:', error);
       toast({
