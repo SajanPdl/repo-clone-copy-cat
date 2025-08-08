@@ -25,6 +25,7 @@ interface StudyMaterial {
   file_type?: string;
   tags?: string[];
   author_id?: string;
+  featured_image?: string;
 }
 
 interface StudyMaterialEditorProps {
@@ -55,6 +56,7 @@ const StudyMaterialEditor: React.FC<StudyMaterialEditorProps> = ({
     file_url: '',
     file_type: 'pdf',
     tags: [],
+    featured_image: '',
     ...material
   });
   // Auto-generate slug from title if slug is empty and title changes
@@ -322,6 +324,52 @@ const StudyMaterialEditor: React.FC<StudyMaterialEditorProps> = ({
                 }}
               />
             </div>
+          </div>
+
+          {/* Featured Image Upload */}
+          <div>
+            <Label htmlFor="featured_image">Featured Image</Label>
+            <div className="border-2 border-dashed rounded-md p-4 text-center">
+              <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+              <p className="text-sm text-gray-500">
+                Drag and drop an image, or click to browse
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                id="material-image-upload"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const fileName = `study-material-images/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                  const { error } = await supabase.storage.from('documents').upload(fileName, file, { upsert: false });
+                  if (error) {
+                    toast({ title: 'Image upload failed', variant: 'destructive' });
+                    return;
+                  }
+                  const { data } = supabase.storage.from('documents').getPublicUrl(fileName);
+                  if (data?.publicUrl) {
+                    setFormData((prev) => ({ ...prev, featured_image: data.publicUrl }));
+                    toast({ title: 'Image uploaded' });
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => document.getElementById('material-image-upload')?.click()}
+              >
+                Choose Image
+              </Button>
+            </div>
+            {formData.featured_image && (
+              <div className="mt-4 flex flex-col items-center">
+                <img src={formData.featured_image} alt="Featured" className="h-32 rounded shadow" />
+              </div>
+            )}
           </div>
 
           {/* PDF Upload */}
