@@ -61,13 +61,13 @@ export const upsertSetting = async (setting: SiteSetting): Promise<void> => {
     .upsert({
       ...setting,
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: 'setting_key' });
   if (error) throw error;
 };
 
 export const upsertSettings = async (settings: SiteSetting[]): Promise<void> => {
   const { error } = await supabase
     .from('site_settings')
-    .upsert(settings.map(s => ({ ...s, updated_at: new Date().toISOString() })));
+    .upsert(settings.map(s => ({ ...s, updated_at: new Date().toISOString() })), { onConflict: 'setting_key' });
   if (error) throw error;
 };
