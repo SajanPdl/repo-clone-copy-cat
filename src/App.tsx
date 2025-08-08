@@ -7,6 +7,7 @@ import { AdsProvider } from '@/components/ads/AdsProvider';
 import { SiteSettingsProvider } from '@/contexts/SiteSettingsContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import FloatingAIButton from '@/components/FloatingAIButton';
+import SiteMeta from '@/components/SiteMeta';
 
 // Pages
 import Index from '@/pages/Index';
@@ -62,6 +63,7 @@ function App() {
         <AdsProvider>
           <Router>
             <div className="App">
+              <SiteMeta />
               <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
