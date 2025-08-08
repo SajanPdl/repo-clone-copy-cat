@@ -158,12 +158,7 @@ function App() {
                   <StudentMaterialUploadPage />
                 </ProtectedRoute>
               } />
-              <Route path="/ai-assistant" element={
-                <ProtectedRoute>
-                  <AIAssistantPage />
-                </ProtectedRoute>
-              } />
-
+             
               {/* Protected Admin Routes */}
               <Route path="/admin/*" element={
                 <ProtectedRoute>
