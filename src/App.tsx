@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AdsProvider } from '@/components/ads/AdsProvider';
+import { SiteSettingsProvider } from '@/contexts/SiteSettingsContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import FloatingAIButton from '@/components/FloatingAIButton';
 
@@ -57,10 +58,11 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdsProvider>
-        <Router>
-          <div className="App">
-            <Routes>
+      <SiteSettingsProvider>
+        <AdsProvider>
+          <Router>
+            <div className="App">
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/home" element={<HomePage />} />
@@ -171,11 +173,12 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
             
-            <FloatingAIButton />
-            <Toaster />
-          </div>
-        </Router>
-      </AdsProvider>
+              <FloatingAIButton />
+              <Toaster />
+            </div>
+          </Router>
+        </AdsProvider>
+      </SiteSettingsProvider>
     </QueryClientProvider>
   );
 }
