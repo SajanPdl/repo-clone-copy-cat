@@ -23,7 +23,7 @@ const StudentSavedPage = () => {
 
   const handleItemClick = (bookmark: any) => {
     if (bookmark.content_type === 'study_material') {
-      navigate(`/content/${bookmark.content_id}`);
+      navigate(`/content/${bookmark.slug || bookmark.content_id}`);
     } else if (bookmark.content_type === 'past_paper') {
       navigate(`/past-paper/${bookmark.content_id}`);
     }

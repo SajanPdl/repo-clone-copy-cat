@@ -217,7 +217,7 @@ const PastPapersPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   {(isPremium || !paper.isPremiumPaper) ? (
                                     <Link 
-                                      to={`/content/${paper.id}`}
+                                      to={`/content/${paper.slug || paper.id}`}
                                       className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                                     >
                                       View

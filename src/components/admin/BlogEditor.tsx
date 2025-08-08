@@ -131,6 +131,7 @@ const BlogEditor = () => {
   // New post template
   const newPostTemplate: Omit<BlogPost, 'id'> = {
     title: "",
+    slug: "",
     excerpt: "",
     content: "",
     author: "Admin User",
@@ -140,6 +141,19 @@ const BlogEditor = () => {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
+  // Auto-generate slug from title if slug is empty and title changes
+  useEffect(() => {
+    if (editMode && selectedPost && !selectedPost.slug && selectedPost.title) {
+      const generatedSlug = selectedPost.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+      setSelectedPost(prev => prev ? { ...prev, slug: generatedSlug } : prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPost?.title]);
 
   const calculateReadTime = (content: string) => {
     const wordsPerMinute = 200;
@@ -428,6 +442,21 @@ const BlogEditor = () => {
                     className="w-full"
                     placeholder="Enter a compelling title..."
                   />
+                </div>
+                <div>
+                  <label htmlFor="slug" className="block text-sm font-medium mb-1">
+                    Slug
+                  </label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={selectedPost?.slug || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Auto-generated from title, or edit manually"
+                    autoComplete="off"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">URL-friendly identifier, e.g. <code>my-blog-title</code></div>
                 </div>
                 
                 <div>

@@ -56,6 +56,7 @@ const StudyMaterialsManager = () => {
           .from('study_materials')
           .update({
             title: materialData.title,
+            slug: materialData.slug,
             description: materialData.description,
             subject: materialData.subject,
             grade: materialData.grade,
@@ -78,6 +79,7 @@ const StudyMaterialsManager = () => {
           .from('study_materials')
           .insert([{
             title: materialData.title,
+            slug: materialData.slug,
             description: materialData.description,
             subject: materialData.subject,
             grade: materialData.grade,

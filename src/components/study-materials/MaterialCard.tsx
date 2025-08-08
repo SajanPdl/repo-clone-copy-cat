@@ -11,7 +11,7 @@ interface MaterialCardProps {
 
 const MaterialCard: React.FC<MaterialCardProps> = ({ material, linkTo }) => {
   // Determine the link destination - either use provided linkTo or construct default path
-  const contentLink = linkTo || `/content/${material.id}`;
+  const contentLink = linkTo || `/content/${material.slug}`;
   
   return (
     <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">

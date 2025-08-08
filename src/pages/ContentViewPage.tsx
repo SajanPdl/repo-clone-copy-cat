@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import GlobalHeader from '@/components/GlobalHeader';
 import Footer from '@/components/Footer';
 import StudyMaterialView from '@/components/StudyMaterialView';
-import { fetchStudyMaterialBySlug, fetchPastPaperById } from '@/utils/queryUtils';
+import { fetchStudyMaterialBySlug } from '@/utils/queryUtils';
 import { StudyMaterial, PastPaper } from '@/utils/queryUtils';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,59 +23,25 @@ const ContentViewPage = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
-        
-        // Try to fetch as study material by slug first
-        try {
-          const studyMaterial = await fetchStudyMaterialBySlug(slug);
-          if (studyMaterial) {
-            setContent(studyMaterial);
-            setContentType('study-material');
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.log("Not found as study material, trying as past paper");
-        }
-        
-        // Fallback: try as past paper by id (legacy)
-        const parts = slug.split('-');
-        const id = parts[parts.length - 1];
-        if (id && !isNaN(parseInt(id))) {
-          try {
-            const pastPaper = await fetchPastPaperById(parseInt(id));
-            if (pastPaper) {
-              setContent(pastPaper);
-              setContentType('past-paper');
-              setLoading(false);
-              return;
-            }
-          } catch (err) {
-            console.error("Content not found as past paper either:", err);
-            setError("Content not found");
-          }
+        const studyMaterial = await fetchStudyMaterialBySlug(slug);
+        if (studyMaterial) {
+          setContent(studyMaterial);
+          setContentType('study-material');
         } else {
           setError("Content not found");
         }
-        
       } catch (err) {
-        console.error("Error loading content:", err);
-        setError("Failed to load content");
+        setError("Content not found");
       } finally {
         setLoading(false);
       }
     };
-    
     loadContent();
   }, [slug]);
 
-  const createSlug = (title: string, id: number) => {
-    return title.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '') + '-' + id;
-  };
+
 
   const handleBack = () => {
     if (contentType === 'study-material') {
