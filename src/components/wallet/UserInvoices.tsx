@@ -13,10 +13,12 @@ interface Invoice {
   paid_at?: string;
   created_at: string;
 }
+  import type { Database } from '@/integrations/supabase/types';
 
 const UserInvoices: React.FC = () => {
   const { user } = useAuth();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  type InvoiceRow = import('@/integrations/supabase/types').Database['public']['Tables']['invoices']['Row'];
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,12 +27,18 @@ const UserInvoices: React.FC = () => {
 
   const fetchInvoices = async () => {
     setLoading(true);
+    if (!user?.id) {
+      setInvoices([]);
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from('invoices')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-    if (!error) setInvoices(data || []);
+    if (!error && data) setInvoices(data as InvoiceRow[]);
+    else setInvoices([]);
     setLoading(false);
   };
 
