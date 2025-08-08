@@ -83,7 +83,7 @@ const Navbar = () => {
                 </div>
               )}
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {settings.site_name || 'MeroAcademy'}
+                {settings.site_name || 'EduSanskriti'}
               </span>
             </Link>
           </div>

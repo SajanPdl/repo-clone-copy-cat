@@ -75,7 +75,7 @@ function App() {
               <Route path="/study-material/:id" element={<StudyMaterialPage />} />
               <Route path="/past-papers" element={<PastPapersPage />} />
               <Route path="/past-paper/:id" element={<PastPaperViewPage />} />
-              <Route path="/content/:slug" element={<ContentViewPage />} />
+              <Route path="/content/:id" element={<ContentViewPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/blog/:id" element={<BlogViewPage />} />
               <Route path="/contact" element={<ContactPage />} />

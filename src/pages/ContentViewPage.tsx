@@ -28,99 +28,43 @@ const ContentViewPage = () => {
       try {
         setLoading(true);
         
-        // Import supabase client for slug-based queries
-        const { supabase } = await import('@/integrations/supabase/client');
-        
-        // Try to extract ID from slug format "title-id"
+        // Extract ID from slug (assuming format: "title-id")
         const parts = slug.split('-');
         const id = parts[parts.length - 1];
-        let contentId = null;
         
-        if (id && !isNaN(parseInt(id))) {
-          contentId = parseInt(id);
+        if (!id || isNaN(parseInt(id))) {
+          setError("Invalid content URL");
+          setLoading(false);
+          return;
         }
 
-        // First, try to fetch by ID if available
-        if (contentId) {
-          try {
-            const studyMaterial = await fetchStudyMaterialById(contentId);
+        // Try to fetch as study material first
+        try {
+          const studyMaterial = await fetchStudyMaterialById(parseInt(id));
+          if (studyMaterial) {
             setContent(studyMaterial);
             setContentType('study-material');
             setLoading(false);
             return;
-          } catch {}
-          
-          try {
-            const pastPaper = await fetchPastPaperById(contentId);
+          }
+        } catch (err) {
+          console.log("Not found as study material, trying as past paper");
+        }
+        
+        // Try to fetch as past paper
+        try {
+          const pastPaper = await fetchPastPaperById(parseInt(id));
+          if (pastPaper) {
             setContent(pastPaper);
             setContentType('past-paper');
             setLoading(false);
             return;
-          } catch {}
-        }
-
-        // Fallback: fetch by slug/title
-        const titleSlug = slug.replace(/-/g, ' ');
-        
-        // Try to find in study materials by title
-        const { data: studyMaterials } = await supabase
-          .from('study_materials')
-          .select('*')
-          .ilike('title', `%${titleSlug}%`)
-          .limit(1);
-          
-        if (studyMaterials && studyMaterials.length > 0) {
-          setContent(studyMaterials[0]);
-          setContentType('study-material');
-          setLoading(false);
-          return;
+          }
+        } catch (err) {
+          console.error("Content not found as past paper either:", err);
+          setError("Content not found");
         }
         
-        // Try to find in past papers by title
-        const { data: pastPapers } = await supabase
-          .from('past_papers')
-          .select('*')
-          .ilike('title', `%${titleSlug}%`)
-          .limit(1);
-          
-        if (pastPapers && pastPapers.length > 0) {
-          setContent(pastPapers[0]);
-          setContentType('past-paper');
-          setLoading(false);
-          return;
-        }
-        
-        // If still not found, try a more flexible search
-        const flexibleTitle = titleSlug.replace(/\s+/g, '%');
-        
-        const { data: flexibleStudy } = await supabase
-          .from('study_materials')
-          .select('*')
-          .ilike('title', `%${flexibleTitle}%`)
-          .limit(1);
-          
-        if (flexibleStudy && flexibleStudy.length > 0) {
-          setContent(flexibleStudy[0]);
-          setContentType('study-material');
-          setLoading(false);
-          return;
-        }
-        
-        const { data: flexiblePast } = await supabase
-          .from('past_papers')
-          .select('*')
-          .ilike('title', `%${flexibleTitle}%`)
-          .limit(1);
-          
-        if (flexiblePast && flexiblePast.length > 0) {
-          setContent(flexiblePast[0]);
-          setContentType('past-paper');
-          setLoading(false);
-          return;
-        }
-
-        // If nothing found
-        setError("Content not found");
       } catch (err) {
         console.error("Error loading content:", err);
         setError("Failed to load content");
@@ -128,6 +72,7 @@ const ContentViewPage = () => {
         setLoading(false);
       }
     };
+    
     loadContent();
   }, [slug]);
 

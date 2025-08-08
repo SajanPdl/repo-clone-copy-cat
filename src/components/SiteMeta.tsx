@@ -17,7 +17,7 @@ const SiteMeta = () => {
   }, [settings.favicon_url]);
 
   useEffect(() => {
-    document.title = settings.meta_title || settings.site_name || 'MeroAcademy';
+    document.title = settings.meta_title || settings.site_name || 'EduSanskriti';
     const setMeta = (name: string, content: string) => {
       let tag = document.querySelector(`meta[name='${name}']`) as HTMLMetaElement | null;
       if (!tag) {
