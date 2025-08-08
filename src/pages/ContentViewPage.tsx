@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import GlobalHeader from '@/components/GlobalHeader';
 import Footer from '@/components/Footer';
 import StudyMaterialView from '@/components/StudyMaterialView';
-import { fetchStudyMaterialById, fetchPastPaperById } from '@/utils/queryUtils';
+import { fetchStudyMaterialBySlug, fetchPastPaperById } from '@/utils/queryUtils';
 import { StudyMaterial, PastPaper } from '@/utils/queryUtils';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,19 +27,9 @@ const ContentViewPage = () => {
       try {
         setLoading(true);
         
-        // Extract ID from slug (assuming format: "title-id")
-        const parts = slug.split('-');
-        const id = parts[parts.length - 1];
-        
-        if (!id || isNaN(parseInt(id))) {
-          setError("Invalid content URL");
-          setLoading(false);
-          return;
-        }
-
-        // Try to fetch as study material first
+        // Try to fetch as study material by slug first
         try {
-          const studyMaterial = await fetchStudyMaterialById(parseInt(id));
+          const studyMaterial = await fetchStudyMaterialBySlug(slug);
           if (studyMaterial) {
             setContent(studyMaterial);
             setContentType('study-material');
@@ -51,17 +40,23 @@ const ContentViewPage = () => {
           console.log("Not found as study material, trying as past paper");
         }
         
-        // Try to fetch as past paper
-        try {
-          const pastPaper = await fetchPastPaperById(parseInt(id));
-          if (pastPaper) {
-            setContent(pastPaper);
-            setContentType('past-paper');
-            setLoading(false);
-            return;
+        // Fallback: try as past paper by id (legacy)
+        const parts = slug.split('-');
+        const id = parts[parts.length - 1];
+        if (id && !isNaN(parseInt(id))) {
+          try {
+            const pastPaper = await fetchPastPaperById(parseInt(id));
+            if (pastPaper) {
+              setContent(pastPaper);
+              setContentType('past-paper');
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.error("Content not found as past paper either:", err);
+            setError("Content not found");
           }
-        } catch (err) {
-          console.error("Content not found as past paper either:", err);
+        } else {
           setError("Content not found");
         }
         

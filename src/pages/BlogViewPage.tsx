@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import GlobalHeader from '@/components/GlobalHeader';
@@ -7,6 +6,7 @@ import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchBlogPostBySlug } from '@/utils/queryUtils';
 
 interface BlogPost {
   id: number;
@@ -35,43 +35,20 @@ const BlogViewPage = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
-        // Extract ID from slug (assuming format: "title-id")
-        const parts = slug.split('-');
-        const id = parts[parts.length - 1];
-        let data = null;
-        let fetchError = null;
-        if (id && !isNaN(parseInt(id))) {
-          const res = await supabase
-            .from('blog_posts')
-            .select('*')
-            .eq('id', parseInt(id))
-            .eq('is_published', true)
-            .single();
-          data = res.data;
-          fetchError = res.error;
-        }
-        // Fallback: fetch by slug/title if not found by ID
-        if ((!data || fetchError) && slug) {
-          const titleSlug = slug.replace(/-\d+$/, '').replace(/-/g, ' ');
-          const res = await supabase
-            .from('blog_posts')
-            .select('*')
-            .ilike('title', `%${titleSlug}%`)
-            .eq('is_published', true)
-            .limit(1);
-          if (res.data && res.data.length > 0) {
-            data = res.data[0];
-            fetchError = null;
+        // Fetch by slug
+        try {
+          const post = await fetchBlogPostBySlug(slug);
+          if (post) {
+            setPost(post);
+            setLoading(false);
+            return;
           }
-        }
-        if (fetchError || !data) {
+        } catch (err) {
           setError("Blog post not found");
-        } else {
-          setPost(data);
         }
+        setError("Blog post not found");
       } catch (err) {
         console.error("Error loading blog post:", err);
         setError("Failed to load blog post");

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -194,35 +193,32 @@ export const fetchRecentQueries = async (limit: number = 5): Promise<RecentQuery
   }
 };
 
-// Fetch study material by ID
-export const fetchStudyMaterialById = async (id: number) => {
+// Fetch study material by slug
+export const fetchStudyMaterialBySlug = async (slug: string) => {
   const { data, error } = await supabase
     .from('study_materials')
     .select('*')
-    .eq('id', id)
+    .eq('slug', slug)
     .single();
-
   if (error) {
-    console.error("Error fetching study material:", error);
-    throw new Error("Failed to fetch study material");
+    console.error("Error fetching study material by slug:", error);
+    throw new Error("Failed to fetch study material by slug");
   }
-
   return data;
 };
 
-// Fetch past paper by ID
-export const fetchPastPaperById = async (id: number) => {
+// Fetch blog post by slug
+export const fetchBlogPostBySlug = async (slug: string) => {
   const { data, error } = await supabase
-    .from('past_papers')
+    .from('blog_posts')
     .select('*')
-    .eq('id', id)
+    .eq('slug', slug)
+    .eq('is_published', true)
     .single();
-
   if (error) {
-    console.error("Error fetching past paper:", error);
-    throw new Error("Failed to fetch past paper");
+    console.error("Error fetching blog post by slug:", error);
+    throw new Error("Failed to fetch blog post by slug");
   }
-
   return data;
 };
 

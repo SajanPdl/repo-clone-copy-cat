@@ -16,6 +16,7 @@ import 'react-quill/dist/quill.snow.css';
 interface StudyMaterial {
   id?: number;
   title: string;
+  slug?: string;
   description?: string;
   subject: string;
   grade: string;
@@ -46,6 +47,7 @@ const StudyMaterialEditor: React.FC<StudyMaterialEditorProps> = ({
 
   const [formData, setFormData] = useState<StudyMaterial>({
     title: '',
+    slug: '',
     description: '',
     subject: '',
     grade: '',
@@ -55,6 +57,19 @@ const StudyMaterialEditor: React.FC<StudyMaterialEditorProps> = ({
     tags: [],
     ...material
   });
+  // Auto-generate slug from title if slug is empty and title changes
+  useEffect(() => {
+    if (!formData.slug && formData.title) {
+      const generatedSlug = formData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+      setFormData(prev => ({ ...prev, slug: generatedSlug }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.title]);
 
   const [tagInput, setTagInput] = useState('');
 
@@ -229,6 +244,19 @@ const StudyMaterialEditor: React.FC<StudyMaterialEditorProps> = ({
                 placeholder="Enter material title"
                 className="mt-1"
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={formData.slug || ''}
+                onChange={(e) => handleInputChange('slug', e.target.value)}
+                placeholder="Auto-generated from title, or edit manually"
+                className="mt-1"
+                autoComplete="off"
+              />
+              <div className="text-xs text-gray-500 mt-1">URL-friendly identifier, e.g. <code>my-material-title</code></div>
             </div>
 
             <div>
