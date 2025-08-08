@@ -30,6 +30,8 @@ import EventsPage from '@/pages/EventsPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import ReferralPage from '@/pages/ReferralPage';
 
+import StudyAssistantPage from '@/pages/StudyAssistantPage';
+
 // Student Dashboard Pages
 import StudentDashboard from '@/pages/StudentDashboard';
 import DashboardOverview from '@/pages/DashboardOverview';
@@ -156,6 +158,13 @@ function App() {
               <Route path="/upload-material" element={
                 <ProtectedRoute>
                   <StudentMaterialUploadPage />
+                </ProtectedRoute>
+              } />
+
+              {/* Study Assistant Route */}
+              <Route path="/study-assistant" element={
+                <ProtectedRoute>
+                  <StudyAssistantPage />
                 </ProtectedRoute>
               } />
              
