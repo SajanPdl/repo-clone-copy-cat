@@ -164,7 +164,7 @@ const StudyMaterialView = ({ material, type = 'study_material' }: StudyMaterialV
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
                   <User className="h-4 w-4 mr-2" />
-                  EduSanskriti Team
+                  MeroAcademy Team
                 </span>
               </>
             )

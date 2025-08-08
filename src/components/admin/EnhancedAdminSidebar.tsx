@@ -242,7 +242,7 @@ const EnhancedAdminSidebar = ({ collapsed = false, setCollapsed }: EnhancedAdmin
         {!collapsed && (
           <div>
             <h2 className="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-              EduSanskriti Admin
+              MeroAcademy Admin
             </h2>
             <p className="text-indigo-300 text-sm">Management Panel</p>
           </div>

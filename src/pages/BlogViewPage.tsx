@@ -38,30 +38,40 @@ const BlogViewPage = () => {
 
       try {
         setLoading(true);
-        
         // Extract ID from slug (assuming format: "title-id")
         const parts = slug.split('-');
         const id = parts[parts.length - 1];
-        
-        if (!id || isNaN(parseInt(id))) {
-          setError("Invalid blog post URL");
-          setLoading(false);
-          return;
+        let data = null;
+        let fetchError = null;
+        if (id && !isNaN(parseInt(id))) {
+          const res = await supabase
+            .from('blog_posts')
+            .select('*')
+            .eq('id', parseInt(id))
+            .eq('is_published', true)
+            .single();
+          data = res.data;
+          fetchError = res.error;
         }
-
-        const { data, error: fetchError } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('id', parseInt(id))
-          .eq('is_published', true)
-          .single();
-
+        // Fallback: fetch by slug/title if not found by ID
+        if ((!data || fetchError) && slug) {
+          const titleSlug = slug.replace(/-\d+$/, '').replace(/-/g, ' ');
+          const res = await supabase
+            .from('blog_posts')
+            .select('*')
+            .ilike('title', `%${titleSlug}%`)
+            .eq('is_published', true)
+            .limit(1);
+          if (res.data && res.data.length > 0) {
+            data = res.data[0];
+            fetchError = null;
+          }
+        }
         if (fetchError || !data) {
           setError("Blog post not found");
         } else {
           setPost(data);
         }
-        
       } catch (err) {
         console.error("Error loading blog post:", err);
         setError("Failed to load blog post");
@@ -69,7 +79,6 @@ const BlogViewPage = () => {
         setLoading(false);
       }
     };
-    
     loadBlogPost();
   }, [slug]);
 

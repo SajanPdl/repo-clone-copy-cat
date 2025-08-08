@@ -35,7 +35,7 @@ CREATE TABLE public.blog_posts (
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   excerpt TEXT,
-  author TEXT DEFAULT 'EduSanskriti Team',
+  author TEXT DEFAULT 'MeroAcademy Team',
   category TEXT DEFAULT 'Education',
   featured_image TEXT,
   is_published BOOLEAN DEFAULT true,
@@ -172,7 +172,7 @@ INSERT INTO public.blog_posts (title, content, excerpt, author, category, featur
 ('How to Prepare for CBSE Board Exams 2024', 'Board exams are a crucial milestone in every student''s academic journey. Here are some effective strategies to help you prepare...', 'Essential tips and strategies for CBSE board exam preparation', 'Dr. Priya Sharma', 'Exam Preparation', '/blog-images/board-exam-prep.jpg'),
 ('Top 10 Study Tips for Mathematics', 'Mathematics can be challenging, but with the right approach, it becomes much easier. Here are our top 10 study tips...', 'Proven strategies to excel in mathematics', 'Prof. Rajesh Kumar', 'Study Tips', '/blog-images/math-tips.jpg'),
 ('Career Options After 12th Science', 'Choosing the right career path after 12th grade is crucial. Explore various options in science stream...', 'Comprehensive guide to career choices in science stream', 'Career Counselor Team', 'Career Guidance', '/blog-images/career-science.jpg'),
-('Importance of Regular Practice in Studies', 'Regular practice is the key to academic success. Learn how consistent study habits can transform your performance...', 'Why regular practice is essential for academic success', 'EduSanskriti Team', 'Study Habits', '/blog-images/regular-practice.jpg'),
+('Importance of Regular Practice in Studies', 'Regular practice is the key to academic success. Learn how consistent study habits can transform your performance...', 'Why regular practice is essential for academic success', 'MeroAcademy Team', 'Study Habits', '/blog-images/regular-practice.jpg'),
 ('Digital Learning vs Traditional Learning', 'Compare the benefits and challenges of digital and traditional learning methods...', 'Analysis of modern vs traditional education approaches', 'Dr. Meera Patel', 'Education Technology', '/blog-images/digital-vs-traditional.jpg');
 
 -- Insert demo advertisements

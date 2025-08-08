@@ -98,7 +98,7 @@ const Hero = () => {
                     {/* App header - updated to Nepal flag colors */}
                     <div className="bg-gradient-to-r from-[#DC143C] to-[#003893] p-4 text-white">
                       <div className="flex justify-between items-center">
-                        <h3 className="font-bold">EduSanskriti</h3>
+                        <h3 className="font-bold">MeroAcademy</h3>
                         <div className="flex space-x-2">
                           <Search className="h-5 w-5" />
                           <Bell className="h-5 w-5" />

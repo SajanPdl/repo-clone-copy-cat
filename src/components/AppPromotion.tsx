@@ -17,7 +17,7 @@ const AppPromotion = () => {
             </h2>
             
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-              Download the EduSanskriti mobile app and access all study materials, past papers, and educational resources on the go. Study offline, set reminders, and track your progress.
+              Download the MeroAcademy mobile app and access all study materials, past papers, and educational resources on the go. Study offline, set reminders, and track your progress.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -89,7 +89,7 @@ const AppPromotion = () => {
                       <div className="flex items-center justify-between text-white">
                         <div className="flex items-center gap-2">
                           <BookOpen className="h-5 w-5" />
-                          <span className="font-semibold">EduSanskriti</span>
+                          <span className="font-semibold">MeroAcademy</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Search className="h-4 w-4" />

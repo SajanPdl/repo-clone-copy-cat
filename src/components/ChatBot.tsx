@@ -39,7 +39,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi there! I'm your EduSanskriti AI study assistant powered by OpenAI. How can I help with your studies today?",
+      text: "Hi there! I'm your MeroAcademy AI study assistant powered by OpenAI. How can I help with your studies today?",
       sender: 'bot',
       timestamp: new Date()
     }

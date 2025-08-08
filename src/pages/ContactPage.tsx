@@ -67,8 +67,8 @@ const ContactPage = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Our team is here to help you with any questions.
               </p>
-              <a href="mailto:info@edusanskriti.com" className="text-edu-purple hover:text-edu-indigo transition-colors">
-                info@edusanskriti.com
+              <a href="mailto:info@MeroAcademy.com" className="text-edu-purple hover:text-edu-indigo transition-colors">
+                info@MeroAcademy.com
               </a>
             </div>
             

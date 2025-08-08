@@ -164,7 +164,7 @@ const AdminSidebar = ({ collapsed = false, setCollapsed }: AdminSidebarProps) =>
       )}>
         {!collapsed && (
           <div>
-            <h2 className="text-xl font-bold">EduSanskriti</h2>
+            <h2 className="text-xl font-bold">MeroAcademy</h2>
             <p className="text-indigo-300 text-sm">Admin Dashboard</p>
           </div>
         )}
@@ -238,7 +238,7 @@ const AdminSidebar = ({ collapsed = false, setCollapsed }: AdminSidebarProps) =>
             </div>
             <div>
               <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-indigo-300">admin@edusanskriti.com</p>
+              <p className="text-xs text-indigo-300">admin@MeroAcademy.com</p>
             </div>
           </div>
         ) : (

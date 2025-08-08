@@ -40,7 +40,7 @@ const MarketplaceFeature = () => {
             New Feature
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            EduSanskriti Marketplace
+            MeroAcademy Marketplace
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Join our thriving academic marketplace where students and educators buy, sell, 

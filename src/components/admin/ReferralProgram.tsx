@@ -152,11 +152,11 @@ const ReferralProgram = () => {
     if (!stats) return;
     
     const referralLink = `${window.location.origin}/?ref=${stats.referral_code}`;
-    const shareText = `Join EduSanskriti using my referral code ${stats.referral_code} and get started with amazing study resources! ${referralLink}`;
+    const shareText = `Join MeroAcademy using my referral code ${stats.referral_code} and get started with amazing study resources! ${referralLink}`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Join EduSanskriti',
+        title: 'Join MeroAcademy',
         text: shareText,
         url: referralLink,
       });

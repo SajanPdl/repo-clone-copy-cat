@@ -144,7 +144,7 @@ $$;
 
 -- Insert some default achievements
 INSERT INTO public.achievements (name, description, icon, rarity, points_required, is_system_generated) VALUES
-('First Steps', 'Welcome to EduSanskriti! You have started your learning journey.', 'star', 'common', 0, true),
+('First Steps', 'Welcome to MeroAcademy! You have started your learning journey.', 'star', 'common', 0, true),
 ('Getting Started', 'You have earned your first 50 points!', 'trophy', 'common', 50, true),
 ('Active Learner', 'You have reached 100 points and are actively engaged!', 'medal', 'rare', 100, true),
 ('Knowledge Seeker', 'Impressive! You have earned 250 points.', 'award', 'rare', 250, true),

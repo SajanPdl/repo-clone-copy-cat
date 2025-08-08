@@ -12,7 +12,7 @@ const Footer = () => {
             <div className="flex items-center gap-2 mb-6">
               <GraduationCap className="h-7 w-7 text-edu-purple" />
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-edu-purple to-edu-blue">
-                EduSanskriti
+                MeroAcademy
               </span>
             </div>
             
@@ -110,7 +110,7 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <Mail className="h-5 w-5 text-edu-purple mt-0.5" />
                 <span className="text-gray-600 dark:text-gray-400">
-                  contact@edusanskriti.com
+                  contact@MeroAcademy.com
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -160,7 +160,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-gray-200 dark:border-gray-800 pt-8 text-center">
           <p className="text-gray-600 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} EduSanskriti. All rights reserved.
+            &copy; {new Date().getFullYear()} MeroAcademy. All rights reserved.
           </p>
         </div>
       </div>

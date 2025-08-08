@@ -72,7 +72,7 @@ const LoginPage = () => {
         } else {
           toast({
             title: "Login Successful!",
-            description: "Welcome back to EduSanskriti.",
+            description: "Welcome back to MeroAcademy.",
           });
           navigate('/');
         }
@@ -144,7 +144,7 @@ const LoginPage = () => {
               <p className="text-gray-600 dark:text-gray-300 mt-2">
                 {showForgotPassword 
                   ? 'Enter your email to receive reset instructions'
-                  : (isSignUp ? 'Join EduSanskriti today' : 'Sign in to access your account')
+                  : (isSignUp ? 'Join MeroAcademy today' : 'Sign in to access your account')
                 }
               </p>
             </div>

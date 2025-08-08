@@ -121,7 +121,7 @@ const AdminSettings = () => {
         // Helper to get value by key or fallback
         const get = (key: string, fallback: any) => all.find(s => s.setting_key === key)?.setting_value ?? fallback;
         setGeneralSettings({
-          siteName: get('site_name', 'EduSanskriti'),
+          siteName: get('site_name', 'MeroAcademy'),
           siteDescription: get('site_description', 'Educational platform for students'),
           defaultLanguage: get('default_language', 'en'),
           theme: get('theme', 'light'),
@@ -129,11 +129,11 @@ const AdminSettings = () => {
           logoUrl: get('logo_url', '/logo.png')
         });
         setSeoSettings({
-          metaTitle: get('meta_title', 'EduSanskriti - Learn & Grow'),
+          metaTitle: get('meta_title', 'MeroAcademy - Learn & Grow'),
           metaDescription: get('meta_description', 'Best educational platform for Nepali students'),
           faviconUrl: get('favicon_url', '/favicon.ico'),
           ogImage: get('og_image', '/og-image.jpg'),
-          ogTitle: get('og_title', 'EduSanskriti'),
+          ogTitle: get('og_title', 'MeroAcademy'),
           ogDescription: get('og_description', 'Educational platform for students'),
           googleAnalyticsId: get('google_analytics_id', ''),
           enableSitemap: get('enable_sitemap', 'true') === 'true'
@@ -154,17 +154,17 @@ const AdminSettings = () => {
           smtpPort: parseInt(get('smtp_port', '587')), 
           smtpUsername: get('smtp_username', ''),
           smtpPassword: get('smtp_password', ''),
-          senderName: get('sender_name', 'EduSanskriti'),
-          senderEmail: get('sender_email', 'no-reply@edusanskriti.com'),
+          senderName: get('sender_name', 'MeroAcademy'),
+          senderEmail: get('sender_email', 'no-reply@MeroAcademy.com'),
           enableTLS: get('enable_tls', 'true') === 'true'
         });
         setContactSettings({
-          contactEmail: get('contact_email', 'contact@edusanskriti.com'),
+          contactEmail: get('contact_email', 'contact@MeroAcademy.com'),
           contactPhone: get('contact_phone', '+977-1-4567890'),
           facebookUrl: get('facebook_url', ''),
           linkedinUrl: get('linkedin_url', ''),
           discordUrl: get('discord_url', ''),
-          footerText: get('footer_text', '© 2024 EduSanskriti. All rights reserved.')
+          footerText: get('footer_text', '© 2024 MeroAcademy. All rights reserved.')
         });
         setSystemSettings({
           currentVersion: get('current_version', '1.0.0'),
@@ -763,7 +763,7 @@ const AdminSettings = () => {
                   <Label htmlFor="facebookUrl">Facebook URL</Label>
                   <Input
                     id="facebookUrl"
-                    placeholder="https://facebook.com/edusanskriti"
+                    placeholder="https://facebook.com/MeroAcademy"
                     value={contactSettings.facebookUrl}
                     onChange={(e) => handleContactSettingChange('facebookUrl', e.target.value)}
                   />
@@ -772,7 +772,7 @@ const AdminSettings = () => {
                   <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
                   <Input
                     id="linkedinUrl"
-                    placeholder="https://linkedin.com/company/edusanskriti"
+                    placeholder="https://linkedin.com/company/MeroAcademy"
                     value={contactSettings.linkedinUrl}
                     onChange={(e) => handleContactSettingChange('linkedinUrl', e.target.value)}
                   />
@@ -781,7 +781,7 @@ const AdminSettings = () => {
                   <Label htmlFor="discordUrl">Discord URL</Label>
                   <Input
                     id="discordUrl"
-                    placeholder="https://discord.gg/edusanskriti"
+                    placeholder="https://discord.gg/MeroAcademy"
                     value={contactSettings.discordUrl}
                     onChange={(e) => handleContactSettingChange('discordUrl', e.target.value)}
                   />
