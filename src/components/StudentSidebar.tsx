@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 const mainItems = [
-  // { title: 'Dashboard', url: '/dashboard', icon: Home },
+  { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Overview', url: '/dashboard/overview', icon: BarChart3 },
   { title: 'My Notes', url: '/study-materials', icon: BookOpen },
   { title: 'Upload Material', url: '/dashboard/upload', icon: Upload },

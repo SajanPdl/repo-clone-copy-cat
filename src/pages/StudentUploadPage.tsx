@@ -3,12 +3,12 @@ import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import StudentMaterialUpload from '@/components/student/StudentMaterialUpload';
-import GlobalHeader from '@/components/GlobalHeader';
+import Navbar from '@/components/Navbar';
 
 const StudentUploadPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <GlobalHeader />
+      <Navbar />
       <SidebarProvider>
         <div className="flex w-full">
           <StudentSidebar />

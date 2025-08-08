@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import GlobalHeader from '@/components/GlobalHeader';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import StudyMaterials from '@/components/StudyMaterials';
 import MaterialsFilter from '@/components/study-materials/MaterialsFilter';
@@ -40,7 +40,8 @@ const StudyMaterialsPage = () => {
   const fetchMaterials = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('study_materials').select('*');
+
+      let query = supabase.from('study_materials').select('*').eq('approval_status', 'approved');
 
       // Apply filters
       if (filters.grade) {
@@ -80,7 +81,7 @@ const StudyMaterialsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <GlobalHeader />
+      <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -90,28 +91,36 @@ const StudyMaterialsPage = () => {
           </p>
         </div>
 
-        <AdPlacement id="study-materials-top" />
+        <AdPlacement position="header" />
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-1/4">
-            <MaterialsFilter 
-              filters={filters}
-              onFilterChange={handleFilterChange}
+            <MaterialsFilter
+              options={{
+                grades: ['All', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Undergraduate'],
+                subjects: ['All', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'English', 'Computer Science'],
+                categories: ['All', 'Notes', 'Question Banks', 'Lab Manuals', 'Reference Books', 'Worksheets']
+              }}
+              searchTerm={filters.search}
+              selectedGrade={filters.grade}
+              selectedSubject={filters.subject}
+              selectedCategory={filters.category}
+              onSearch={val => setFilters(f => ({ ...f, search: val }))}
+              onGradeChange={val => setFilters(f => ({ ...f, grade: val }))}
+              onSubjectChange={val => setFilters(f => ({ ...f, subject: val }))}
+              onCategoryChange={val => setFilters(f => ({ ...f, category: val }))}
             />
             
-            <AdPlacement id="study-materials-sidebar" />
+            <AdPlacement position="sidebar" />
           </div>
           
           <div className="lg:w-3/4">
-            <StudyMaterials 
-              materials={materials}
-              loading={loading}
-              showViewAll={false}
-            />
+          {/* StudyMaterials manages its own data, just render the component */}
+          <StudyMaterials />
           </div>
         </div>
         
-        <AdPlacement id="study-materials-bottom" />
+        <AdPlacement position="footer" />
       </div>
       
       <Footer />

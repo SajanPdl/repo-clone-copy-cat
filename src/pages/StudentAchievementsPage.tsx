@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
-import GlobalHeader from '@/components/GlobalHeader';
+import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Star, Award, Medal } from 'lucide-react';
@@ -121,7 +121,7 @@ const StudentAchievementsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <GlobalHeader />
+        <Navbar />
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
         </div>
@@ -131,7 +131,7 @@ const StudentAchievementsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <GlobalHeader />
+      <Navbar />
       <SidebarProvider>
         <div className="flex w-full">
           <StudentSidebar />

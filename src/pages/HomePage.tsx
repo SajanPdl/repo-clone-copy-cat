@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GlobalHeader from '@/components/GlobalHeader';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import StudyMaterials from '@/components/StudyMaterials';
@@ -56,6 +56,7 @@ const HomePage = () => {
       const { data: materials, error: materialsError } = await supabase
         .from('study_materials')
         .select('*')
+        .eq('approval_status', 'approved')
         .order('downloads', { ascending: false })
         .limit(6);
 
@@ -81,11 +82,11 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <GlobalHeader />
+      <Navbar />
       
       <Hero />
       
-      <AdPlacement id="homepage-banner" />
+      <AdPlacement position="header" />
       
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,16 +99,12 @@ const HomePage = () => {
             </p>
           </div>
           
-          <StudyMaterials 
-            materials={studyMaterials}
-            loading={loading}
-            showViewAll={true}
-            onViewAll={() => navigate('/study-materials')}
-          />
+            {/* StudyMaterials manages its own data, just render the component */}
+            <StudyMaterials />
         </div>
       </section>
 
-      <AdPlacement id="homepage-middle" />
+      <AdPlacement position="content" />
 
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -120,18 +117,14 @@ const HomePage = () => {
             </p>
           </div>
           
-          <PastPapers 
-            papers={pastPapers}
-            loading={loading}
-            showViewAll={true}
-            onViewAll={() => navigate('/past-papers')}
-          />
+            {/* PastPapers manages its own data, just render the component */}
+            <PastPapers />
         </div>
       </section>
 
       <MerchSection />
       
-      <AdPlacement id="homepage-bottom" />
+      <AdPlacement position="footer" />
       
       <BlogSection />
       

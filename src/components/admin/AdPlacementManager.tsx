@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,8 @@ const AdPlacementManager = () => {
     ad_type: 'banner',
     is_active: true
   });
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fetch all advertisements
   const { data: advertisements = [], isLoading } = useQuery({
@@ -317,16 +319,40 @@ const AdPlacementManager = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="image_url">Image URL (optional)</Label>
+                  <Label htmlFor="ad-image-upload">Ad Image (optional)</Label>
                   <Input
-                    id="image_url"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
+                    id="ad-image-upload"
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setImageUploading(true);
+                      try {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `ad-${Date.now()}.${fileExt}`;
+                        const { data, error } = await supabase.storage
+                          .from('ad-images')
+                          .upload(fileName, file, { upsert: true });
+                        if (error) throw error;
+                        const { data: urlData } = supabase.storage
+                          .from('ad-images')
+                          .getPublicUrl(fileName);
+                        setFormData((prev) => ({ ...prev, image_url: urlData.publicUrl }));
+                        toast({ title: 'Image uploaded', description: 'Ad image uploaded successfully.' });
+                      } catch (err: any) {
+                        toast({ title: 'Image upload failed', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setImageUploading(false);
+                      }
+                    }}
                   />
+                  {imageUploading && <div className="text-xs text-gray-500 mt-1">Uploading...</div>}
+                  {formData.image_url && (
+                    <img src={formData.image_url} alt="Ad preview" className="mt-2 rounded max-h-32" />
+                  )}
                 </div>
-                
                 <div>
                   <Label htmlFor="link_url">Link URL (optional)</Label>
                   <Input

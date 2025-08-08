@@ -50,7 +50,6 @@ const StudyMaterialsManager = () => {
   const handleSaveMaterial = async (materialData: StudyMaterial) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
-      
       if (editingMaterial?.id) {
         // Update existing material
         const { error } = await supabase
@@ -64,12 +63,11 @@ const StudyMaterialsManager = () => {
             file_url: materialData.file_url,
             file_type: materialData.file_type,
             tags: materialData.tags,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            approval_status: materialData.approval_status || 'pending',
           })
           .eq('id', editingMaterial.id);
-
         if (error) throw error;
-
         toast({
           title: "Success",
           description: "Study material updated successfully."
@@ -91,17 +89,15 @@ const StudyMaterialsManager = () => {
             downloads: 0,
             views: 0,
             rating: 0.0,
-            is_featured: false
+            is_featured: false,
+            approval_status: 'pending',
           }]);
-
         if (error) throw error;
-
         toast({
           title: "Success",
           description: "Study material created successfully."
         });
       }
-
       setShowEditor(false);
       setEditingMaterial(null);
       fetchStudyMaterials();
@@ -171,6 +167,29 @@ const StudyMaterialsManager = () => {
     material.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Approve or reject a study material
+  const handleApproval = async (id: number, status: 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('study_materials')
+        .update({ approval_status: status })
+        .eq('id', id);
+      if (error) throw error;
+      toast({
+        title: 'Success',
+        description: `Material ${status === 'approved' ? 'approved' : 'rejected'} successfully.`
+      });
+      fetchStudyMaterials();
+    } catch (error: any) {
+      console.error('Error updating approval status:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update approval status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (showEditor) {
     return (
       <StudyMaterialEditor
@@ -234,19 +253,22 @@ const StudyMaterialsManager = () => {
                           />
                         </div>
                       </div>
-                      
                       <div className="flex flex-wrap gap-2">
                         <Badge variant="secondary">{material.subject}</Badge>
                         <Badge variant="outline">{material.grade}</Badge>
                         <Badge variant="outline">{material.category}</Badge>
+                        <Badge variant={
+                          material.approval_status === 'approved' ? 'secondary' :
+                          material.approval_status === 'rejected' ? 'destructive' : 'secondary'
+                        }>
+                          {material.approval_status || 'pending'}
+                        </Badge>
                       </div>
-                      
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>Downloads: {material.downloads || 0}</p>
                         <p>Views: {material.views || 0}</p>
                         <p>Created: {new Date(material.created_at || '').toLocaleDateString()}</p>
                       </div>
-                      
                       <div className="flex justify-between items-center pt-3 border-t">
                         <div className="flex gap-2">
                           {material.file_url && (
@@ -268,6 +290,24 @@ const StudyMaterialsManager = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          {material.approval_status !== 'approved' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleApproval(material.id, 'approved')}
+                            >
+                              Approve
+                            </Button>
+                          )}
+                          {material.approval_status !== 'rejected' && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleApproval(material.id, 'rejected')}
+                            >
+                              Reject
+                            </Button>
+                          )}
                         </div>
                         <Button
                           variant="destructive"

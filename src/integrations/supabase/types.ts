@@ -1367,6 +1367,7 @@ export type Database = {
           title: string
           updated_at: string | null
           views: number | null
+          approval_status: string | null
         }
         Insert: {
           author_id?: string | null
@@ -1386,6 +1387,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           views?: number | null
+          approval_status?: string | null
         }
         Update: {
           author_id?: string | null
@@ -1405,6 +1407,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           views?: number | null
+          approval_status?: string | null
         }
         Relationships: []
       }
