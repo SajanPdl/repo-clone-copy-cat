@@ -64,6 +64,7 @@ const StudyMaterialsManager = () => {
             file_url: materialData.file_url,
             file_type: materialData.file_type,
             tags: materialData.tags,
+            featured_image: (materialData as any).featured_image,
             updated_at: new Date().toISOString(),
             approval_status: materialData.approval_status || 'pending',
           })
@@ -87,6 +88,7 @@ const StudyMaterialsManager = () => {
             file_url: materialData.file_url,
             file_type: materialData.file_type,
             tags: materialData.tags,
+            featured_image: (materialData as any).featured_image,
             author_id: userData?.user?.id,
             downloads: 0,
             views: 0,
