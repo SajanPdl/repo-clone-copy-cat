@@ -55,7 +55,7 @@ const PastPapersPage = () => {
   const processedPapers = papers.map(paper => {
     // Example: marking recent papers (2022-2023) as premium
     const isPremiumPaper = paper.year >= 2022;
-    return { ...paper, isPremiumPaper };
+    return { ...paper, isPremiumPaper } as PastPaper & { isPremiumPaper: boolean };
   });
   
   return (
