@@ -113,6 +113,12 @@ const EnhancedAdminSidebar = ({ collapsed = false, setCollapsed }: EnhancedAdmin
       path: '/admin/grades'
     },
     {
+      name: 'Blog Management',
+      icon: FileText,
+      id: 'blog',
+      path: '/admin/blog'
+    },
+    {
       name: 'Users',
       icon: Users,
       id: 'users',

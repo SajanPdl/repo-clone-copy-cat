@@ -92,7 +92,7 @@ const StudyMaterialsManager = () => {
             views: 0,
             rating: 0.0,
             is_featured: false,
-            approval_status: 'pending',
+            approval_status: 'approved',
           }]);
         if (error) throw error;
         toast({

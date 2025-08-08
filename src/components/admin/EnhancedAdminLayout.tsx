@@ -1,3 +1,4 @@
+import BlogEditor from '@/components/admin/BlogEditor';
 
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -46,6 +47,7 @@ const EnhancedAdminLayout = () => {
           <Route path="wallets" element={<WalletManagementPanel />} />
           <Route path="categories" element={<CategoriesManager />} />
           <Route path="grades" element={<GradesManager />} />
+          <Route path="blog" element={<BlogEditor />} />
           <Route path="users" element={<UsersManagement />} />
           <Route path="events" element={<EventsManager />} />
           <Route path="queries" element={<QueriesManager />} />
