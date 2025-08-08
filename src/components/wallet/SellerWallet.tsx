@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 
+
 interface WalletTransaction {
   id: string;
   transaction_type: 'credit' | 'debit';
@@ -16,6 +17,16 @@ interface WalletTransaction {
   description: string;
   created_at: string;
   reference_id?: string;
+}
+
+interface WithdrawalRecord {
+  id: string;
+  amount: number;
+  esewa_id: string;
+  status: string;
+  admin_notes?: string;
+  created_at: string;
+  processed_at?: string;
 }
 
 const SellerWallet = () => {
@@ -26,56 +37,75 @@ const SellerWallet = () => {
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [esewaId, setEsewaId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRecord[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchWalletData();
+      fetchWithdrawals();
     }
   }, [user]);
 
   const fetchWalletData = async () => {
     if (!user) return;
-
     try {
+      // Fetch wallet info
       const { data: walletData, error: walletError } = await supabase
         .from('seller_wallets')
-        .select('balance, esewa_id')
+        .select('id, balance, esewa_id')
         .eq('user_id', user.id)
         .single();
-
       if (walletError && walletError.code !== 'PGRST116') {
         throw walletError;
       }
-
       if (walletData) {
         setBalance(walletData.balance || 0);
         setEsewaId(walletData.esewa_id || '');
+        // Fetch wallet transactions
+        const { data: txs, error: txError } = await supabase
+          .from('wallet_transactions')
+          .select('*')
+          .eq('wallet_id', walletData.id)
+          .order('created_at', { ascending: false });
+        if (txError) throw txError;
+        setTransactions(
+          (txs || []).map((tx: any) => ({
+            id: tx.id,
+            transaction_type: tx.transaction_type === 'credit' ? 'credit' : 'debit',
+            amount: Number(tx.amount),
+            description: tx.description,
+            created_at: tx.created_at,
+            reference_id: tx.reference_id || undefined
+          }))
+        );
+      } else {
+        setTransactions([]);
       }
-
-      // Mock transactions for now
-      const mockTransactions: WalletTransaction[] = [
-        {
-          id: '1',
-          transaction_type: 'credit',
-          amount: 450,
-          description: 'Payment for Mathematics Notes',
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: '2',
-          transaction_type: 'debit',
-          amount: 200,
-          description: 'Withdrawal request approved',
-          created_at: new Date(Date.now() - 172800000).toISOString()
-        }
-      ];
-      setTransactions(mockTransactions);
-
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load wallet data',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setWithdrawals((data || []) as WithdrawalRecord[]);
+    } catch (error) {
+      console.error('Error fetching withdrawals:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load withdrawal records',
         variant: 'destructive'
       });
     }
@@ -116,6 +146,7 @@ const SellerWallet = () => {
 
       setWithdrawalAmount('');
       fetchWalletData();
+      fetchWithdrawals();
 
     } catch (error) {
       console.error('Error submitting withdrawal:', error);
@@ -222,7 +253,37 @@ const SellerWallet = () => {
                   <div className={`font-semibold ${
                     transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {transaction.transaction_type === 'credit' ? '+' : '-'}Rs. {transaction.amount.toFixed(2)}
+                    {transaction.transaction_type === 'credit' ? '+' : '-'}Rs. {Number(transaction.amount).toFixed(2)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Withdrawal Records</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {withdrawals.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No withdrawal records yet</p>
+          ) : (
+            <div className="space-y-3">
+              {withdrawals.map((w) => (
+                <div key={w.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Amount: Rs. {Number(w.amount).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">eSewa ID: {w.esewa_id}</p>
+                    <p className="text-xs text-gray-500">Requested: {new Date(w.created_at).toLocaleString()}</p>
+                    {w.processed_at && <p className="text-xs text-gray-500">Processed: {new Date(w.processed_at).toLocaleString()}</p>}
+                    {w.admin_notes && <p className="text-xs text-gray-500">Admin Notes: {w.admin_notes}</p>}
+                  </div>
+                  <div className={`font-semibold mt-2 md:mt-0 ${
+                    w.status === 'approved' ? 'text-green-600' : w.status === 'rejected' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    {w.status.charAt(0).toUpperCase() + w.status.slice(1)}
                   </div>
                 </div>
               ))}
