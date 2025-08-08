@@ -43,6 +43,42 @@ export type Database = {
           icon?: string | null
           id?: string
           is_system_generated?: boolean | null
+      invoices: {
+        Row: {
+          id: string;
+          user_id: string;
+          amount: number;
+          status: 'pending' | 'paid' | 'cancelled';
+          items: any[];
+          due_date: string | null;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string | null;
+        }
+        Insert: {
+          id?: string;
+          user_id: string;
+          amount: number;
+          status?: 'pending' | 'paid' | 'cancelled';
+          items?: any[];
+          due_date?: string | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        }
+        Update: {
+          id?: string;
+          user_id?: string;
+          amount?: number;
+          status?: 'pending' | 'paid' | 'cancelled';
+          items?: any[];
+          due_date?: string | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        }
+        Relationships: []
+      },
           name?: string
           points_required?: number | null
           rarity?: string | null
