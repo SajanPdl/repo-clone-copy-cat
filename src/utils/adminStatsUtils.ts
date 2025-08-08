@@ -102,16 +102,13 @@ export const grantAchievementToUser = async (userId: string, achievementId: stri
   }
 };
 
+// Fetch all users from Supabase Edge Function (get-users)
 export const fetchAllUsers = async () => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching users:', error);
-    throw error;
+  const res = await fetch('/functions/v1/get-users');
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to fetch users');
   }
-
-  return data || [];
+  const { users } = await res.json();
+  return users || [];
 };
