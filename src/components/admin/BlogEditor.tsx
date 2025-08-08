@@ -545,11 +545,41 @@ const BlogEditor = () => {
                     <p className="text-sm text-gray-500">
                       Drag and drop an image, or click to browse
                     </p>
-                    <input type="file" className="hidden" />
-                    <Button variant="outline" size="sm" className="mt-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="blog-image-upload"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const fileName = `blog-images/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                        const { error } = await supabase.storage.from('documents').upload(fileName, file, { upsert: false });
+                        if (error) {
+                          toast('Image upload failed');
+                          return;
+                        }
+                        const { data } = supabase.storage.from('documents').getPublicUrl(fileName);
+                        if (data?.publicUrl) {
+                          setSelectedPost((prev) => prev ? { ...prev, featured_image: data.publicUrl } : prev);
+                          toast('Image uploaded');
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => document.getElementById('blog-image-upload')?.click()}
+                    >
                       Choose Image
                     </Button>
                   </div>
+                  {selectedPost?.featured_image && (
+                    <div className="mt-4 flex flex-col items-center">
+                      <img src={selectedPost.featured_image} alt="Featured" className="h-32 rounded shadow" />
+                    </div>
+                  )}
                 </div>
                 
                 <div>
