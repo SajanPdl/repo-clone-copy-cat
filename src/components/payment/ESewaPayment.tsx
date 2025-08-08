@@ -30,7 +30,7 @@ const ESewaPayment: React.FC<ESewaPaymentProps> = ({
   const [transactionId, setTransactionId] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
-  const ADMIN_ESEWA_ID = "9806800001";
+  const ADMIN_ESEWA_ID = "9765630970";
   const COMMISSION_RATE = 10;
 
   const handleFileUpload = async (file: File) => {
