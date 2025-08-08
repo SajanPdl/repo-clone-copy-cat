@@ -45,7 +45,7 @@ import PlannerPage from '@/pages/PlannerPage';
 import UploadMaterialPage from '@/pages/UploadMaterialPage';
 import StudentUploadPage from '@/pages/StudentUploadPage';
 import StudentMaterialUploadPage from '@/pages/StudentMaterialUploadPage';
-import AIAssistantPage from '@/pages/AIAssistantPage';
+
 
 // Marketplace Pages
 import MarketplacePage from '@/pages/MarketplacePage';
