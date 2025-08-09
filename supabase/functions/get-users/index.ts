@@ -36,6 +36,11 @@ serve(async (req) => {
     app_metadata: u.app_metadata || {},
   }));
   return new Response(JSON.stringify({ users }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
   });
 });

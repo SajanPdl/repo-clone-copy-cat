@@ -6,24 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, UserCheck, UserX, Crown, Calendar } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-
-interface UserProfile {
-  points: number;
-  level: string;
-  total_uploads: number;
-  total_downloads: number;
-  total_sales: number;
-}
 
 interface User {
   id: string;
   email: string;
-  role: string;
+  phone?: string;
   created_at: string;
-  profile?: UserProfile | null;
+  last_sign_in_at?: string;
+  user_metadata?: Record<string, any>;
+  app_metadata?: Record<string, any>;
+  role?: string;
 }
 
 const UsersManagement = () => {
@@ -41,39 +36,18 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // First get users from auth.users (this needs to be done via RPC or edge function)
-      // For now, let's query the student_profiles and get user info
-      const { data: profiles, error: profilesError } = await supabase
-        .from('student_profiles')
-        .select('*');
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+      // Use explicit local URL in development, fallback to relative in production
+      const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:54321/functions/v1/get-users'
+        : '/functions/v1/get-users';
+      const res = await fetch(apiUrl);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to fetch users');
       }
-
-      // Get users metadata - this is a simplified approach
-      // In a real app, you'd need an edge function to access auth.users
-      const { data: mockUsers } = await supabase
-        .from('student_profiles')
-        .select('user_id')
-        .limit(50);
-
-      // Create mock user data for demonstration
-      const usersWithProfiles: User[] = (profiles || []).map(profile => ({
-        id: profile.user_id,
-        email: `user-${profile.user_id.slice(-8)}@example.com`, // Mock email
-        role: 'user', // Default role
-        created_at: profile.created_at,
-        profile: {
-          points: profile.points || 0,
-          level: profile.level || 'Fresh Contributor',
-          total_uploads: profile.total_uploads || 0,
-          total_downloads: profile.total_downloads || 0,
-          total_sales: profile.total_sales || 0
-        }
-      }));
-
-      setUsers(usersWithProfiles);
+      const { users } = await res.json();
+      // Optionally, assign a default role if not present
+      setUsers((users || []).map((u: any) => ({ ...u, role: u.app_metadata?.role || 'user' })));
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -118,8 +92,8 @@ const UsersManagement = () => {
   const getUserStats = () => {
     const totalUsers = users.length;
     const adminUsers = users.filter(u => u.role === 'admin').length;
-    const activeUsers = users.filter(u => u.profile && u.profile.points > 0).length;
-    
+    // For active users, you may want to use last_sign_in_at or other logic
+    const activeUsers = users.filter(u => u.last_sign_in_at).length;
     return { totalUsers, adminUsers, activeUsers };
   };
 
@@ -204,7 +178,7 @@ const UsersManagement = () => {
               <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user.email.charAt(0).toUpperCase()}
+                    {user.email?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div>
                     <p className="font-medium">{user.email}</p>
@@ -212,21 +186,15 @@ const UsersManagement = () => {
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                         {user.role}
                       </Badge>
-                      {user.profile && (
-                        <>
-                          <span className="text-sm text-gray-500">
-                            {user.profile.points} points
-                          </span>
-                          <span className="text-sm text-gray-500">•</span>
-                          <span className="text-sm text-gray-500">
-                            {user.profile.level}
-                          </span>
-                        </>
+                      {user.phone && (
+                        <span className="text-sm text-gray-500">{user.phone}</span>
+                      )}
+                      {user.user_metadata?.full_name && (
+                        <span className="text-sm text-gray-500">{user.user_metadata.full_name}</span>
                       )}
                     </div>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-2">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -255,38 +223,25 @@ const UsersManagement = () => {
                             </div>
                             <div>
                               <label className="text-sm font-medium text-gray-500">Joined</label>
-                              <p className="font-medium">
-                                {new Date(selectedUser.created_at).toLocaleDateString()}
-                              </p>
+                              <p className="font-medium">{new Date(selectedUser.created_at).toLocaleString()}</p>
                             </div>
-                          </div>
-                          
-                          {selectedUser.profile && (
-                            <>
-                              <div className="border-t pt-4">
-                                <h4 className="font-medium mb-3">Profile Statistics</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <label className="text-gray-500">Points</label>
-                                    <p className="font-medium">{selectedUser.profile.points}</p>
-                                  </div>
-                                  <div>
-                                    <label className="text-gray-500">Level</label>
-                                    <p className="font-medium">{selectedUser.profile.level}</p>
-                                  </div>
-                                  <div>
-                                    <label className="text-gray-500">Uploads</label>
-                                    <p className="font-medium">{selectedUser.profile.total_uploads}</p>
-                                  </div>
-                                  <div>
-                                    <label className="text-gray-500">Downloads</label>
-                                    <p className="font-medium">{selectedUser.profile.total_downloads}</p>
-                                  </div>
-                                </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Last Sign In</label>
+                              <p className="font-medium">{selectedUser.last_sign_in_at ? new Date(selectedUser.last_sign_in_at).toLocaleString() : 'Never'}</p>
+                            </div>
+                            {selectedUser.phone && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-500">Phone</label>
+                                <p className="font-medium">{selectedUser.phone}</p>
                               </div>
-                            </>
-                          )}
-                          
+                            )}
+                            {selectedUser.user_metadata?.full_name && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-500">Name</label>
+                                <p className="font-medium">{selectedUser.user_metadata.full_name}</p>
+                              </div>
+                            )}
+                          </div>
                           <div className="border-t pt-4">
                             <label className="text-sm font-medium text-gray-500">Change Role</label>
                             <div className="flex gap-2 mt-2">
