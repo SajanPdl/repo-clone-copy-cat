@@ -99,7 +99,14 @@ const UserStatsManager = () => {
             <SelectContent>
               {users.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
-                  {user.email} ({user.username || 'No username'})
+                  <div>
+                    <div><b>{user.email}</b></div>
+                    {user.user_metadata?.full_name && <div>Name: {user.user_metadata.full_name}</div>}
+                    {user.phone && <div>Phone: {user.phone}</div>}
+                    <div>ID: {user.id}</div>
+                    <div>Created: {user.created_at ? new Date(user.created_at).toLocaleString() : ''}</div>
+                    {user.last_sign_in_at && <div>Last Sign In: {new Date(user.last_sign_in_at).toLocaleString()}</div>}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

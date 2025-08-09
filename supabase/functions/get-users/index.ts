@@ -2,9 +2,9 @@
 // Fetches all users from auth.users for admin panel
 
 // @ts-ignore: Deno runtime and remote imports are only available in Supabase Edge Functions
-import { serve } from 'std/server';
+import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 // @ts-ignore
-import { createClient } from 'https://deno.land/x/supabase_js@2.39.7/mod.ts';
+import { createClient } from 'https://deno.land/x/supabase@1.0.0/mod.ts';
 
 serve(async (req) => {
   // Use environment variables for admin access
