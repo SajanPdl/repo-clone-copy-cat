@@ -41,12 +41,17 @@ const UsersManagement = () => {
         ? 'http://localhost:54321/functions/v1/get-users'
         : '/functions/v1/get-users';
       const res = await fetch(apiUrl);
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to fetch users');
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        // Not JSON, likely HTML error page
+        throw new Error('The server did not return valid JSON. The Edge Function may not be running or the URL is incorrect.');
       }
-      const { users } = await res.json();
-      // Optionally, assign a default role if not present
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch users');
+      }
+      const { users } = data;
       setUsers((users || []).map((u: any) => ({ ...u, role: u.app_metadata?.role || 'user' })));
     } catch (error) {
       console.error('Error fetching users:', error);
