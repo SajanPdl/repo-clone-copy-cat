@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Ad {
@@ -20,7 +21,7 @@ interface AdsContextType {
 const AdsContext = createContext<AdsContextType | undefined>(undefined);
 
 interface AdsProviderProps {
-  children: ReactNode;
+  children?: ReactNode;
   adType?: 'hero' | 'content' | 'sidebar' | 'footer';
   className?: string;
 }

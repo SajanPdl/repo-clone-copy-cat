@@ -58,22 +58,34 @@ const EnhancedWalletManagementPanel = () => {
       const { data, error } = await supabase
         .from('seller_wallets')
         .select(`
-          *,
-          profiles!seller_wallets_user_id_fkey (
-            id,
-            email
-          )
+          id,
+          balance,
+          esewa_id,
+          user_id,
+          created_at,
+          updated_at
         `);
 
       if (error) throw error;
 
+      // Fetch user emails separately
+      const userIds = data?.map(wallet => wallet.user_id) || [];
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', userIds);
+
+      if (userError) throw userError;
+
+      const userEmailMap = new Map(userData?.map(user => [user.id, user.email]) || []);
+
       const walletsWithEmail = data?.map(wallet => ({
         id: wallet.id,
-        balance: wallet.balance,
-        total_earnings: wallet.total_earnings,
-        esewa_id: wallet.esewa_id,
+        balance: wallet.balance || 0,
+        total_earnings: wallet.balance || 0, // For now, using balance as total_earnings
+        esewa_id: wallet.esewa_id || '',
         user_id: wallet.user_id,
-        user_email: wallet.profiles?.email || 'No email'
+        user_email: userEmailMap.get(wallet.user_id) || 'No email'
       })) || [];
 
       setWallets(walletsWithEmail);
@@ -88,25 +100,39 @@ const EnhancedWalletManagementPanel = () => {
       const { data, error } = await supabase
         .from('withdrawal_requests')
         .select(`
-          *,
-          profiles!withdrawal_requests_seller_id_fkey (
-            id,
-            email
-          )
+          id,
+          amount,
+          status,
+          esewa_id,
+          processed_at,
+          processed_by,
+          seller_id,
+          created_at
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
+      // Fetch user emails separately
+      const userIds = data?.map(withdrawal => withdrawal.seller_id) || [];
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', userIds);
+
+      if (userError) throw userError;
+
+      const userEmailMap = new Map(userData?.map(user => [user.id, user.email]) || []);
+
       const withdrawalsWithEmail = data?.map(withdrawal => ({
         id: withdrawal.id,
         amount: withdrawal.amount,
         status: withdrawal.status,
-        esewa_id: withdrawal.esewa_id,
-        processed_at: withdrawal.processed_at,
-        processed_by: withdrawal.processed_by,
+        esewa_id: withdrawal.esewa_id || '',
+        processed_at: withdrawal.processed_at || '',
+        processed_by: withdrawal.processed_by || '',
         user_id: withdrawal.seller_id,
-        user_email: withdrawal.profiles?.email || 'No email'
+        user_email: userEmailMap.get(withdrawal.seller_id) || 'No email'
       })) || [];
 
       setWithdrawals(withdrawalsWithEmail);
@@ -136,7 +162,6 @@ const EnhancedWalletManagementPanel = () => {
         .from('seller_wallets')
         .update({
           balance: editForm.balance,
-          total_earnings: editForm.total_earnings,
           esewa_id: editForm.esewa_id
         })
         .eq('id', editingWallet);
