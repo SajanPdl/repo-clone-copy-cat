@@ -2,7 +2,6 @@
 -- Enable RLS on tables that currently have it disabled
 ALTER TABLE study_materials ENABLE ROW LEVEL Security;
 ALTER TABLE past_papers ENABLE ROW LEVEL Security;
-ALTER TABLE documents ENABLE ROW LEVEL Security;
 
 -- Add missing columns to study_materials for better functionality
 ALTER TABLE study_materials 

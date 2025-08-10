@@ -1,5 +1,5 @@
 -- Create payment_requests table for manual payment verification
-CREATE TABLE public.payment_requests (
+CREATE TABLE IF NOT EXISTS public.payment_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   plan_type TEXT NOT NULL CHECK (plan_type IN ('pro_monthly', 'pro_yearly', 'premium_monthly', 'premium_yearly')),
@@ -18,7 +18,7 @@ CREATE TABLE public.payment_requests (
 );
 
 -- Create subscription_plans table for plan definitions
-CREATE TABLE public.subscription_plans (
+CREATE TABLE IF NOT EXISTS public.subscription_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   plan_code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE public.subscription_plans (
 );
 
 -- Create user_subscriptions table for active subscriptions
-CREATE TABLE public.user_subscriptions (
+CREATE TABLE IF NOT EXISTS public.user_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   plan_id UUID NOT NULL REFERENCES subscription_plans(id),
@@ -42,8 +42,7 @@ CREATE TABLE public.user_subscriptions (
   starts_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  UNIQUE(user_id, status) WHERE status = 'active'
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 -- Enable RLS on all tables

@@ -1,5 +1,5 @@
 -- Migration: Create invoices table for user billing/receipts
-CREATE TABLE public.invoices (
+CREATE TABLE IF NOT EXISTS public.invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   amount NUMERIC NOT NULL,

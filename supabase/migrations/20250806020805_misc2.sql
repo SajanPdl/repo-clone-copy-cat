@@ -1,9 +1,9 @@
 
--- Update documents table to have proper file storage integration
-ALTER TABLE public.documents 
-ADD COLUMN IF NOT EXISTS file_size BIGINT,
-ADD COLUMN IF NOT EXISTS mime_type TEXT,
-ADD COLUMN IF NOT EXISTS storage_path TEXT;
+-- Update documents table to have proper file storage integration (commented out - table doesn't exist)
+-- ALTER TABLE public.documents 
+-- ADD COLUMN IF NOT EXISTS file_size BIGINT,
+-- ADD COLUMN IF NOT EXISTS mime_type TEXT,
+-- ADD COLUMN IF NOT EXISTS storage_path TEXT;
 
 -- Create file_uploads table for better file management
 CREATE TABLE IF NOT EXISTS public.file_uploads (

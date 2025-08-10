@@ -11,7 +11,7 @@ CREATE TABLE public.study_sessions (
 );
 
 -- Create table for wallet transactions
-CREATE TABLE public.wallet_transactions (
+CREATE TABLE IF NOT EXISTS public.wallet_transactions (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   wallet_id UUID NOT NULL REFERENCES seller_wallets(id) ON DELETE CASCADE,
   transaction_type TEXT NOT NULL CHECK (transaction_type IN ('credit', 'debit')),
@@ -22,7 +22,7 @@ CREATE TABLE public.wallet_transactions (
 );
 
 -- Create table for withdrawal requests
-CREATE TABLE public.withdrawal_requests (
+CREATE TABLE IF NOT EXISTS public.withdrawal_requests (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   amount NUMERIC NOT NULL,
