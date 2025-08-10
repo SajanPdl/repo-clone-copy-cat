@@ -1,30 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface UserSubscription {
-  subscription_id: string;
-  plan_code: string;
-  plan_name: string;
-  status: string;
-  starts_at: string;
-  expires_at: string;
-  days_remaining: number;
-}
-
-interface SubscriptionPlan {
-  id: string;
-  plan_code: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  duration_days: number;
-  features: string[];
-  is_active: boolean;
-}
+import type { SubscriptionPlan, SubscriptionWithPlan } from '@/types/subscription';
 
 export const useSubscription = () => {
-  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
+  const [userSubscription, setUserSubscription] = useState<SubscriptionWithPlan | null>(null);
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,12 +23,25 @@ export const useSubscription = () => {
         throw new Error('Authentication required');
       }
 
-      // Fetch user's current subscription
+      // Fetch user's current subscription using the RPC function
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .rpc('get_user_subscription', { user_id: user.id });
 
-      if (!subscriptionError && subscriptionData && subscriptionData.length > 0) {
-        setUserSubscription(subscriptionData[0]);
+      if (!subscriptionError && subscriptionData && Array.isArray(subscriptionData) && subscriptionData.length > 0) {
+        setUserSubscription({
+          id: subscriptionData[0].subscription_id,
+          user_id: user.id,
+          plan_id: '', // Not returned by RPC
+          payment_request_id: null,
+          status: subscriptionData[0].status as 'active' | 'expired' | 'cancelled',
+          starts_at: subscriptionData[0].starts_at,
+          expires_at: subscriptionData[0].expires_at,
+          created_at: '', // Not returned by RPC
+          updated_at: '', // Not returned by RPC
+          plan_code: subscriptionData[0].plan_code,
+          plan_name: subscriptionData[0].plan_name,
+          days_remaining: subscriptionData[0].days_remaining
+        });
       }
 
       // Fetch available plans

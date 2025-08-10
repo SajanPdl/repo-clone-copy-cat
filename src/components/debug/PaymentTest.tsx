@@ -1,18 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import type { SubscriptionPlan } from '@/types/subscription';
 
 const PaymentTest = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [plans, setPlans] = useState<any[]>([]);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [user, setUser] = useState<any>(null);
   const [testMode, setTestMode] = useState(false);
   
@@ -20,7 +21,6 @@ const PaymentTest = () => {
   const [planCode, setPlanCode] = useState('pro_monthly');
   const [transactionId, setTransactionId] = useState('');
   const [senderName, setSenderName] = useState('');
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   useEffect(() => {
     initializeTest();
@@ -77,10 +77,9 @@ const PaymentTest = () => {
   const testDatabaseConnection = async () => {
     try {
       // Test basic table access
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('subscription_plans')
-        .select('count')
-        .limit(1);
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         throw error;
@@ -88,7 +87,7 @@ const PaymentTest = () => {
 
       toast({
         title: 'Database Connection',
-        description: '✅ Database connection successful',
+        description: `✅ Database connection successful. Found ${count} plans.`,
       });
 
       return true;
@@ -152,7 +151,6 @@ const PaymentTest = () => {
       // Reset form
       setTransactionId('');
       setSenderName('');
-      setReceiptFile(null);
 
     } catch (error) {
       console.error('Payment test error:', error);
@@ -186,7 +184,7 @@ const PaymentTest = () => {
 
       toast({
         title: 'Subscription Function Test',
-        description: data && data.length > 0 
+        description: data && Array.isArray(data) && data.length > 0 
           ? `✅ User has subscription: ${data[0].plan_name}`
           : 'ℹ️ User has no active subscription',
       });
