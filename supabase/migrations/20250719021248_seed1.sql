@@ -5,7 +5,8 @@ INSERT INTO public.categories (name, description) VALUES
 ('Question Banks', 'Collection of practice questions'),
 ('Reference Materials', 'Reference books and guides'),
 ('Lab Manuals', 'Laboratory experiment guides'),
-('Sample Papers', 'Sample question papers for practice');
+('Sample Papers', 'Sample question papers for practice')
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert sample grades
 INSERT INTO public.grades (name, description) VALUES
@@ -15,7 +16,8 @@ INSERT INTO public.grades (name, description) VALUES
 ('Grade 9', 'Class 9 materials and resources'),
 ('Grade 10', 'Class 10 board examination materials'),
 ('Grade 11', 'Class 11 intermediate level materials'),
-('Grade 12', 'Class 12 board examination materials');
+('Grade 12', 'Class 12 board examination materials')
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert sample study materials
 INSERT INTO public.study_materials (title, description, subject, grade, category, file_type, downloads, is_featured) VALUES
