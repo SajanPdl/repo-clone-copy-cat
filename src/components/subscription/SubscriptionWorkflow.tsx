@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,14 @@ const SubscriptionWorkflow = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPaymentRequests(data || []);
+      
+      // Transform to ensure proper typing
+      const transformedRequests = (data || []).map(request => ({
+        ...request,
+        status: request.status as 'pending' | 'approved' | 'rejected'
+      }));
+      
+      setPaymentRequests(transformedRequests);
     } catch (error) {
       console.error('Error fetching payment requests:', error);
     }

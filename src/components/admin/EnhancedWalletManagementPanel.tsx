@@ -81,51 +81,56 @@ const EnhancedWalletManagementPanel = () => {
     try {
       setLoading(true);
       
-      // Fetch wallet transactions using direct query instead of RPC
+      // Fetch wallet transactions - simplified query without joins since they're not working
       const { data: transactionData, error: transactionError } = await supabase
         .from('wallet_transactions')
-        .select(`
-          *,
-          users!wallet_transactions_seller_id_fkey (
-            username,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (transactionError) {
         console.error('Transaction error:', transactionError);
       } else {
-        // Transform the data to match expected interface
+        // Transform and add default values for missing fields
         const transformedTransactions = (transactionData || []).map(transaction => ({
-          ...transaction,
-          username: transaction.users?.username,
-          email: transaction.users?.email
+          id: transaction.id,
+          wallet_id: transaction.wallet_id,
+          seller_id: transaction.seller_id || '',
+          amount: transaction.amount,
+          status: transaction.status || 'pending',
+          esewa_id: transaction.esewa_id || '',
+          processed_at: transaction.processed_at || '',
+          processed_by: transaction.processed_by || '',
+          admin_notes: transaction.admin_notes || '',
+          created_at: transaction.created_at,
+          updated_at: transaction.updated_at || transaction.created_at,
+          username: 'Unknown User', // Default since join isn't working
+          email: 'N/A'
         }));
         setTransactions(transformedTransactions);
       }
 
-      // Fetch withdrawal requests
+      // Fetch withdrawal requests - simplified query without joins
       const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('withdrawal_requests')
-        .select(`
-          *,
-          users!withdrawal_requests_user_id_fkey (
-            username,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (withdrawalError) {
         console.error('Withdrawal error:', withdrawalError);
       } else {
-        // Transform the data to include profiles
+        // Transform the data to match expected interface
         const transformedWithdrawals = (withdrawalData || []).map(request => ({
-          ...request,
+          id: request.id,
+          user_id: request.user_id,
+          amount: request.amount,
+          esewa_id: request.esewa_id,
+          status: request.status,
+          created_at: request.created_at,
+          processed_at: request.processed_at,
+          admin_notes: request.admin_notes,
           profiles: {
-            username: request.users?.username,
-            email: request.users?.email
+            username: 'Unknown User', // Default since join isn't working
+            email: 'N/A'
           }
         }));
         setWithdrawalRequests(transformedWithdrawals);
