@@ -108,7 +108,7 @@ const StudyMaterials = () => {
                   <MaterialCard 
                     key={material.id}
                     material={material}
-                    linkTo={`/content/${material.slug}`}
+                    linkTo={`/content/study-material/${material.id}`}
                   />
                 ))}
               </div>
