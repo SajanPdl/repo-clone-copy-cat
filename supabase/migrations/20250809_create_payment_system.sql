@@ -50,6 +50,18 @@ ALTER TABLE public.payment_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Users can view their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Users can insert their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Users can update their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Admins can view all payment requests" ON public.payment_requests;
+
+DROP POLICY IF EXISTS "Anyone can view active subscription plans" ON public.subscription_plans;
+DROP POLICY IF EXISTS "Admins can manage subscription plans" ON public.subscription_plans;
+
+DROP POLICY IF EXISTS "Users can view their own subscriptions" ON public.user_subscriptions;
+DROP POLICY IF EXISTS "Admins can view all subscriptions" ON public.user_subscriptions;
+
 -- RLS policies for payment_requests
 CREATE POLICY "Users can view their own payment requests" ON public.payment_requests
   FOR SELECT USING (auth.uid() = user_id);
@@ -78,14 +90,17 @@ CREATE POLICY "Admins can view all subscriptions" ON public.user_subscriptions
   FOR ALL USING (is_admin(auth.uid()));
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_payment_requests_updated_at ON public.payment_requests;
 CREATE TRIGGER update_payment_requests_updated_at
   BEFORE UPDATE ON public.payment_requests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_subscription_plans_updated_at ON public.subscription_plans;
 CREATE TRIGGER update_subscription_plans_updated_at
   BEFORE UPDATE ON public.subscription_plans
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_subscriptions_updated_at ON public.user_subscriptions;
 CREATE TRIGGER update_user_subscriptions_updated_at
   BEFORE UPDATE ON public.user_subscriptions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -286,7 +301,8 @@ INSERT INTO public.subscription_plans (plan_code, name, description, price, dura
 ('pro_monthly', 'Pro Monthly', 'Access to premium features for 1 month', 999, 30, '["premium_downloads", "advanced_tools", "exclusive_resources", "priority_support"]'),
 ('pro_yearly', 'Pro Yearly', 'Access to premium features for 1 year (Save 20%)', 9999, 365, '["premium_downloads", "advanced_tools", "exclusive_resources", "priority_support", "early_access"]'),
 ('premium_monthly', 'Premium Monthly', 'Full access to all features for 1 month', 1499, 30, '["all_pro_features", "unlimited_downloads", "custom_analytics", "api_access"]'),
-('premium_yearly', 'Premium Yearly', 'Full access to all features for 1 year (Save 25%)', 13499, 365, '["all_pro_features", "unlimited_downloads", "custom_analytics", "api_access", "dedicated_support"]');
+('premium_yearly', 'Premium Yearly', 'Full access to all features for 1 year (Save 25%)', 13499, 365, '["all_pro_features", "unlimited_downloads", "custom_analytics", "api_access", "dedicated_support"]')
+ON CONFLICT (plan_code) DO NOTHING;
 
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION public.has_active_subscription(uuid, text) TO authenticated;

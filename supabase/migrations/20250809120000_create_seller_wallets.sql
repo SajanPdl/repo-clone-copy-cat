@@ -1,5 +1,5 @@
 -- Migration: Create seller_wallets table for wallet management
-CREATE TABLE public.seller_wallets (
+CREATE TABLE IF NOT EXISTS public.seller_wallets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   balance NUMERIC NOT NULL DEFAULT 0,
