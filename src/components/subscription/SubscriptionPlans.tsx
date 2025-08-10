@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { Check, Star, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { SubscriptionPlan } from '@/types/subscription';
+import { transformSubscriptionPlan } from '@/types/subscription';
 
 const SubscriptionPlans = () => {
   const { toast } = useToast();
@@ -34,7 +34,10 @@ const SubscriptionPlans = () => {
         .order('price', { ascending: true });
 
       if (error) throw error;
-      setPlans(data || []);
+      
+      // Transform the data to ensure proper typing
+      const transformedPlans = (data || []).map(transformSubscriptionPlan);
+      setPlans(transformedPlans);
     } catch (error) {
       console.error('Error fetching plans:', error);
       toast({

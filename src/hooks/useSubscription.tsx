@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { SubscriptionPlan, SubscriptionWithPlan } from '@/types/subscription';
+import { transformSubscriptionPlan } from '@/types/subscription';
 
 export const useSubscription = () => {
   const [userSubscription, setUserSubscription] = useState<SubscriptionWithPlan | null>(null);
@@ -52,7 +53,10 @@ export const useSubscription = () => {
         .order('price', { ascending: true });
 
       if (plansError) throw plansError;
-      setAvailablePlans(plansData || []);
+      
+      // Transform the plans to ensure features is string[]
+      const transformedPlans = (plansData || []).map(transformSubscriptionPlan);
+      setAvailablePlans(transformedPlans);
 
     } catch (err) {
       console.error('Error fetching subscription data:', err);

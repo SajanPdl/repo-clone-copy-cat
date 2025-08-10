@@ -44,7 +44,6 @@ import ReferralPage from "./pages/ReferralPage";
 import RewardsPage from "./pages/RewardsPage";
 import WalletPage from "./pages/WalletPage";
 import SettingsPage from "./pages/SettingsPage";
-import AIAssistantPage from "./pages/AIAssistantPage";
 import StudyAssistantPage from "./pages/StudyAssistantPage";
 import DailyPlannerPage from "./pages/DailyPlannerPage";
 import PlannerPage from "./pages/PlannerPage";
@@ -91,7 +90,6 @@ function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/ai-assistant" element={<AIAssistantPage />} />
               <Route path="/study-assistant" element={<StudyAssistantPage />} />
               <Route path="/planner" element={<PlannerPage />} />
               <Route path="/daily-planner" element={<DailyPlannerPage />} />

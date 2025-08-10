@@ -1,81 +1,109 @@
 
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
   BookOpen, 
   FileText, 
-  Settings, 
-  ShoppingCart,
+  FolderOpen, 
+  GraduationCap,
   Calendar,
-  MessageSquare,
-  Award,
+  ShoppingBag,
+  Shirt,
   CreditCard,
   Crown,
-  CheckCircle,
-  BarChart3
+  MessageSquare,
+  Settings,
+  BarChart3,
+  Monitor,
+  Menu,
+  X,
+  ClipboardCheck
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const EnhancedAdminSidebar = () => {
+interface EnhancedAdminSidebarProps {
+  collapsed: boolean;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
+}
+
+const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
-  
+
   const menuItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
-    { name: 'Users', path: '/admin/users', icon: Users },
-    { name: 'Study Materials', path: '/admin/study-materials', icon: BookOpen },
-    { name: 'Past Papers', path: '/admin/past-papers', icon: FileText },
-    { name: 'Categories', path: '/admin/categories', icon: Settings },
-    { name: 'Grades', path: '/admin/grades', icon: Award },
-    { name: 'Blog Posts', path: '/admin/blog', icon: MessageSquare },
-    { name: 'Events', path: '/admin/events', icon: Calendar },
-    { name: 'Marketplace', path: '/admin/marketplace', icon: ShoppingCart },
-    { name: 'Merch Store', path: '/admin/merch', icon: ShoppingCart },
-    { name: 'Payment Verification', path: '/admin/payment-verification', icon: CheckCircle },
-    { name: 'Subscriptions', path: '/admin/subscriptions', icon: Crown },
-    { name: 'Advertisements', path: '/admin/ads', icon: CreditCard },
-    { name: 'Queries', path: '/admin/queries', icon: MessageSquare },
-    { name: 'Settings', path: '/admin/settings', icon: Settings },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
+    { icon: Users, label: 'Users', path: '/admin/users' },
+    { icon: BookOpen, label: 'Study Materials', path: '/admin/study-materials' },
+    { icon: FileText, label: 'Past Papers', path: '/admin/past-papers' },
+    { icon: FolderOpen, label: 'Categories', path: '/admin/categories' },
+    { icon: GraduationCap, label: 'Grades', path: '/admin/grades' },
+    { icon: FileText, label: 'Blog', path: '/admin/blog' },
+    { icon: Calendar, label: 'Events', path: '/admin/events' },
+    { icon: ShoppingBag, label: 'Marketplace', path: '/admin/marketplace' },
+    { icon: Shirt, label: 'Merch Store', path: '/admin/merch' },
+    { icon: ClipboardCheck, label: 'Payment Verification', path: '/admin/payment-verification' },
+    { icon: Crown, label: 'Subscriptions', path: '/admin/subscriptions' },
+    { icon: Monitor, label: 'Advertisements', path: '/admin/ads' },
+    { icon: MessageSquare, label: 'Queries', path: '/admin/queries' },
+    { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
 
+  const isActive = (path: string) => {
+    if (path === '/admin') {
+      return location.pathname === '/admin' || location.pathname === '/admin/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <div className="w-64 bg-white shadow-lg h-full">
-      <div className="p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">MA</span>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">MeroAcademy</h2>
-            <p className="text-sm text-gray-500">Admin Panel</p>
-          </div>
+    <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-40 ${
+      collapsed ? 'w-16' : 'w-64'
+    }`}>
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          {!collapsed && (
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
+              <span className="font-semibold text-gray-900">Admin Panel</span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-2"
+          >
+            {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </Button>
         </div>
-      </div>
-      
-      <nav className="mt-6">
-        <div className="px-4 space-y-1">
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
             const Icon = item.icon;
-            
             return (
               <Link
-                key={item.name}
+                key={item.path}
                 to={item.path}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive(item.path)
                     ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                    : 'text-gray-700 hover:bg-gray-50'
+                } ${collapsed ? 'justify-center' : ''}`}
+                title={collapsed ? item.label : ''}
               >
-                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
-                {item.name}
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
-        </div>
-      </nav>
+        </nav>
+      </div>
     </div>
   );
 };

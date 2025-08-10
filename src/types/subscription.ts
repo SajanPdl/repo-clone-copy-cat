@@ -1,4 +1,6 @@
 
+import type { Json } from '@/integrations/supabase/types';
+
 export interface SubscriptionPlan {
   id: string;
   plan_code: string;
@@ -49,3 +51,15 @@ export interface SubscriptionWithPlan extends UserSubscription {
   plan_name: string;
   days_remaining: number;
 }
+
+// Helper function to transform database types
+export const transformSubscriptionPlan = (dbPlan: any): SubscriptionPlan => ({
+  ...dbPlan,
+  features: Array.isArray(dbPlan.features) ? dbPlan.features : 
+            typeof dbPlan.features === 'string' ? JSON.parse(dbPlan.features) : []
+});
+
+export const transformPaymentRequest = (dbPayment: any): PaymentRequest => ({
+  ...dbPayment,
+  status: dbPayment.status as 'pending' | 'approved' | 'rejected'
+});

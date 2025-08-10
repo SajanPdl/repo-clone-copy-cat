@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import type { PaymentRequest } from '@/types/subscription';
+import { transformPaymentRequest } from '@/types/subscription';
 
 const PaymentVerificationManager = () => {
   const { toast } = useToast();
@@ -42,7 +42,10 @@ const PaymentVerificationManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPaymentRequests(data || []);
+      
+      // Transform the data to ensure proper typing
+      const transformedData = (data || []).map(transformPaymentRequest);
+      setPaymentRequests(transformedData);
     } catch (error) {
       console.error('Error fetching payment requests:', error);
       toast({
