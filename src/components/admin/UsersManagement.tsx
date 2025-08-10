@@ -6,19 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-// import { supabase } from '@/integrations/supabase/client';
-import { Users, Search, UserCheck, UserX, Crown, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Users, Search, UserCheck, UserX, Crown, Calendar, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface User {
   id: string;
   email: string;
-  phone?: string;
+  role: string;
   created_at: string;
-  last_sign_in_at?: string;
-  user_metadata?: Record<string, any>;
-  app_metadata?: Record<string, any>;
-  role?: string;
+  updated_at: string;
 }
 
 const UsersManagement = () => {
@@ -36,28 +33,25 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Use explicit local URL in development, fallback to relative in production
-      const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:54321/functions/v1/get-users'
-        : '/functions/v1/get-users';
-      const res = await fetch(apiUrl);
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        // Not JSON, likely HTML error page
-        throw new Error('The server did not return valid JSON. The Edge Function may not be running or the URL is incorrect.');
+      setLoading(true);
+      
+      // Fetch users from the public.users table
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
       }
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch users');
-      }
-      const { users } = data;
-      setUsers((users || []).map((u: any) => ({ ...u, role: u.app_metadata?.role || 'user' })));
+
+      setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch users',
+        description: 'Failed to fetch users. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -67,11 +61,16 @@ const UsersManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // In a real app, you'd need an edge function to update auth.users metadata
-      // For now, we'll just show a success message
+      const { error } = await supabase
+        .from('users')
+        .update({ role: newRole, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      if (error) throw error;
+
       toast({
         title: 'Success',
-        description: `User role would be updated to ${newRole} (demo mode)`,
+        description: `User role updated to ${newRole}`,
       });
 
       // Update local state
@@ -97,12 +96,11 @@ const UsersManagement = () => {
   const getUserStats = () => {
     const totalUsers = users.length;
     const adminUsers = users.filter(u => u.role === 'admin').length;
-    // For active users, you may want to use last_sign_in_at or other logic
-    const activeUsers = users.filter(u => u.last_sign_in_at).length;
-    return { totalUsers, adminUsers, activeUsers };
+    const regularUsers = users.filter(u => u.role === 'user').length;
+    return { totalUsers, adminUsers, regularUsers };
   };
 
-  const { totalUsers, adminUsers, activeUsers } = getUserStats();
+  const { totalUsers, adminUsers, regularUsers } = getUserStats();
 
   if (loading) {
     return (
@@ -143,8 +141,8 @@ const UsersManagement = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold">{activeUsers}</p>
+                <p className="text-sm text-gray-600">Regular Users</p>
+                <p className="text-2xl font-bold">{regularUsers}</p>
               </div>
               <UserCheck className="h-8 w-8 text-green-500" />
             </div>
@@ -175,6 +173,10 @@ const UsersManagement = () => {
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
+            <Button onClick={fetchUsers} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -191,12 +193,9 @@ const UsersManagement = () => {
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                         {user.role}
                       </Badge>
-                      {user.phone && (
-                        <span className="text-sm text-gray-500">{user.phone}</span>
-                      )}
-                      {user.user_metadata?.full_name && (
-                        <span className="text-sm text-gray-500">{user.user_metadata.full_name}</span>
-                      )}
+                      <span className="text-sm text-gray-500">
+                        Joined: {new Date(user.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -231,21 +230,9 @@ const UsersManagement = () => {
                               <p className="font-medium">{new Date(selectedUser.created_at).toLocaleString()}</p>
                             </div>
                             <div>
-                              <label className="text-sm font-medium text-gray-500">Last Sign In</label>
-                              <p className="font-medium">{selectedUser.last_sign_in_at ? new Date(selectedUser.last_sign_in_at).toLocaleString() : 'Never'}</p>
+                              <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                              <p className="font-medium">{new Date(selectedUser.updated_at).toLocaleString()}</p>
                             </div>
-                            {selectedUser.phone && (
-                              <div>
-                                <label className="text-sm font-medium text-gray-500">Phone</label>
-                                <p className="font-medium">{selectedUser.phone}</p>
-                              </div>
-                            )}
-                            {selectedUser.user_metadata?.full_name && (
-                              <div>
-                                <label className="text-sm font-medium text-gray-500">Name</label>
-                                <p className="font-medium">{selectedUser.user_metadata.full_name}</p>
-                              </div>
-                            )}
                           </div>
                           <div className="border-t pt-4">
                             <label className="text-sm font-medium text-gray-500">Change Role</label>

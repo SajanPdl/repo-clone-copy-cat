@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, X, CreditCard, Bell } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,6 +38,7 @@ interface PricingPlan {
 }
 
 export const PremiumSubscription = () => {
+  const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti'>('esewa');
@@ -90,25 +92,20 @@ export const PremiumSubscription = () => {
     
     setProcessing(true);
     
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Store subscription info in localStorage
-      localStorage.setItem('userSubscription', 'premium');
-      localStorage.setItem('subscriptionExpires', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      toast.success("Subscription successful! You now have premium access.");
+      // Redirect to subscription workflow page
+      navigate('/subscription');
       setOpenDialog(false);
-      
-      // Force a page reload to apply premium status
-      window.location.reload();
-      
     } catch (error) {
-      toast.error("Payment failed. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setProcessing(false);
     }
+  };
+  
+  const handleUpgradeClick = () => {
+    // Direct redirect to subscription page
+    navigate('/subscription');
   };
   
   // Check if user has premium subscription
@@ -180,7 +177,7 @@ export const PremiumSubscription = () => {
                 disabled={(plan.name === "Free" && !isPremium) || (plan.name === "Premium" && isPremium)}
                 onClick={() => {
                   if (plan.name === "Premium" && !isPremium) {
-                    handleOpenDialog(plan);
+                    handleUpgradeClick();
                   }
                 }}
               >
@@ -200,112 +197,41 @@ export const PremiumSubscription = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Plan: {selectedPlan?.name}</h3>
-              <p className="text-2xl font-bold">Rs. {selectedPlan?.price}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">/month</span></p>
-            </div>
+          <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'esewa' | 'khalti')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="esewa">eSewa</TabsTrigger>
+              <TabsTrigger value="khalti">Khalti</TabsTrigger>
+            </TabsList>
             
-            <Tabs defaultValue="esewa" onValueChange={(value) => setPaymentMethod(value as 'esewa' | 'khalti')}>
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="esewa">eSewa</TabsTrigger>
-                <TabsTrigger value="khalti">Khalti</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="esewa">
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
-                  <div className="flex items-center mb-4">
-                    <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <CreditCard className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Pay with eSewa</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Fast and secure payment</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium block mb-1">eSewa ID</label>
-                      <input 
-                        type="text" 
-                        placeholder="Enter your eSewa ID" 
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium block mb-1">eSewa Password</label>
-                      <input 
-                        type="password" 
-                        placeholder="Enter your password" 
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="khalti">
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
-                  <div className="flex items-center mb-4">
-                    <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                      <CreditCard className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Pay with Khalti</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Quick and reliable transactions</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium block mb-1">Khalti Mobile Number</label>
-                      <input 
-                        type="tel" 
-                        placeholder="98XXXXXXXX" 
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium block mb-1">Khalti MPIN</label>
-                      <input 
-                        type="password" 
-                        placeholder="Enter your MPIN" 
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <TabsContent value="esewa" className="space-y-4">
+              <div className="text-center">
+                <CreditCard className="h-12 w-12 mx-auto text-green-600 mb-2" />
+                <p className="text-sm text-gray-600">
+                  Pay securely with eSewa digital wallet
+                </p>
+              </div>
+            </TabsContent>
             
-            <div className="flex items-center mt-2">
-              <Bell className="h-4 w-4 text-amber-500 mr-2" />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                You will be charged Rs. {selectedPlan?.price} for 1 month of premium access.
-              </p>
-            </div>
-          </div>
+            <TabsContent value="khalti" className="space-y-4">
+              <div className="text-center">
+                <CreditCard className="h-12 w-12 mx-auto text-purple-600 mb-2" />
+                <p className="text-sm text-gray-600">
+                  Pay securely with Khalti digital wallet
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)} disabled={processing}>
+            <Button variant="outline" onClick={() => setOpenDialog(false)}>
               Cancel
             </Button>
             <Button 
-              onClick={handlePurchase} 
-              className="bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90"
+              onClick={handlePurchase}
               disabled={processing}
+              className="bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90"
             >
-              {processing ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-r-transparent rounded-full animate-spin mr-2"></div>
-                  Processing
-                </>
-              ) : (
-                `Pay Rs. ${selectedPlan?.price}`
-              )}
+              {processing ? "Processing..." : `Pay Rs. ${selectedPlan?.price}`}
             </Button>
           </DialogFooter>
         </DialogContent>
