@@ -49,15 +49,26 @@ const SellerWallet = () => {
   const fetchWalletData = async () => {
     if (!user) return;
     try {
+      // First, ensure user has a wallet (create if doesn't exist)
+      const { data: walletId, error: walletCreateError } = await supabase
+        .rpc('get_or_create_user_wallet', { user_id: user.id });
+      
+      if (walletCreateError) {
+        console.error('Error creating wallet:', walletCreateError);
+        throw walletCreateError;
+      }
+
       // Fetch wallet info
       const { data: walletData, error: walletError } = await supabase
         .from('seller_wallets')
         .select('id, balance, esewa_id')
         .eq('user_id', user.id)
         .single();
-      if (walletError && walletError.code !== 'PGRST116') {
+      
+      if (walletError) {
         throw walletError;
       }
+      
       if (walletData) {
         setBalance(walletData.balance || 0);
         setEsewaId(walletData.esewa_id || '');
@@ -134,10 +145,33 @@ const SellerWallet = () => {
     setIsSubmitting(true);
 
     try {
+      // First, ensure user has a wallet
+      const { data: walletId, error: walletCreateError } = await supabase
+        .rpc('get_or_create_user_wallet', { user_id: user.id });
+      
+      if (walletCreateError) {
+        throw walletCreateError;
+      }
+
+      // Update wallet with eSewa ID
       await supabase
         .from('seller_wallets')
         .update({ esewa_id: esewaId })
         .eq('user_id', user.id);
+
+      // Create withdrawal request
+      const { error: withdrawalError } = await supabase
+        .from('withdrawal_requests')
+        .insert({
+          seller_id: user.id,
+          amount: amount,
+          esewa_id: esewaId,
+          status: 'pending'
+        });
+
+      if (withdrawalError) {
+        throw withdrawalError;
+      }
 
       toast({
         title: 'Success',
