@@ -1,135 +1,42 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import React from 'react';
+import GlobalHeader from '@/components/GlobalHeader';
 import Hero from '@/components/Hero';
 import StudyMaterials from '@/components/StudyMaterials';
 import PastPapers from '@/components/PastPapers';
+import GradeSection from '@/components/GradeSection';
 import BlogSection from '@/components/BlogSection';
+import Footer from '@/components/Footer';
 import ContactSection from '@/components/ContactSection';
 import MerchSection from '@/components/MerchSection';
-import AdPlacement from '@/components/ads/AdPlacement';
-import { supabase } from '@/integrations/supabase/client';
-
-interface StudyMaterial {
-  id: number;
-  title: string;
-  subject: string;
-  grade: string;
-  category: string;
-  file_url?: string;
-  rating: number;
-  downloads: number;
-  views: number;
-  created_at: string;
-  tags?: string[];
-}
-
-interface PastPaper {
-  id: number;
-  title: string;
-  subject: string;
-  grade: string;
-  year: number;
-  board?: string;
-  file_url?: string;
-  downloads: number;
-  views: number;
-  rating: number;
-  created_at: string;
-}
+import MarketplaceFeature from '@/components/MarketplaceFeature';
+import AppPromotion from '@/components/AppPromotion';
+import UpgradePrompt from '@/components/subscription/UpgradePrompt';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const [studyMaterials, setStudyMaterials] = useState<StudyMaterial[]>([]);
-  const [pastPapers, setPastPapers] = useState<PastPaper[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchHomePageData();
-  }, []);
-
-  const fetchHomePageData = async () => {
-    try {
-      // Fetch featured study materials
-      const { data: materials, error: materialsError } = await supabase
-        .from('study_materials')
-        .select('*')
-        .eq('approval_status', 'approved')
-        .order('downloads', { ascending: false })
-        .limit(6);
-
-      if (materialsError) throw materialsError;
-
-      // Fetch featured past papers
-      const { data: papers, error: papersError } = await supabase
-        .from('past_papers')
-        .select('*')
-        .order('downloads', { ascending: false })
-        .limit(6);
-
-      if (papersError) throw papersError;
-
-      setStudyMaterials(materials || []);
-      setPastPapers(papers || []);
-    } catch (error) {
-      console.error('Error fetching homepage data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { hasActiveSubscription } = useSubscription();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
+    <div className="min-h-screen bg-white">
+      <GlobalHeader />
       <Hero />
       
-      <AdPlacement position="header" />
+      {/* Show upgrade prompt for non-subscribers */}
+      {!hasActiveSubscription() && (
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <UpgradePrompt feature="unlimited access to all study materials" />
+        </div>
+      )}
       
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Featured Study Materials
-            </h2>
-            <p className="text-xl text-gray-600">
-              Access high-quality study resources from top contributors
-            </p>
-          </div>
-          
-            {/* StudyMaterials manages its own data, just render the component */}
-            <StudyMaterials />
-        </div>
-      </section>
-
-      <AdPlacement position="content" />
-
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Past Papers
-            </h2>
-            <p className="text-xl text-gray-600">
-              Practice with previous years' examination papers
-            </p>
-          </div>
-          
-            {/* PastPapers manages its own data, just render the component */}
-            <PastPapers />
-        </div>
-      </section>
-
+      <StudyMaterials />
+      <PastPapers />
+      <GradeSection />
+      <MarketplaceFeature />
       <MerchSection />
-      
-      <AdPlacement position="footer" />
-      
       <BlogSection />
-      
+      <AppPromotion />
       <ContactSection />
-      
       <Footer />
     </div>
   );
