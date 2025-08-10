@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { Wallet, ArrowUpFromLine, Check, X, User, Edit, Save, Cancel } from 'lucide-react';
+import { Wallet, ArrowUpFromLine, Check, X, User, Edit, Save } from 'lucide-react';
 
 interface WithdrawalRequest {
   id: string;
@@ -50,21 +51,22 @@ const EnhancedWalletManagementPanel = () => {
   const fetchWalletData = async () => {
     setLoading(true);
     try {
-      // Fetch withdrawal requests with user emails
+      // Fetch withdrawal requests
       const { data: requests, error: reqError } = await supabase
         .from('withdrawal_requests')
-        .select(`
-          *,
-          profiles:user_id (email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (reqError) throw reqError;
 
       // Get user emails from auth.users for withdrawal requests
-      const userIds = (requests || []).map(r => r.user_id || r.seller_id);
       const { data: users } = await supabase.auth.admin.listUsers();
-      const userEmailMap = new Map(users.users.map(u => [u.id, u.email]));
+      const userEmailMap = new Map<string, string>();
+      users.users.forEach(user => {
+        if (user.id && user.email) {
+          userEmailMap.set(user.id, user.email);
+        }
+      });
 
       const mappedRequests = (requests || []).map((req: any) => ({
         ...req,
@@ -73,14 +75,13 @@ const EnhancedWalletManagementPanel = () => {
       }));
       setWithdrawalRequests(mappedRequests);
 
-      // Fetch seller wallets with user emails
+      // Fetch seller wallets
       const { data: walletsData, error: walletError } = await supabase
         .from('seller_wallets')
         .select('*');
       
       if (walletError) throw walletError;
 
-      const walletUserIds = (walletsData || []).map(w => w.user_id);
       const mappedWallets = (walletsData || []).map((wallet: any) => ({
         ...wallet,
         user_email: userEmailMap.get(wallet.user_id) || 'Unknown'
@@ -487,7 +488,7 @@ const EnhancedWalletManagementPanel = () => {
                           Save
                         </Button>
                         <Button size="sm" variant="outline" onClick={cancelEdit}>
-                          <Cancel className="h-4 w-4 mr-1" />
+                          <X className="h-4 w-4 mr-1" />
                           Cancel
                         </Button>
                       </div>
