@@ -11,6 +11,7 @@ import { incrementDownloads } from '@/utils/studyMaterialsUtils';
 import { addStudentActivity } from '@/utils/studentDashboardUtils';
 import GlobalHeader from '@/components/GlobalHeader';
 import Footer from '@/components/Footer';
+import EnhancedPdfViewer from '@/components/EnhancedPdfViewer';
 import {
   Download,
   Eye,
@@ -285,13 +286,17 @@ const PastPaperViewPage = () => {
                   </Button>
                 </div>
 
-                {/* PDF Viewer */}
+                {/* Enhanced PDF Viewer */}
                 {paper.file_url && (
                   <div className="border rounded-lg overflow-hidden">
-                    <iframe
-                      src={`${paper.file_url}#toolbar=1`}
-                      className="w-full h-[600px]"
-                      title={`${paper.title} - PDF Viewer`}
+                    <EnhancedPdfViewer
+                      fileUrl={paper.file_url}
+                      title={paper.title}
+                      height={600}
+                      materialId={paper.id}
+                      materialType="past_paper"
+                      allowDownload={false}
+                      showAnnotations={true}
                     />
                   </div>
                 )}

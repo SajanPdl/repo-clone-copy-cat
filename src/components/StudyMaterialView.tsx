@@ -19,7 +19,7 @@ import {
   Eye
 } from 'lucide-react';
 import { StudyMaterial, PastPaper } from '@/utils/queryUtils';
-import PdfViewer from './PdfViewer';
+import EnhancedPdfViewer from './EnhancedPdfViewer';
 import { incrementDownloads } from '@/utils/studyMaterialsUtils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -292,12 +292,14 @@ const StudyMaterialView = ({ material, type = 'study_material' }: StudyMaterialV
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-4">Preview</h2>
           <div className="h-[800px]">
-            <PdfViewer 
+            <EnhancedPdfViewer
               fileUrl={material.file_url || "https://www.africau.edu/images/default/sample.pdf"}
               title={material.title}
               height={800}
               materialId={material.id}
               materialType={type}
+              allowDownload={false}
+              showAnnotations={true}
             />
           </div>
         </div>

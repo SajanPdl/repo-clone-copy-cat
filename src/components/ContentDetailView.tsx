@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import PdfViewer from '@/components/PdfViewer';
+import EnhancedPdfViewer from '@/components/EnhancedPdfViewer';
 import { toast } from 'sonner';
 
 // Sample study materials data (would come from an API in a real app)
@@ -478,9 +478,14 @@ const ContentDetailView = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold mb-4">Preview Material</h2>
               <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <PdfViewer 
+                <EnhancedPdfViewer
                   fileUrl={material.pdfUrl}
+                  title={material.title}
                   height={500}
+                  materialId={material.id}
+                  materialType="study_material"
+                  allowDownload={false}
+                  showAnnotations={true}
                 />
               </div>
               <div className="mt-6 text-center">
