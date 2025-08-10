@@ -82,7 +82,13 @@ const SubscriptionPlans = () => {
   const handleUpgrade = (planCode: string) => {
     setSelectedPlan(planCode);
     // Navigate to checkout page
-    window.location.href = `/checkout?plan=${planCode}`;
+    try {
+      window.location.href = `/checkout?plan=${planCode}`;
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback to window.open
+      window.open(`/checkout?plan=${planCode}`, '_self');
+    }
   };
 
   const getPlanIcon = (planCode: string) => {

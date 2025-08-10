@@ -58,8 +58,12 @@ import AdminPanel from '@/pages/AdminPanel';
 
 // Payment and Subscription Pages
 import SubscriptionPage from '@/pages/SubscriptionPage';
-import CheckoutPageWrapper from '@/pages/CheckoutPageWrapper';
-import PaymentStatusPageWrapper from '@/pages/PaymentStatusPageWrapper';
+import CheckoutPageWrapper from '@/pages/CheckoutPage';
+import PaymentStatusPageWrapper from '@/pages/PaymentStatusPage';
+
+// Debug Components
+import PaymentDebug from '@/components/debug/PaymentDebug';
+import PaymentTest from '@/components/debug/PaymentTest';
 
 const queryClient = new QueryClient();
 
@@ -98,6 +102,10 @@ function App() {
               <Route path="/subscription" element={<SubscriptionPage />} />
               <Route path="/checkout" element={<CheckoutPageWrapper />} />
               <Route path="/payment-status" element={<PaymentStatusPageWrapper />} />
+              
+              {/* Debug Routes */}
+              <Route path="/debug/payment" element={<PaymentDebug />} />
+              <Route path="/debug/payment-test" element={<PaymentTest />} />
 
               {/* Protected Student Routes */}
               <Route path="/dashboard" element={

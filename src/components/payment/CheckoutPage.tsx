@@ -47,6 +47,10 @@ const CheckoutPage = () => {
     try {
       setLoading(true);
       
+      if (!planCode) {
+        throw new Error('No plan code provided');
+      }
+
       const { data: planData, error } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -54,13 +58,21 @@ const CheckoutPage = () => {
         .eq('is_active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      if (!planData) {
+        throw new Error('Plan not found');
+      }
+      
       setPlan(planData);
     } catch (error) {
       console.error('Error fetching plan:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load plan details',
+        description: error instanceof Error ? error.message : 'Failed to load plan details',
         variant: 'destructive'
       });
     } finally {
