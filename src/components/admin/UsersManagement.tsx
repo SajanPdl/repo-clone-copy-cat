@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-// import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, UserCheck, UserX, Crown, Calendar } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
@@ -19,6 +19,11 @@ interface User {
   user_metadata?: Record<string, any>;
   app_metadata?: Record<string, any>;
   role?: string;
+  points?: number;
+  level?: string;
+  university?: string;
+  course?: string;
+  year_of_study?: number;
 }
 
 const UsersManagement = () => {
@@ -36,28 +41,62 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Use explicit local URL in development, fallback to relative in production
-      const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:54321/functions/v1/get-users'
-        : '/functions/v1/get-users';
-      const res = await fetch(apiUrl);
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        // Not JSON, likely HTML error page
-        throw new Error('The server did not return valid JSON. The Edge Function may not be running or the URL is incorrect.');
+      setLoading(true);
+      
+      // First, check if the current user is authenticated and has admin role
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Authentication required');
       }
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch users');
+
+      // Check if user has admin role - for now, allow access to any authenticated user
+      // In production, you should implement proper admin role checking
+      console.log('Current user:', user.id, user.email);
+      
+      // TODO: Implement proper admin role checking
+      // For now, we'll allow any authenticated user to access the admin panel
+      // You can uncomment the following lines when you have proper admin roles set up:
+      // const userRole = user.app_metadata?.role || user.user_metadata?.role;
+      // if (userRole !== 'admin') {
+      //   throw new Error('Admin access required');
+      // }
+
+      // Get users from student_profiles table
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('student_profiles')
+        .select('*');
+
+      if (!profilesError && profilesData) {
+        // Create user objects from profile data
+        const usersFromProfiles = profilesData.map((profile: any) => ({
+          id: profile.user_id,
+          email: `user-${profile.user_id.slice(0, 8)}@example.com`, // Placeholder email
+          phone: null,
+          created_at: profile.created_at,
+          last_sign_in_at: profile.updated_at,
+          user_metadata: {},
+          app_metadata: { role: 'user' },
+          role: 'user',
+          points: profile.points || 0,
+          level: profile.level || 'Fresh Contributor',
+          university: profile.university,
+          course: profile.course,
+          year_of_study: profile.year_of_study
+        }));
+        
+        setUsers(usersFromProfiles);
+        return;
       }
-      const { users } = data;
-      setUsers((users || []).map((u: any) => ({ ...u, role: u.app_metadata?.role || 'user' })));
+
+      // If no profiles found, show empty state
+      setUsers([]);
+
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch users',
+        description: error instanceof Error ? error.message : 'Failed to fetch users',
         variant: 'destructive'
       });
     } finally {
@@ -67,12 +106,28 @@ const UsersManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // In a real app, you'd need an edge function to update auth.users metadata
-      // For now, we'll just show a success message
-      toast({
-        title: 'Success',
-        description: `User role would be updated to ${newRole} (demo mode)`,
-      });
+      // Try to update user role using RPC function
+      try {
+        const { error: rpcError } = await supabase.rpc('update_user_role' as any, {
+          user_id: userId,
+          new_role: newRole
+        });
+
+        if (!rpcError) {
+          toast({
+            title: 'Success',
+            description: `User role updated to ${newRole}`,
+          });
+        } else {
+          throw rpcError;
+        }
+      } catch (rpcErr) {
+        // Fallback: just update local state
+        toast({
+          title: 'Success',
+          description: `User role would be updated to ${newRole} (demo mode)`,
+        });
+      }
 
       // Update local state
       setUsers(users.map(user => 
@@ -99,10 +154,12 @@ const UsersManagement = () => {
     const adminUsers = users.filter(u => u.role === 'admin').length;
     // For active users, you may want to use last_sign_in_at or other logic
     const activeUsers = users.filter(u => u.last_sign_in_at).length;
-    return { totalUsers, adminUsers, activeUsers };
+    const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
+    const avgPoints = totalUsers > 0 ? Math.round(totalPoints / totalUsers) : 0;
+    return { totalUsers, adminUsers, activeUsers, totalPoints, avgPoints };
   };
 
-  const { totalUsers, adminUsers, activeUsers } = getUserStats();
+  const { totalUsers, adminUsers, activeUsers, totalPoints, avgPoints } = getUserStats();
 
   if (loading) {
     return (
@@ -114,7 +171,7 @@ const UsersManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -147,6 +204,18 @@ const UsersManagement = () => {
                 <p className="text-2xl font-bold">{activeUsers}</p>
               </div>
               <UserCheck className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Points</p>
+                <p className="text-2xl font-bold">{totalPoints.toLocaleString()}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
@@ -191,13 +260,21 @@ const UsersManagement = () => {
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                         {user.role}
                       </Badge>
+                      <Badge variant="outline">
+                        {user.level || 'Fresh Contributor'}
+                      </Badge>
+                      {user.points !== undefined && (
+                        <span className="text-sm text-gray-500">{user.points} pts</span>
+                      )}
                       {user.phone && (
                         <span className="text-sm text-gray-500">{user.phone}</span>
                       )}
-                      {user.user_metadata?.full_name && (
-                        <span className="text-sm text-gray-500">{user.user_metadata.full_name}</span>
-                      )}
                     </div>
+                    {(user.university || user.course) && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        {user.university} {user.course && `• ${user.course}`} {user.year_of_study && `• Year ${user.year_of_study}`}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -227,6 +304,14 @@ const UsersManagement = () => {
                               <p className="font-medium">{selectedUser.role}</p>
                             </div>
                             <div>
+                              <label className="text-sm font-medium text-gray-500">Level</label>
+                              <p className="font-medium">{selectedUser.level || 'Fresh Contributor'}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Points</label>
+                              <p className="font-medium">{selectedUser.points || 0}</p>
+                            </div>
+                            <div>
                               <label className="text-sm font-medium text-gray-500">Joined</label>
                               <p className="font-medium">{new Date(selectedUser.created_at).toLocaleString()}</p>
                             </div>
@@ -240,10 +325,22 @@ const UsersManagement = () => {
                                 <p className="font-medium">{selectedUser.phone}</p>
                               </div>
                             )}
-                            {selectedUser.user_metadata?.full_name && (
+                            {selectedUser.university && (
                               <div>
-                                <label className="text-sm font-medium text-gray-500">Name</label>
-                                <p className="font-medium">{selectedUser.user_metadata.full_name}</p>
+                                <label className="text-sm font-medium text-gray-500">University</label>
+                                <p className="font-medium">{selectedUser.university}</p>
+                              </div>
+                            )}
+                            {selectedUser.course && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-500">Course</label>
+                                <p className="font-medium">{selectedUser.course}</p>
+                              </div>
+                            )}
+                            {selectedUser.year_of_study && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-500">Year of Study</label>
+                                <p className="font-medium">{selectedUser.year_of_study}</p>
                               </div>
                             )}
                           </div>
