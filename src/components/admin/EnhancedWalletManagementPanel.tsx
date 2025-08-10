@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,21 @@ interface WalletTransaction {
   email?: string;
 }
 
+interface WithdrawalRequest {
+  id: string;
+  user_id: string;
+  amount: number;
+  esewa_id: string;
+  status: string;
+  created_at: string;
+  processed_at?: string;
+  admin_notes?: string;
+  profiles?: {
+    username?: string;
+    email?: string;
+  };
+}
+
 interface WalletStats {
   totalRequests: number;
   pendingRequests: number;
@@ -47,7 +61,7 @@ interface WalletStats {
 const EnhancedWalletManagementPanel = () => {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [withdrawalRequests, setWithdrawalRequests] = useState<any[]>([]);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [stats, setStats] = useState<WalletStats>({
     totalRequests: 0,
     pendingRequests: 0,
@@ -67,14 +81,28 @@ const EnhancedWalletManagementPanel = () => {
     try {
       setLoading(true);
       
-      // Fetch wallet transactions
+      // Fetch wallet transactions using direct query instead of RPC
       const { data: transactionData, error: transactionError } = await supabase
-        .rpc('get_wallet_transactions_with_profiles');
+        .from('wallet_transactions')
+        .select(`
+          *,
+          users!wallet_transactions_seller_id_fkey (
+            username,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
 
       if (transactionError) {
         console.error('Transaction error:', transactionError);
       } else {
-        setTransactions(transactionData || []);
+        // Transform the data to match expected interface
+        const transformedTransactions = (transactionData || []).map(transaction => ({
+          ...transaction,
+          username: transaction.users?.username,
+          email: transaction.users?.email
+        }));
+        setTransactions(transformedTransactions);
       }
 
       // Fetch withdrawal requests
@@ -82,7 +110,7 @@ const EnhancedWalletManagementPanel = () => {
         .from('withdrawal_requests')
         .select(`
           *,
-          profiles:user_id (
+          users!withdrawal_requests_user_id_fkey (
             username,
             email
           )
@@ -92,7 +120,15 @@ const EnhancedWalletManagementPanel = () => {
       if (withdrawalError) {
         console.error('Withdrawal error:', withdrawalError);
       } else {
-        setWithdrawalRequests(withdrawalData || []);
+        // Transform the data to include profiles
+        const transformedWithdrawals = (withdrawalData || []).map(request => ({
+          ...request,
+          profiles: {
+            username: request.users?.username,
+            email: request.users?.email
+          }
+        }));
+        setWithdrawalRequests(transformedWithdrawals);
       }
       
       // Calculate stats from withdrawal requests

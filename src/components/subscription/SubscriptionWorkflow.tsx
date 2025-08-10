@@ -8,25 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, CreditCard, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface SubscriptionPlan {
-  id: string;
-  plan_code: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  duration_days: number;
-  features: string[];
-}
-
-interface PaymentRequest {
-  id: string;
-  plan_type: string;
-  amount: number;
-  status: string;
-  created_at: string;
-}
+import { transformSubscriptionPlan } from '@/types/subscription';
+import type { SubscriptionPlan, PaymentRequest } from '@/types/subscription';
 
 const SubscriptionWorkflow = () => {
   const { toast } = useToast();
@@ -54,7 +37,10 @@ const SubscriptionWorkflow = () => {
         .order('price', { ascending: true });
 
       if (error) throw error;
-      setPlans(data || []);
+      
+      // Transform the data to match our SubscriptionPlan interface
+      const transformedPlans = (data || []).map(transformSubscriptionPlan);
+      setPlans(transformedPlans);
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
     }
@@ -106,6 +92,17 @@ const SubscriptionWorkflow = () => {
       return;
     }
 
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'Please login to submit payment request',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       let receiptPath = null;
@@ -128,6 +125,7 @@ const SubscriptionWorkflow = () => {
       const { error } = await supabase
         .from('payment_requests')
         .insert({
+          user_id: user.id,
           plan_type: selectedPlan.plan_code,
           amount: selectedPlan.price,
           currency: selectedPlan.currency,
