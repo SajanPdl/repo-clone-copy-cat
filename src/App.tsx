@@ -11,7 +11,6 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudyMaterialsPage from "./pages/StudyMaterialsPage";
-import StudyMaterialPage from "./pages/StudyMaterialPage";
 import ContentViewPage from "./pages/ContentViewPage";
 import PastPapersPage from "./pages/PastPapersPage";
 import PastPaperViewPage from "./pages/PastPaperViewPage";
@@ -23,9 +22,8 @@ import DashboardRewards from "./pages/DashboardRewards";
 import DashboardSettings from "./pages/DashboardSettings";
 import StudentAchievementsPage from "./pages/StudentAchievementsPage";
 import StudentSavedPage from "./pages/StudentSavedPage";
-import StudentUploadPage from "./pages/StudentUploadPage";
 import StudentMaterialUploadPage from "./pages/StudentMaterialUploadPage";
-import UploadMaterialPage from "./pages/UploadMaterialPage";
+
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
 import MarketplacePage from "./pages/MarketplacePage";
@@ -45,10 +43,10 @@ import RewardsPage from "./pages/RewardsPage";
 import WalletPage from "./pages/WalletPage";
 import SettingsPage from "./pages/SettingsPage";
 import StudyAssistantPage from "./pages/StudyAssistantPage";
-import DailyPlannerPage from "./pages/DailyPlannerPage";
 import PlannerPage from "./pages/PlannerPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import NotFound from "./pages/NotFound";
+import SearchPage from "./pages/SearchPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -69,7 +67,6 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/study-materials" element={<StudyMaterialsPage />} />
-              <Route path="/study-material/:id" element={<StudyMaterialPage />} />
               <Route path="/content/:type/:slug" element={<ContentViewPage />} />
               <Route path="/past-papers" element={<PastPapersPage />} />
               <Route path="/past-paper/:id" element={<PastPaperViewPage />} />
@@ -92,7 +89,7 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/study-assistant" element={<StudyAssistantPage />} />
               <Route path="/planner" element={<PlannerPage />} />
-              <Route path="/daily-planner" element={<DailyPlannerPage />} />
+              <Route path="/search" element={<SearchPage />} />
               
               {/* Protected Student Routes */}
               <Route path="/dashboard" element={
@@ -106,15 +103,10 @@ function App() {
                 <Route path="rewards" element={<DashboardRewards />} />
                 <Route path="settings" element={<DashboardSettings />} />
                 <Route path="saved" element={<StudentSavedPage />} />
-                <Route path="upload" element={<StudentUploadPage />} />
                 <Route path="upload-material" element={<StudentMaterialUploadPage />} />
               </Route>
               
-              <Route path="/upload" element={
-                <ProtectedRoute>
-                  <UploadMaterialPage />
-                </ProtectedRoute>
-              } />
+
               
               {/* Protected Admin Routes */}
               <Route path="/admin/*" element={
