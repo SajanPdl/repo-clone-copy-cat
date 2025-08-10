@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import type { SubscriptionPlan, PaymentRequest, SubscriptionWithPlan } from '@/types/subscription';
 
 const PaymentDebug = () => {
   const [debugInfo, setDebugInfo] = useState<any>({});
@@ -44,7 +42,7 @@ const PaymentDebug = () => {
           .rpc('get_user_subscription', { user_id: user.id });
 
         info.subscription = {
-          hasSubscription: !!(subscription && Array.isArray(subscription) && subscription.length > 0),
+          hasSubscription: !!(subscription && subscription.length > 0),
           data: subscription,
           error: subError?.message
         };
@@ -156,7 +154,7 @@ const PaymentDebug = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-32">
+            <pre className="text-sm bg-gray-100 p-2 rounded">
               {JSON.stringify(debugInfo.plans, null, 2)}
             </pre>
           </CardContent>
@@ -173,7 +171,7 @@ const PaymentDebug = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-32">
+            <pre className="text-sm bg-gray-100 p-2 rounded">
               {JSON.stringify(debugInfo.subscription, null, 2)}
             </pre>
           </CardContent>
@@ -190,7 +188,7 @@ const PaymentDebug = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-32">
+            <pre className="text-sm bg-gray-100 p-2 rounded">
               {JSON.stringify(debugInfo.payments, null, 2)}
             </pre>
           </CardContent>

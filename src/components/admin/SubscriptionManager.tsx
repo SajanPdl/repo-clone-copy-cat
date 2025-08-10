@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,19 +11,26 @@ import {
   Calendar, 
   Search, 
   RefreshCw,
+  Eye,
   AlertTriangle
 } from 'lucide-react';
-import type { UserSubscription, SubscriptionPlan } from '@/types/subscription';
 
-interface SubscriptionWithPlan extends UserSubscription {
+interface UserSubscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
   plan_code: string;
   plan_name: string;
+  status: string;
+  starts_at: string;
+  expires_at: string;
   days_remaining: number;
+  user_email?: string;
 }
 
 const SubscriptionManager = () => {
   const { toast } = useToast();
-  const [subscriptions, setSubscriptions] = useState<SubscriptionWithPlan[]>([]);
+  const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -51,11 +57,16 @@ const SubscriptionManager = () => {
 
       if (error) throw error;
 
-      // Transform data to include plan details and calculate days remaining
-      const transformedData: SubscriptionWithPlan[] = (data || []).map((sub: any) => ({
-        ...sub,
+      // Transform data to include plan details
+      const transformedData: UserSubscription[] = (data || []).map((sub: any) => ({
+        id: sub.id,
+        user_id: sub.user_id,
+        plan_id: sub.plan_id,
         plan_code: sub.subscription_plans.plan_code,
         plan_name: sub.subscription_plans.name,
+        status: sub.status,
+        starts_at: sub.starts_at,
+        expires_at: sub.expires_at,
         days_remaining: Math.max(0, Math.floor((new Date(sub.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
       }));
 

@@ -1,114 +1,373 @@
 
-import React, { Dispatch, SetStateAction } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   LayoutDashboard, 
-  Users, 
-  BookOpen, 
+  BookText, 
   FileText, 
-  FolderOpen, 
-  GraduationCap,
-  Calendar,
-  ShoppingBag,
-  Shirt,
-  CreditCard,
-  Crown,
-  MessageSquare,
+  Users, 
+  Bell, 
   Settings,
-  BarChart3,
-  Monitor,
-  Menu,
-  X,
-  ClipboardCheck,
+  Tag,
+  GraduationCap,
+  ChevronRight,
+  User,
+  LogOut,
+  BarChart2,
+  MessageSquare,
+  Clock,
+  ChevronLeft,
+  ShoppingCart,
+  MapPin,
+  Calendar,
   Wallet,
-  Package
+  Receipt,
+  Shield,
+  TrendingUp,
+  Star,
+  Menu
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { getNepaliDate, getNepaliTime } from '@/utils/nepaliDate';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EnhancedAdminSidebarProps {
-  collapsed: boolean;
-  setCollapsed: Dispatch<SetStateAction<boolean>>;
+  collapsed?: boolean;
+  setCollapsed?: (collapsed: boolean) => void;
 }
 
-const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ collapsed, setCollapsed }) => {
+const EnhancedAdminSidebar = ({ collapsed = false, setCollapsed }: EnhancedAdminSidebarProps) => {
+  const { toast } = useToast();
+  const { signOut } = useAuth();
   const location = useLocation();
-
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-    { icon: Users, label: 'Users', path: '/admin/users' },
-    { icon: BookOpen, label: 'Study Materials', path: '/admin/study-materials' },
-    { icon: FileText, label: 'Past Papers', path: '/admin/past-papers' },
-    { icon: FolderOpen, label: 'Categories', path: '/admin/categories' },
-    { icon: GraduationCap, label: 'Grades', path: '/admin/grades' },
-    { icon: FileText, label: 'Blog', path: '/admin/blog' },
-    { icon: Calendar, label: 'Events', path: '/admin/events' },
-    { icon: ShoppingBag, label: 'Marketplace', path: '/admin/marketplace' },
-    { icon: Shirt, label: 'Merch Store', path: '/admin/merch' },
-    { icon: ClipboardCheck, label: 'Payment Verification', path: '/admin/payment-verification' },
-    { icon: Package, label: 'Subscription Plans', path: '/admin/subscription-plans' },
-    { icon: Crown, label: 'Subscriptions', path: '/admin/subscriptions' },
-    { icon: Wallet, label: 'Wallet Management', path: '/admin/wallet-management' },
-    { icon: Monitor, label: 'Advertisements', path: '/admin/ads' },
-    { icon: MessageSquare, label: 'Queries', path: '/admin/queries' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
-  ];
-
-  const isActive = (path: string) => {
-    if (path === '/admin') {
-      return location.pathname === '/admin' || location.pathname === '/admin/';
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+  const [pendingCounts, setPendingCounts] = useState({
+    materials: 0,
+    payments: 0,
+    withdrawals: 0,
+    queries: 0
+  });
+  
+  const sidebarItems = [
+    {
+      name: 'Dashboard',
+      icon: LayoutDashboard,
+      id: 'dashboard',
+      path: '/admin'
+    },
+    {
+      name: 'Study Materials',
+      icon: BookText,
+      id: 'materials',
+      path: '/admin/materials',
+      badge: pendingCounts.materials > 0 ? pendingCounts.materials : undefined
+    },
+    {
+      name: 'Past Papers',
+      icon: FileText,
+      id: 'papers',
+      path: '/admin/papers'
+    },
+    {
+      name: 'Marketplace',
+      icon: ShoppingCart,
+      id: 'marketplace',
+      path: '/admin/marketplace'
+    },
+    {
+      name: 'Merchandise',
+      icon: Tag,
+      id: 'merch',
+      path: '/admin/merch'
+    },
+    {
+      name: 'Payment Verification',
+      icon: Receipt,
+      id: 'payments',
+      path: '/admin/payments',
+      badge: pendingCounts.payments > 0 ? pendingCounts.payments : undefined
+    },
+    {
+      name: 'Wallet Management',
+      icon: Wallet,
+      id: 'wallets',
+      path: '/admin/wallets',
+      badge: pendingCounts.withdrawals > 0 ? pendingCounts.withdrawals : undefined
+    },
+    {
+      name: 'Categories',
+      icon: Tag,
+      id: 'categories',
+      path: '/admin/categories'
+    },
+    {
+      name: 'Grades',
+      icon: GraduationCap,
+      id: 'grades',
+      path: '/admin/grades'
+    },
+    {
+      name: 'Blog Management',
+      icon: FileText,
+      id: 'blog',
+      path: '/admin/blog'
+    },
+    {
+      name: 'Users',
+      icon: Users,
+      id: 'users',
+      path: '/admin/users'
+    },
+    {
+      name: 'Events Calendar',
+      icon: Calendar,
+      id: 'events',
+      path: '/admin/events'
+    },
+    {
+      name: 'Queries',
+      icon: MessageSquare,
+      id: 'queries',
+      path: '/admin/queries',
+      badge: pendingCounts.queries > 0 ? pendingCounts.queries : undefined
+    },
+    {
+      name: 'Referral Program',
+      icon: TrendingUp,
+      id: 'referrals',
+      path: '/admin/referrals'
+    },
+    {
+      name: 'Achievements',
+      icon: Star,
+      id: 'achievements',
+      path: '/admin/achievements'
+    },
+    {
+      name: 'Advertisement',
+      icon: Bell,
+      id: 'ads',
+      path: '/admin/ads'
+    },
+    {
+      name: 'Ad Placements',
+      icon: MapPin,
+      id: 'ad-placements',
+      path: '/admin/ad-placements'
+    },
+    {
+      name: 'Analytics',
+      icon: BarChart2,
+      id: 'analytics',
+      path: '/admin/analytics'
+    },
+    {
+      name: 'Settings',
+      icon: Settings,
+      id: 'settings',
+      path: '/admin/settings'
     }
-    return location.pathname.startsWith(path);
+  ];
+  
+  useEffect(() => {
+    const updateDateTime = () => {
+      setCurrentTime(getNepaliTime());
+      setCurrentDate(getNepaliDate());
+    };
+    
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Fetch pending counts for badges
+    fetchPendingCounts();
+    const interval = setInterval(fetchPendingCounts, 30000); // Update every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchPendingCounts = async () => {
+    // This would fetch actual pending counts from the database
+    // For now, using mock data
+    setPendingCounts({
+      materials: 5,
+      payments: 3,
+      withdrawals: 2,
+      queries: 8
+    });
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out of the admin panel.",
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const toggleSidebar = () => {
+    if (setCollapsed) {
+      setCollapsed(!collapsed);
+    }
   };
 
+  const isActiveRoute = (path: string) => {
+    if (path === '/admin' && location.pathname === '/admin') return true;
+    if (path !== '/admin' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+  
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-40 ${
-      collapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          {!collapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
-              </div>
-              <span className="font-semibold text-gray-900">Admin Panel</span>
+    <aside className={cn(
+      "h-full bg-gradient-to-b from-indigo-900 via-indigo-800 to-indigo-900 text-white flex flex-col transition-all duration-300 ease-in-out shadow-xl border-r border-indigo-700",
+      collapsed ? "w-20" : "w-72"
+    )}>
+      {/* Header */}
+      <div className={cn(
+        "p-6 border-b border-indigo-700 flex justify-between items-center bg-indigo-800/50",
+        collapsed && "px-4 py-6 justify-center"
+      )}>
+        {!collapsed && (
+          <div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+              MeroAcademy Admin
+            </h2>
+            <p className="text-indigo-300 text-sm">Management Panel</p>
+          </div>
+        )}
+        {collapsed && (
+          <div className="flex justify-center">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">ES</h2>
+          </div>
+        )}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-indigo-300 hover:text-white hover:bg-indigo-700 transition-colors"
+          onClick={toggleSidebar}
+        >
+          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        </Button>
+      </div>
+      
+      {/* Status Panel */}
+      {!collapsed && (
+        <div className="p-4 border-b border-indigo-700 bg-indigo-800/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="h-4 w-4 text-indigo-300" />
+            <div className="text-sm">
+              <p className="font-semibold text-white">{currentTime}</p>
+              <p className="text-xs text-indigo-300">{currentDate}</p>
             </div>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-2"
-          >
-            {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </Button>
+          </div>
+          <div className="text-xs text-indigo-200">
+            System Status: <span className="text-green-400">● Online</span>
+          </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                } ${collapsed ? 'justify-center' : ''}`}
-                title={collapsed ? item.label : ''}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
+      )}
+      
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto py-6 px-3">
+        <nav className="space-y-1">
+          <TooltipProvider delayDuration={0}>
+            {sidebarItems.map((item) => (
+              <Tooltip key={item.id}>
+                <TooltipTrigger asChild>
+                  <Link to={item.path}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start text-indigo-100 hover:text-white hover:bg-indigo-700/50 transition-all duration-200 relative",
+                        isActiveRoute(item.path) && "bg-indigo-600 text-white shadow-lg border border-indigo-500",
+                        collapsed && "justify-center px-2"
+                      )}
+                    >
+                      <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-3")} />
+                      {!collapsed && (
+                        <div className="flex items-center justify-between w-full">
+                          <span>{item.name}</span>
+                          {item.badge && (
+                            <Badge variant="secondary" className="bg-red-500 text-white text-xs px-1.5 py-0.5 min-w-[20px] h-5">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      {collapsed && item.badge && (
+                        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {item.badge}
+                        </div>
+                      )}
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right" className="flex items-center gap-2">
+                    {item.name}
+                    {item.badge && (
+                      <Badge variant="secondary" className="bg-red-500 text-white">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            ))}
+          </TooltipProvider>
         </nav>
       </div>
-    </div>
+      
+      {/* Footer */}
+      <div className={cn(
+        "p-4 border-t border-indigo-700 bg-indigo-800/50",
+        collapsed && "flex flex-col items-center"
+      )}>
+        {!collapsed ? (
+          <div className="flex items-center p-3 rounded-lg bg-indigo-700/50 mb-3 border border-indigo-600">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center mr-3">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">Admin User</p>
+              <p className="text-xs text-indigo-300">System Administrator</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center mb-3 border-2 border-indigo-500">
+            <Shield className="h-6 w-6 text-white" />
+          </div>
+        )}
+        <Button 
+          variant="ghost" 
+          className={cn(
+            "w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20 transition-colors",
+            collapsed && "justify-center p-2"
+          )}
+          onClick={handleLogout}
+        >
+          <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
+          {!collapsed && "Logout"}
+        </Button>
+      </div>
+    </aside>
   );
 };
 
