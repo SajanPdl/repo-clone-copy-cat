@@ -595,7 +595,7 @@ const ContentDetailView = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {suggestedMaterials.map((item) => (
-                  <Link key={item.id} to={`/content/${item.slug || item.id}`} className="block group">
+                  <Link key={item.id} to={`/content/study-material/${item.slug || item.id}`} className="block group">
                     <div className="flex gap-3">
                       <div className="h-14 w-14 rounded bg-gray-100 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center">
                         {getIcon(item.subject)}

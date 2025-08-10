@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 
 const ContentViewPage = () => {
-  const { type, id } = useParams<{ type: string; id: string }>();
+  const { type, slug } = useParams<{ type: string; slug: string }>();
   const navigate = useNavigate();
   const [content, setContent] = useState<StudyMaterial | PastPaper | null>(null);
   const [contentType, setContentType] = useState<'study-material' | 'past-paper' | null>(null);
@@ -19,7 +19,7 @@ const ContentViewPage = () => {
 
   useEffect(() => {
     const loadContent = async () => {
-      if (!type || !id) {
+      if (!type || !slug) {
         setError("Content not found");
         setLoading(false);
         return;
@@ -29,11 +29,11 @@ const ContentViewPage = () => {
         setLoading(true);
         
         if (type === 'study-material') {
-          // Fetch study material by ID
+          // Fetch study material by slug
           const { data, error: fetchError } = await supabase
             .from('study_materials')
             .select('*')
-            .eq('id', id)
+            .eq('slug', slug)
             .single();
 
           if (fetchError || !data) {
@@ -44,11 +44,11 @@ const ContentViewPage = () => {
           setContent(data as StudyMaterial);
           setContentType('study-material');
         } else if (type === 'past-paper') {
-          // Fetch past paper by ID
+          // Fetch past paper by slug
           const { data, error: fetchError } = await supabase
             .from('past_papers')
             .select('*')
-            .eq('id', id)
+            .eq('slug', slug)
             .single();
 
           if (fetchError || !data) {
@@ -70,7 +70,7 @@ const ContentViewPage = () => {
     };
 
     loadContent();
-  }, [type, id]);
+  }, [type, slug]);
 
   const handleBack = () => {
     if (contentType === 'study-material') {

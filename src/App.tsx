@@ -70,7 +70,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/study-materials" element={<StudyMaterialsPage />} />
               <Route path="/study-material/:id" element={<StudyMaterialPage />} />
-              <Route path="/content/:type/:id" element={<ContentViewPage />} />
+              <Route path="/content/:type/:slug" element={<ContentViewPage />} />
               <Route path="/past-papers" element={<PastPapersPage />} />
               <Route path="/past-paper/:id" element={<PastPaperViewPage />} />
               <Route path="/marketplace" element={<MarketplacePage />} />

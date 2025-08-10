@@ -22,10 +22,10 @@ const StudentSavedPage = () => {
   const { bookmarks, loading: bookmarksLoading, removeBookmark } = useBookmarks();
 
   const handleItemClick = (bookmark: any) => {
-    if (bookmark.content_type === 'study_material') {
-      navigate(`/content/study-material/${bookmark.content_id}`);
-    } else if (bookmark.content_type === 'past_paper') {
-      navigate(`/content/past-paper/${bookmark.content_id}`);
+    if (bookmark.content_type === 'study_material' && bookmark.materialData?.slug) {
+      navigate(`/content/study-material/${bookmark.materialData.slug}`);
+    } else if (bookmark.content_type === 'past_paper' && bookmark.materialData?.slug) {
+      navigate(`/content/past-paper/${bookmark.materialData.slug}`);
     }
   };
 
