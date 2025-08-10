@@ -50,25 +50,61 @@ const UsersManagement = () => {
         throw new Error('Authentication required');
       }
 
-      // Check if user has admin role - for now, allow access to any authenticated user
-      // In production, you should implement proper admin role checking
-      console.log('Current user:', user.id, user.email);
+      // Check if user has admin role using the is_admin function
+      const { data: isAdminData, error: isAdminError } = await supabase.rpc('is_admin', {
+        user_id: user.id
+      });
       
-      // TODO: Implement proper admin role checking
-      // For now, we'll allow any authenticated user to access the admin panel
-      // You can uncomment the following lines when you have proper admin roles set up:
-      // const userRole = user.app_metadata?.role || user.user_metadata?.role;
-      // if (userRole !== 'admin') {
-      //   throw new Error('Admin access required');
-      // }
+      if (isAdminError) {
+        console.error('Error checking admin status:', isAdminError);
+        throw new Error('Unable to verify admin access');
+      }
+      
+      if (!isAdminData) {
+        throw new Error('Admin access required. Please contact an administrator to grant you admin privileges.');
+      }
+      
+      console.log('Admin access verified for user:', user.id, user.email);
 
-      // Get users from student_profiles table
+      // Get users from both users table and student_profiles table
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('*');
+
       const { data: profilesData, error: profilesError } = await supabase
         .from('student_profiles')
         .select('*');
 
+      if (!usersError && !profilesError && usersData && profilesData) {
+        // Create a map of profiles by user_id for quick lookup
+        const profilesMap = new Map(profilesData.map((profile: any) => [profile.user_id, profile]));
+        
+        // Combine user data with profile data
+        const combinedUsers = usersData.map((user: any) => {
+          const profile = profilesMap.get(user.id);
+          return {
+            id: user.id,
+            email: user.email,
+            phone: null, // We don't have phone in users table
+            created_at: user.created_at,
+            last_sign_in_at: user.updated_at, // Using updated_at as last activity
+            user_metadata: {},
+            app_metadata: { role: user.role },
+            role: user.role,
+            points: profile?.points || 0,
+            level: profile?.level || 'Fresh Contributor',
+            university: profile?.university,
+            course: profile?.course,
+            year_of_study: profile?.year_of_study
+          };
+        });
+        
+        setUsers(combinedUsers);
+        return;
+      }
+
+      // Fallback: if users table doesn't exist, use only profiles
       if (!profilesError && profilesData) {
-        // Create user objects from profile data
         const usersFromProfiles = profilesData.map((profile: any) => ({
           id: profile.user_id,
           email: `user-${profile.user_id.slice(0, 8)}@example.com`, // Placeholder email
@@ -106,28 +142,20 @@ const UsersManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // Try to update user role using RPC function
-      try {
-        const { error: rpcError } = await supabase.rpc('update_user_role' as any, {
-          user_id: userId,
-          new_role: newRole
-        });
+      // Update user role in the public.users table
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ role: newRole })
+        .eq('id', userId);
 
-        if (!rpcError) {
-          toast({
-            title: 'Success',
-            description: `User role updated to ${newRole}`,
-          });
-        } else {
-          throw rpcError;
-        }
-      } catch (rpcErr) {
-        // Fallback: just update local state
-        toast({
-          title: 'Success',
-          description: `User role would be updated to ${newRole} (demo mode)`,
-        });
+      if (updateError) {
+        throw updateError;
       }
+
+      toast({
+        title: 'Success',
+        description: `User role updated to ${newRole}`,
+      });
 
       // Update local state
       setUsers(users.map(user => 
