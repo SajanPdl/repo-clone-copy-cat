@@ -31,6 +31,12 @@ CREATE TABLE IF NOT EXISTS public.user_subscriptions (
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Anyone can view active subscription plans" ON public.subscription_plans;
+DROP POLICY IF EXISTS "Admins can manage subscription plans" ON public.subscription_plans;
+DROP POLICY IF EXISTS "Users can view their own subscriptions" ON public.user_subscriptions;
+DROP POLICY IF EXISTS "Admins can view all subscriptions" ON public.user_subscriptions;
+
 -- RLS policies for subscription_plans
 CREATE POLICY "Anyone can view active subscription plans" ON public.subscription_plans
   FOR SELECT USING (is_active = true);
@@ -55,10 +61,12 @@ VALUES
 ON CONFLICT (plan_code) DO NOTHING;
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_subscription_plans_updated_at ON public.subscription_plans;
 CREATE TRIGGER update_subscription_plans_updated_at
   BEFORE UPDATE ON public.subscription_plans
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_subscriptions_updated_at ON public.user_subscriptions;
 CREATE TRIGGER update_user_subscriptions_updated_at
   BEFORE UPDATE ON public.user_subscriptions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

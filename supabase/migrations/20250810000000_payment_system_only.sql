@@ -42,8 +42,7 @@ CREATE TABLE IF NOT EXISTS public.user_subscriptions (
   starts_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  UNIQUE(user_id, status) WHERE status = 'active'
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 -- Enable RLS on all tables

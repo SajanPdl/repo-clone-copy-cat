@@ -23,6 +23,18 @@ CREATE TABLE IF NOT EXISTS public.withdrawal_requests (
 -- Enable RLS on withdrawal_requests
 ALTER TABLE public.withdrawal_requests ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Users can create their own withdrawal requests" ON public.withdrawal_requests;
+DROP POLICY IF EXISTS "Users can view their own withdrawal requests" ON public.withdrawal_requests;
+DROP POLICY IF EXISTS "Admins can manage all withdrawal requests" ON public.withdrawal_requests;
+DROP POLICY IF EXISTS "Users can view their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Users can insert their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Users can update their own payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Admins can view all payment requests" ON public.payment_requests;
+DROP POLICY IF EXISTS "Users can view their own wallet" ON public.seller_wallets;
+DROP POLICY IF EXISTS "Users can update their own wallet" ON public.seller_wallets;
+DROP POLICY IF EXISTS "Admins can view all wallets" ON public.seller_wallets;
+
 -- Create policies for withdrawal_requests
 CREATE POLICY "Users can create their own withdrawal requests" ON public.withdrawal_requests
 FOR INSERT WITH CHECK (auth.uid() = user_id);

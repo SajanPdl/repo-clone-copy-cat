@@ -166,6 +166,9 @@ ADD COLUMN IF NOT EXISTS ad_type text DEFAULT 'banner';
 
 -- Add constraint for ad_type
 ALTER TABLE public.advertisements 
+DROP CONSTRAINT IF EXISTS valid_ad_type;
+
+ALTER TABLE public.advertisements 
 ADD CONSTRAINT valid_ad_type 
 CHECK (ad_type IN ('banner', 'popup', 'popunder', 'native', 'video'));
 

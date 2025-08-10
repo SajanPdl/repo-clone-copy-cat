@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS public.users (
 -- Enable RLS on users table
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Users can view their own data" ON public.users;
+DROP POLICY IF EXISTS "Users can update their own data" ON public.users;
+DROP POLICY IF EXISTS "Admins can view all users" ON public.users;
+DROP POLICY IF EXISTS "Admins can update all users" ON public.users;
+
 -- Create RLS policies for users table
 CREATE POLICY "Users can view their own data" ON public.users
   FOR SELECT USING (auth.uid() = id);
