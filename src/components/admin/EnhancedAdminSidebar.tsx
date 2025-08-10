@@ -20,8 +20,7 @@ import {
   Menu,
   X,
   ClipboardCheck,
-  Wallet,
-  Package
+  Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -46,7 +45,6 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ collapsed, 
     { icon: ShoppingBag, label: 'Marketplace', path: '/admin/marketplace' },
     { icon: Shirt, label: 'Merch Store', path: '/admin/merch' },
     { icon: ClipboardCheck, label: 'Payment Verification', path: '/admin/payment-verification' },
-    { icon: Package, label: 'Subscription Plans', path: '/admin/subscription-plans' },
     { icon: Crown, label: 'Subscriptions', path: '/admin/subscriptions' },
     { icon: Wallet, label: 'Wallet Management', path: '/admin/wallet-management' },
     { icon: Monitor, label: 'Advertisements', path: '/admin/ads' },

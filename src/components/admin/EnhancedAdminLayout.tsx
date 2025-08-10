@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import EnhancedAdminSidebar from './EnhancedAdminSidebar';
+import AdminHeader from './AdminHeader';
 import EnhancedDashboard from './EnhancedDashboard';
 import AnalyticsPage from './AnalyticsPage';
 import UsersManagement from './UsersManagement';
@@ -14,43 +15,51 @@ import EventsManager from './EventsManager';
 import MarketplaceManager from './MarketplaceManager';
 import MerchManager from './MerchManager';
 import PaymentVerificationManager from './PaymentVerificationManager';
-import SubscriptionPlanManager from './SubscriptionPlanManager';
 import SubscriptionManager from './SubscriptionManager';
-import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
 import AdvertisementManager from './AdvertisementManager';
 import QueriesManager from './QueriesManager';
 import AdminSettings from './AdminSettings';
+import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
 
-const EnhancedAdminLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface EnhancedAdminLayoutProps {
+  children?: React.ReactNode;
+}
+
+const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <EnhancedAdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <main className={`flex-1 transition-all duration-300 ${
-        collapsed ? 'ml-16' : 'ml-64'
-      } p-6`}>
-        <Routes>
-          <Route path="/" element={<EnhancedDashboard />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/users" element={<UsersManagement />} />
-          <Route path="/study-materials" element={<StudyMaterialsManager />} />
-          <Route path="/past-papers" element={<PastPapersManager />} />
-          <Route path="/categories" element={<CategoriesManager />} />
-          <Route path="/grades" element={<GradesManager />} />
-          <Route path="/blog" element={<BlogEditor />} />
-          <Route path="/events" element={<EventsManager />} />
-          <Route path="/marketplace" element={<MarketplaceManager />} />
-          <Route path="/merch" element={<MerchManager />} />
-          <Route path="/payment-verification" element={<PaymentVerificationManager />} />
-          <Route path="/subscription-plans" element={<SubscriptionPlanManager />} />
-          <Route path="/subscriptions" element={<SubscriptionManager />} />
-          <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
-          <Route path="/ads" element={<AdvertisementManager />} />
-          <Route path="/queries" element={<QueriesManager />} />
-          <Route path="/settings" element={<AdminSettings />} />
-        </Routes>
-      </main>
+    <div className="min-h-screen bg-gray-50 flex">
+      <EnhancedAdminSidebar 
+        collapsed={sidebarCollapsed} 
+        setCollapsed={setSidebarCollapsed} 
+      />
+      <div className={`flex-1 flex flex-col ${sidebarCollapsed ? 'ml-16' : 'ml-64'} transition-all duration-300`}>
+        <AdminHeader />
+        <main className="flex-1 p-6 overflow-auto">
+          {children || (
+            <Routes>
+              <Route path="/" element={<EnhancedDashboard />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/users" element={<UsersManagement />} />
+              <Route path="/study-materials" element={<StudyMaterialsManager />} />
+              <Route path="/past-papers" element={<PastPapersManager />} />
+              <Route path="/categories" element={<CategoriesManager />} />
+              <Route path="/grades" element={<GradesManager />} />
+              <Route path="/blog" element={<BlogEditor />} />
+              <Route path="/events" element={<EventsManager />} />
+              <Route path="/marketplace" element={<MarketplaceManager />} />
+              <Route path="/merch" element={<MerchManager />} />
+              <Route path="/payment-verification" element={<PaymentVerificationManager />} />
+              <Route path="/subscriptions" element={<SubscriptionManager />} />
+              <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
+              <Route path="/ads" element={<AdvertisementManager />} />
+              <Route path="/queries" element={<QueriesManager />} />
+              <Route path="/settings" element={<AdminSettings />} />
+            </Routes>
+          )}
+        </main>
+      </div>
     </div>
   );
 };

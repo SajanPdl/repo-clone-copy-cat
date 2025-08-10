@@ -1,68 +1,87 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { 
-  Wallet, 
-  ArrowUpCircle, 
-  ArrowDownCircle, 
-  Search, 
+  DollarSign, 
+  Users, 
+  TrendingUp, 
+  Clock, 
   CheckCircle, 
-  XCircle,
-  RefreshCw,
-  DollarSign
+  XCircle, 
+  Eye,
+  Edit,
+  Trash2
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define interfaces based on actual database structure
 interface WalletTransaction {
   id: string;
   wallet_id: string;
+  seller_id: string;
   amount: number;
-  transaction_type: string;
-  description: string | null;
-  reference_id: string | null;
+  status: string;
+  esewa_id: string;
+  processed_at: string;
+  processed_by: string;
+  admin_notes: string;
   created_at: string;
+  updated_at: string;
+  username?: string;
+  email?: string;
 }
 
 interface WithdrawalRequest {
   id: string;
   user_id: string;
-  wallet_id: string;
   amount: number;
-  esewa_id: string | null;
+  esewa_id: string;
   status: string;
-  admin_notes: string | null;
-  processed_at: string | null;
-  processed_by: string | null;
-  seller_id: string;
-  created_at: string | null;
-  updated_at: string | null;
+  created_at: string;
+  processed_at?: string;
+  admin_notes?: string;
+  profiles?: {
+    username?: string;
+    email?: string;
+  };
+}
+
+interface WalletStats {
+  totalRequests: number;
+  pendingRequests: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  totalAmount: number;
 }
 
 const EnhancedWalletManagementPanel = () => {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [stats, setStats] = useState<WalletStats>({
+    totalRequests: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    rejectedRequests: 0,
+    totalAmount: 0
+  });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<WalletTransaction | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
-  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    fetchWalletData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchWalletData = async () => {
     try {
       setLoading(true);
       
-      // Fetch wallet transactions
+      // Fetch wallet transactions - simplified query without joins since they're not working
       const { data: transactionData, error: transactionError } = await supabase
         .from('wallet_transactions')
         .select('*')
@@ -71,10 +90,26 @@ const EnhancedWalletManagementPanel = () => {
       if (transactionError) {
         console.error('Transaction error:', transactionError);
       } else {
-        setTransactions(transactionData || []);
+        // Transform and add default values for missing fields
+        const transformedTransactions = (transactionData || []).map(transaction => ({
+          id: transaction.id,
+          wallet_id: transaction.wallet_id,
+          seller_id: transaction.seller_id || '',
+          amount: transaction.amount,
+          status: transaction.status || 'pending',
+          esewa_id: transaction.esewa_id || '',
+          processed_at: transaction.processed_at || '',
+          processed_by: transaction.processed_by || '',
+          admin_notes: transaction.admin_notes || '',
+          created_at: transaction.created_at,
+          updated_at: transaction.updated_at || transaction.created_at,
+          username: 'Unknown User', // Default since join isn't working
+          email: 'N/A'
+        }));
+        setTransactions(transformedTransactions);
       }
 
-      // Fetch withdrawal requests
+      // Fetch withdrawal requests - simplified query without joins
       const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('withdrawal_requests')
         .select('*')
@@ -83,14 +118,56 @@ const EnhancedWalletManagementPanel = () => {
       if (withdrawalError) {
         console.error('Withdrawal error:', withdrawalError);
       } else {
-        setWithdrawalRequests(withdrawalData || []);
+        // Transform the data to match expected interface
+        const transformedWithdrawals = (withdrawalData || []).map(request => ({
+          id: request.id,
+          user_id: request.user_id,
+          amount: request.amount,
+          esewa_id: request.esewa_id,
+          status: request.status,
+          created_at: request.created_at,
+          processed_at: request.processed_at,
+          admin_notes: request.admin_notes,
+          profiles: {
+            username: 'Unknown User', // Default since join isn't working
+            email: 'N/A'
+          }
+        }));
+        setWithdrawalRequests(transformedWithdrawals);
       }
-
+      
+      // Calculate stats from withdrawal requests
+      const statsData = (withdrawalData || []).reduce((acc, request) => {
+        acc.totalRequests++;
+        acc.totalAmount += request.amount;
+        
+        switch (request.status) {
+          case 'pending':
+            acc.pendingRequests++;
+            break;
+          case 'approved':
+            acc.approvedRequests++;
+            break;
+          case 'rejected':
+            acc.rejectedRequests++;
+            break;
+        }
+        
+        return acc;
+      }, {
+        totalRequests: 0,
+        pendingRequests: 0,
+        approvedRequests: 0,
+        rejectedRequests: 0,
+        totalAmount: 0
+      });
+      
+      setStats(statsData);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching wallet data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load wallet data',
+        description: 'Failed to fetch wallet data',
         variant: 'destructive'
       });
     } finally {
@@ -98,16 +175,14 @@ const EnhancedWalletManagementPanel = () => {
     }
   };
 
-  const handleApproveWithdrawal = async (requestId: string) => {
-    setProcessing(true);
+  const handleUpdateWithdrawalStatus = async (requestId: string, newStatus: string) => {
     try {
       const { error } = await supabase
         .from('withdrawal_requests')
         .update({
-          status: 'approved',
-          processed_at: new Date().toISOString(),
-          processed_by: (await supabase.auth.getUser()).data.user?.id,
-          admin_notes: adminNotes || null
+          status: newStatus,
+          admin_notes: adminNotes,
+          processed_at: new Date().toISOString()
         })
         .eq('id', requestId);
 
@@ -115,56 +190,19 @@ const EnhancedWalletManagementPanel = () => {
 
       toast({
         title: 'Success',
-        description: 'Withdrawal request approved successfully'
+        description: `Withdrawal request ${newStatus} successfully`
       });
-      
-      fetchData();
-      setSelectedRequest(null);
+
+      setSelectedTransaction(null);
       setAdminNotes('');
+      fetchWalletData();
     } catch (error) {
-      console.error('Error approving withdrawal:', error);
+      console.error('Error updating withdrawal request:', error);
       toast({
         title: 'Error',
-        description: 'Failed to approve withdrawal request',
+        description: 'Failed to update withdrawal request',
         variant: 'destructive'
       });
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleRejectWithdrawal = async (requestId: string) => {
-    setProcessing(true);
-    try {
-      const { error } = await supabase
-        .from('withdrawal_requests')
-        .update({
-          status: 'rejected',
-          processed_at: new Date().toISOString(),
-          processed_by: (await supabase.auth.getUser()).data.user?.id,
-          admin_notes: adminNotes || null
-        })
-        .eq('id', requestId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Withdrawal request rejected'
-      });
-      
-      fetchData();
-      setSelectedRequest(null);
-      setAdminNotes('');
-    } catch (error) {
-      console.error('Error rejecting withdrawal:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to reject withdrawal request',
-        variant: 'destructive'
-      });
-    } finally {
-      setProcessing(false);
     }
   };
 
@@ -181,223 +219,221 @@ const EnhancedWalletManagementPanel = () => {
     }
   };
 
-  const filteredRequests = withdrawalRequests.filter(request =>
-    request.seller_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.esewa_id?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Wallet Management</h1>
-        <p className="text-gray-600 mt-2">Manage user wallets and withdrawal requests</p>
+        <h1 className="text-3xl font-bold">Enhanced Wallet Management</h1>
+        <p className="text-gray-600 mt-2">Manage seller wallet withdrawal requests and transactions</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">Total Transactions</p>
-                <p className="text-2xl font-bold">{transactions.length}</p>
+                <p className="text-sm font-medium">Total Requests</p>
+                <p className="text-2xl font-bold">{stats.totalRequests}</p>
               </div>
-              <Wallet className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-yellow-500" />
               <div>
-                <p className="text-sm text-gray-600">Pending Withdrawals</p>
-                <p className="text-2xl font-bold">
-                  {withdrawalRequests.filter(r => r.status === 'pending').length}
-                </p>
+                <p className="text-sm font-medium">Pending</p>
+                <p className="text-2xl font-bold">{stats.pendingRequests}</p>
               </div>
-              <ArrowUpCircle className="h-8 w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600">Approved Withdrawals</p>
-                <p className="text-2xl font-bold">
-                  {withdrawalRequests.filter(r => r.status === 'approved').length}
-                </p>
+                <p className="text-sm font-medium">Approved</p>
+                <p className="text-2xl font-bold">{stats.approvedRequests}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <XCircle className="h-4 w-4 text-red-500" />
               <div>
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold">
-                  NPR {withdrawalRequests.reduce((sum, r) => sum + r.amount, 0)}
-                </p>
+                <p className="text-sm font-medium">Rejected</p>
+                <p className="text-2xl font-bold">{stats.rejectedRequests}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-4 w-4 text-green-500" />
+              <div>
+                <p className="text-sm font-medium">Total Amount</p>
+                <p className="text-2xl font-bold">NPR {stats.totalAmount}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Withdrawal Requests */}
-        <div className="lg:col-span-2 space-y-4">
+      <Tabs defaultValue="withdrawals" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="withdrawals">Withdrawal Requests</TabsTrigger>
+          <TabsTrigger value="transactions">Wallet Transactions</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="withdrawals">
           <Card>
             <CardHeader>
               <CardTitle>Withdrawal Requests</CardTitle>
-              <div className="flex gap-4 mt-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search by seller ID or eSewa ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button onClick={fetchData} variant="outline">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {filteredRequests.map((request) => (
-                  <Card 
-                    key={request.id}
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${
-                      selectedRequest?.id === request.id ? 'ring-2 ring-blue-500' : ''
-                    }`}
-                    onClick={() => setSelectedRequest(request)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium">NPR {request.amount}</span>
-                        {getStatusBadge(request.status)}
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Seller ID:</span>
-                          <span className="font-mono text-xs">{request.seller_id?.slice(0, 8)}...</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">eSewa ID:</span>
-                          <span>{request.esewa_id || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Requested:</span>
-                          <span>{new Date(request.created_at || '').toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading withdrawal requests...</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4">User</th>
+                        <th className="text-left p-4">Amount</th>
+                        <th className="text-left p-4">eSewa ID</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Created</th>
+                        <th className="text-left p-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {withdrawalRequests.map((request) => (
+                        <tr key={request.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">
+                            <div>
+                              <p className="font-medium">
+                                {request.profiles?.username || 'Unknown User'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {request.profiles?.email || request.user_id}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-semibold">NPR {request.amount}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                              {request.esewa_id}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            {getStatusBadge(request.status)}
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm text-gray-500">
+                              {new Date(request.created_at).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            {request.status === 'pending' && (
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleUpdateWithdrawalStatus(request.id, 'approved')}
+                                  className="bg-green-500 hover:bg-green-600"
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleUpdateWithdrawalStatus(request.id, 'rejected')}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
 
-        {/* Request Details */}
-        <div>
-          {selectedRequest ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-2">Withdrawal Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Amount:</span>
-                      <span className="font-medium">NPR {selectedRequest.amount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">eSewa ID:</span>
-                      <span>{selectedRequest.esewa_id || 'Not provided'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      {getStatusBadge(selectedRequest.status)}
-                    </div>
-                  </div>
+        <TabsContent value="transactions">
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading transactions...</p>
                 </div>
-
-                {selectedRequest.status === 'pending' && (
-                  <>
-                    <div>
-                      <h3 className="font-medium mb-2">Admin Notes</h3>
-                      <Textarea
-                        value={adminNotes}
-                        onChange={(e) => setAdminNotes(e.target.value)}
-                        placeholder="Add notes about this withdrawal..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={() => handleApproveWithdrawal(selectedRequest.id)}
-                        disabled={processing}
-                        className="flex-1 bg-green-500 hover:bg-green-600"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleRejectWithdrawal(selectedRequest.id)}
-                        disabled={processing}
-                        className="flex-1"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
-                      </Button>
-                    </div>
-                  </>
-                )}
-
-                {selectedRequest.admin_notes && (
-                  <div>
-                    <h3 className="font-medium mb-2">Admin Notes</h3>
-                    <div className="bg-gray-50 p-3 rounded-md text-sm">
-                      {selectedRequest.admin_notes}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Wallet className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Select a Request</h3>
-                <p className="text-gray-600">Choose a withdrawal request to view details and take action</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4">User</th>
+                        <th className="text-left p-4">Amount</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.map((transaction) => (
+                        <tr key={transaction.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">
+                            <div>
+                              <p className="font-medium">
+                                {transaction.username || 'Unknown User'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {transaction.email || transaction.seller_id}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-semibold">NPR {transaction.amount}</span>
+                          </td>
+                          <td className="p-4">
+                            {getStatusBadge(transaction.status)}
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm text-gray-500">
+                              {new Date(transaction.created_at).toLocaleDateString()}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
