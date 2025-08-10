@@ -1,47 +1,40 @@
+import React, { useEffect } from 'react';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+const SiteMeta = () => {
+  const { settings } = useSiteSettings();
 
-interface SiteMetaProps {
-  title?: string;
-  description?: string;
-  keywords?: string;
-  image?: string;
-  url?: string;
-}
+  useEffect(() => {
+    if (settings.favicon_url) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = settings.favicon_url;
+    }
+  }, [settings.favicon_url]);
 
-const SiteMeta: React.FC<SiteMetaProps> = ({
-  title = "Education Platform - Your Gateway to Academic Excellence",
-  description = "Access premium study materials, past papers, and connect with Nepal's brightest students. Your success story starts here.",
-  keywords = "education, study materials, past papers, Nepal, academic, learning",
-  image = "/placeholder.svg",
-  url = window.location.href
-}) => {
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
-      
-      {/* Open Graph */}
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
-      <meta property="og:url" content={url} />
-      <meta property="og:type" content="website" />
-      
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
-      
-      {/* Additional Meta */}
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={url} />
-    </Helmet>
-  );
+  useEffect(() => {
+    document.title = settings.meta_title || settings.site_name || 'EduSanskriti';
+    const setMeta = (name: string, content: string) => {
+      let tag = document.querySelector(`meta[name='${name}']`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.name = name;
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+    if (settings.meta_description) setMeta('description', settings.meta_description);
+    if (settings.og_title) setMeta('og:title', settings.og_title);
+    if (settings.og_description) setMeta('og:description', settings.og_description);
+    if (settings.og_image) setMeta('og:image', settings.og_image);
+    if (settings.google_analytics_id) setMeta('google-analytics', settings.google_analytics_id);
+  }, [settings]);
+
+  return null;
 };
 
 export default SiteMeta;

@@ -1,22 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface SubscriptionPlan {
-  id: string;
-  plan_code: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  duration_days: number;
-  features: string[];
-  is_active: boolean;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { SubscriptionPlan, transformDatabasePlan } from '@/types/subscription';
 
 const PaymentTest = () => {
+  const { toast } = useToast();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +16,6 @@ const PaymentTest = () => {
   }, []);
 
   const fetchPlans = async () => {
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('subscription_plans')
@@ -33,52 +23,83 @@ const PaymentTest = () => {
         .eq('is_active', true);
 
       if (error) throw error;
-
-      const transformedPlans = (data || []).map((plan: any): SubscriptionPlan => ({
-        id: plan.id,
-        plan_code: plan.plan_code,
-        name: plan.name,
-        description: plan.description || '',
-        price: Number(plan.price) || 0,
-        currency: plan.currency || 'NPR',
-        duration_days: Number(plan.duration_days) || 30,
-        features: Array.isArray(plan.features) ? plan.features : [],
-        is_active: Boolean(plan.is_active)
-      }));
-
+      
+      const transformedPlans = (data || []).map(transformDatabasePlan);
       setPlans(transformedPlans);
     } catch (error) {
       console.error('Error fetching plans:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch subscription plans',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const testPayment = async (planCode: string) => {
+    setLoading(true);
+    try {
+      // Simulate payment test
+      toast({
+        title: 'Payment Test',
+        description: `Testing payment for plan: ${planCode}`,
+      });
+    } catch (error) {
+      console.error('Payment test error:', error);
+      toast({
+        title: 'Error',
+        description: 'Payment test failed',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Test</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading plans...</div>
-          ) : (
-            <div className="space-y-4">
-              {plans.map((plan) => (
-                <div key={plan.id} className="border p-4 rounded">
-                  <h3 className="font-semibold">{plan.name}</h3>
-                  <p className="text-sm text-gray-600">{plan.description}</p>
-                  <p className="font-bold">{plan.currency} {plan.price}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          <Button onClick={fetchPlans} className="mt-4">
-            Refresh Plans
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Payment Testing</h1>
+        <p className="text-gray-600 mt-2">Test payment flows and subscription plans</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {plans.map((plan) => (
+          <Card key={plan.id}>
+            <CardHeader>
+              <CardTitle>{plan.name}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600">{plan.description}</p>
+                <p className="text-lg font-bold text-green-600">
+                  {plan.currency} {plan.price}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {plan.duration_days} days
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Features:</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {plan.features.map((feature, index) => (
+                    <li key={index}>• {feature}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <Button 
+                onClick={() => testPayment(plan.plan_code)}
+                disabled={loading}
+                className="w-full"
+              >
+                Test Payment
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

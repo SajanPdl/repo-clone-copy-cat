@@ -59,15 +59,6 @@ export const transformSubscriptionPlan = (dbPlan: any): SubscriptionPlan => ({
             typeof dbPlan.features === 'string' ? JSON.parse(dbPlan.features) : []
 });
 
-// Added missing function
-export const transformDatabasePlan = (dbPlan: any): SubscriptionPlan => ({
-  ...dbPlan,
-  features: Array.isArray(dbPlan.features) ? dbPlan.features : 
-            typeof dbPlan.features === 'string' ? JSON.parse(dbPlan.features) : 
-            typeof dbPlan.features === 'object' && dbPlan.features ? 
-              (Array.isArray(dbPlan.features) ? dbPlan.features : []) : []
-});
-
 export const transformPaymentRequest = (dbPayment: any): PaymentRequest => ({
   ...dbPayment,
   status: dbPayment.status as 'pending' | 'approved' | 'rejected'

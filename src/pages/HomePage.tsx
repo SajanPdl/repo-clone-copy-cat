@@ -9,6 +9,7 @@ import PastPapers from '@/components/PastPapers';
 import BlogSection from '@/components/BlogSection';
 import ContactSection from '@/components/ContactSection';
 import MerchSection from '@/components/MerchSection';
+import AdPlacement from '@/components/ads/AdPlacement';
 import { supabase } from '@/integrations/supabase/client';
 
 interface StudyMaterial {
@@ -85,37 +86,45 @@ const HomePage = () => {
       
       <Hero />
       
-      <section className="py-8 sm:py-12 lg:py-16 bg-white">
+      <AdPlacement position="header" />
+      
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Featured Study Materials
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600">
+            <p className="text-xl text-gray-600">
               Access high-quality study resources from top contributors
             </p>
           </div>
           
-          <StudyMaterials />
+            {/* StudyMaterials manages its own data, just render the component */}
+            <StudyMaterials />
         </div>
       </section>
 
-      <section className="py-8 sm:py-12 lg:py-16 bg-gray-50">
+      <AdPlacement position="content" />
+
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Past Papers
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600">
+            <p className="text-xl text-gray-600">
               Practice with previous years' examination papers
             </p>
           </div>
           
-          <PastPapers />
+            {/* PastPapers manages its own data, just render the component */}
+            <PastPapers />
         </div>
       </section>
 
       <MerchSection />
+      
+      <AdPlacement position="footer" />
       
       <BlogSection />
       
