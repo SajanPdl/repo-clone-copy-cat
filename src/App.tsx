@@ -65,6 +65,7 @@ import PaymentStatusPageWrapper from '@/pages/PaymentStatusPage';
 import PaymentDebug from '@/components/debug/PaymentDebug';
 import PaymentTest from '@/components/debug/PaymentTest';
 import PaymentVerificationDebug from '@/components/debug/PaymentVerificationDebug';
+import PaymentVerificationStepByStep from '@/components/debug/PaymentVerificationStepByStep';
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,7 @@ function App() {
                       <Route path="/debug/payment" element={<PaymentDebug />} />
         <Route path="/debug/payment-test" element={<PaymentTest />} />
         <Route path="/debug/payment-verification" element={<PaymentVerificationDebug />} />
+        <Route path="/debug/payment-step-by-step" element={<PaymentVerificationStepByStep />} />
 
               {/* Protected Student Routes */}
               <Route path="/dashboard" element={
