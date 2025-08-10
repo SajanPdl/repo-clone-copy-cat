@@ -291,11 +291,11 @@ const StudyMaterialView = ({ material, type = 'study_material' }: StudyMaterialV
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-4">Preview</h2>
-          <div className="h-[800px]">
+          <div className="min-h-[600px] max-h-[800px] overflow-hidden">
             <EnhancedPdfViewer
               fileUrl={material.file_url || "https://www.africau.edu/images/default/sample.pdf"}
               title={material.title}
-              height={800}
+              height={700}
               materialId={material.id}
               materialType={type}
               allowDownload={false}

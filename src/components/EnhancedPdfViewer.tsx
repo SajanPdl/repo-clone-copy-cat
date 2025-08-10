@@ -534,9 +534,9 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         }`}
       >
         {/* Enhanced Toolbar */}
-        <div className="flex flex-wrap items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 gap-4">
+        <div className="flex flex-wrap items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 gap-2 md:gap-4 overflow-x-auto">
           {/* Navigation Controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -544,8 +544,9 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                   size="sm"
                   onClick={goToPrevPage}
                   disabled={pageNumber <= 1}
+                  className="h-8 w-8 p-0"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Previous page (←)</TooltipContent>
@@ -556,11 +557,12 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                 type="number"
                 value={pageNumber}
                 onChange={(e) => goToPage(parseInt(e.target.value))}
-                className="w-16 text-center"
+                className="w-14 md:w-16 text-center"
                 min={1}
                 max={numPages}
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">of {numPages}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">of {numPages}</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 sm:hidden">/ {numPages}</span>
             </div>
             
             <Tooltip>
@@ -570,8 +572,9 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                   size="sm"
                   onClick={goToNextPage}
                   disabled={pageNumber >= numPages}
+                  className="h-8 w-8 p-0"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Next page (→)</TooltipContent>
@@ -579,24 +582,24 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
           </div>
 
           {/* Zoom Controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={zoomOut}>
-                  <ZoomOut className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={zoomOut} className="h-8 w-8 p-0">
+                  <ZoomOut className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Zoom out (-)</TooltipContent>
             </Tooltip>
             
-            <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[50px] md:min-w-[60px] text-center">
               {Math.round(scale * 100)}%
             </span>
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={zoomIn}>
-                  <ZoomIn className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={zoomIn} className="h-8 w-8 p-0">
+                  <ZoomIn className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Zoom in (+)</TooltipContent>
@@ -616,8 +619,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
           <div className="flex items-center space-x-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={rotate}>
-                  <RotateCw className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={rotate} className="h-8 w-8 p-0">
+                  <RotateCw className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Rotate (R)</TooltipContent>
@@ -625,8 +628,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={toggleThumbnails}>
-                  <Grid3X3 className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={toggleThumbnails} className="h-8 w-8 p-0">
+                  <Grid3X3 className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Toggle thumbnails</TooltipContent>
@@ -635,8 +638,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
             {showAnnotations && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={toggleAnnotationsPanel}>
-                    <BookOpen className="h-4 w-4" />
+                  <Button variant="outline" size="sm" onClick={toggleAnnotationsPanel} className="h-8 w-8 p-0">
+                    <BookOpen className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Annotations</TooltipContent>
@@ -645,8 +648,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={toggleDarkMode}>
-                  {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <Button variant="outline" size="sm" onClick={toggleDarkMode} className="h-8 w-8 p-0">
+                  {isDarkMode ? <Sun className="h-3 w-3 md:h-4 md:w-4" /> : <Moon className="h-3 w-3 md:h-4 md:w-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Toggle dark mode (D)</TooltipContent>
@@ -654,8 +657,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={toggleFullscreen}>
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                <Button variant="outline" size="sm" onClick={toggleFullscreen} className="h-8 w-8 p-0">
+                  {isFullscreen ? <Minimize2 className="h-3 w-3 md:h-4 md:w-4" /> : <Maximize2 className="h-3 w-3 md:h-4 md:w-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Toggle fullscreen (F)</TooltipContent>
@@ -664,8 +667,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
             {canDownload && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={handleDownload}>
-                    <Download className="h-4 w-4" />
+                  <Button variant="outline" size="sm" onClick={handleDownload} className="h-8 w-8 p-0">
+                    <Download className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Download PDF</TooltipContent>
@@ -675,12 +678,12 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
 
           {/* Search */}
           <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-gray-500" />
+            <Search className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
             <Input
               placeholder="Search in document..."
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-48"
+              className="w-32 md:w-48"
             />
           </div>
         </div>
@@ -692,7 +695,7 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
               variant={viewMode === 'single' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('single')}
-              className="rounded-r-none"
+              className="rounded-r-none text-xs md:text-sm"
             >
               Single
             </Button>
@@ -700,7 +703,7 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
               variant={viewMode === 'continuous' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('continuous')}
-              className="rounded-l-none"
+              className="rounded-l-none text-xs md:text-sm"
             >
               Continuous
             </Button>
@@ -711,7 +714,13 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         <div 
           ref={pdfContainerRef}
           className="pdf-content overflow-auto bg-gray-100 dark:bg-gray-900 flex justify-center p-4"
-          style={{ height: `${height}px` }}
+          style={{ 
+            height: `${height}px`,
+            maxHeight: `${height}px`,
+            minHeight: `${Math.min(height, 400)}px`,
+            overflowY: 'auto',
+            overflowX: 'hidden'
+          }}
         >
           {isLoading && (
             <div className="flex items-center justify-center h-full">
@@ -728,7 +737,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                 <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
             }
-            className="shadow-lg"
+            className="shadow-lg max-w-full"
+            style={{ maxWidth: '100%' }}
           >
             {viewMode === 'single' ? (
               <Page
@@ -737,7 +747,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                 rotate={rotation}
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
-                className="border border-gray-300 dark:border-gray-600"
+                className="border border-gray-300 dark:border-gray-600 max-w-full"
+                style={{ maxWidth: '100%', height: 'auto' }}
                 onLoadSuccess={() => onPageLoadSuccess(pageNumber)}
               />
             ) : (
@@ -750,7 +761,8 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
                   rotate={rotation}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
-                  className="border border-gray-300 dark:border-gray-600 mb-4"
+                  className="border border-gray-300 dark:border-gray-600 mb-4 max-w-full"
+                  style={{ maxWidth: '100%', height: 'auto' }}
                   onLoadSuccess={() => onPageLoadSuccess(i + 1)}
                 />
               ))
@@ -759,23 +771,26 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         </div>
 
         {/* Page Info */}
-        <div className="p-2 text-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-          {title && <span className="font-medium">{title}</span>}
-          {title && <span className="mx-2">•</span>}
-          <span>Page {pageNumber} of {numPages}</span>
-          {!canDownload && (
-            <>
-              <span className="mx-2">•</span>
-              <span className="text-orange-600 dark:text-orange-400">
-                Premium users can download
-              </span>
-            </>
-          )}
+        <div className="p-2 text-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-center gap-1 md:gap-2">
+            {title && <span className="font-medium truncate max-w-[200px]">{title}</span>}
+            {title && <span className="hidden md:inline mx-2">•</span>}
+            <span>Page {pageNumber} of {numPages}</span>
+            {!canDownload && (
+              <>
+                <span className="hidden md:inline mx-2">•</span>
+                <span className="text-orange-600 dark:text-orange-400 text-xs md:text-sm">
+                  Premium users can download
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Keyboard Shortcuts Help */}
         <div className="p-2 text-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-          <span>Keyboard shortcuts: ← → (pages), +/- (zoom), R (rotate), F (fullscreen), D (dark mode)</span>
+          <span className="hidden md:inline">Keyboard shortcuts: ← → (pages), +/- (zoom), R (rotate), F (fullscreen), D (dark mode)</span>
+          <span className="md:hidden">Shortcuts: ← → (pages), +/- (zoom), F (fullscreen)</span>
         </div>
 
         {/* Thumbnails Panel */}
@@ -792,3 +807,128 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
 };
 
 export default EnhancedPdfViewer;
+
+// Add custom CSS for PDF viewer
+const pdfViewerStyles = `
+  .enhanced-pdf-viewer {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  
+  .enhanced-pdf-viewer .pdf-content {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+    position: relative;
+  }
+  
+  .enhanced-pdf-viewer .react-pdf__Document {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+  
+  .enhanced-pdf-viewer .react-pdf__Page {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .enhanced-pdf-viewer .react-pdf__Page__canvas {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .enhanced-pdf-viewer .react-pdf__Page__textContent {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .enhanced-pdf-viewer .react-pdf__Page__annotations {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  @media (max-width: 768px) {
+    .enhanced-pdf-viewer .pdf-content {
+      padding: 1rem;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page {
+      max-width: 95%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__canvas {
+      max-width: 100%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__textContent {
+      max-width: 100%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__annotations {
+      max-width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .enhanced-pdf-viewer .pdf-content {
+      padding: 0.5rem;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page {
+      max-width: 98%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__canvas {
+      max-width: 100%;
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .enhanced-pdf-viewer .pdf-content {
+      padding: 0.25rem;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page {
+      max-width: 99%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__canvas {
+      max-width: 100%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__textContent {
+      max-width: 100%;
+    }
+    
+    .enhanced-pdf-viewer .react-pdf__Page__annotations {
+      max-width: 100%;
+    }
+  }
+`;
+
+// Inject styles if not already present
+if (typeof document !== 'undefined' && !document.getElementById('pdf-viewer-styles')) {
+  const styleElement = document.createElement('style');
+  styleElement.id = 'pdf-viewer-styles';
+  styleElement.textContent = pdfViewerStyles;
+  document.head.appendChild(styleElement);
+}
