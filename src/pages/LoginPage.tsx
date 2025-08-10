@@ -122,6 +122,47 @@ const LoginPage = () => {
     }
   };
 
+  const handleCreateTestUser = async () => {
+    setIsLoading(true);
+    try {
+      const testEmail = 'test@example.com';
+      const testPassword = 'testpassword123';
+      
+      console.log('Creating test user...');
+      const { error } = await signUp(testEmail, testPassword);
+      
+      if (error) {
+        console.error('Test user creation error:', error);
+        toast({
+          title: "Test User Creation Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Test User Created!",
+          description: `Email: ${testEmail}, Password: ${testPassword}`,
+        });
+        
+        // Auto-fill the form with test credentials
+        setFormData({
+          email: testEmail,
+          password: testPassword,
+          rememberMe: false
+        });
+      }
+    } catch (error) {
+      console.error('Error creating test user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create test user",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -296,6 +337,18 @@ const LoginPage = () => {
                     </>
                   )}
                 </button>
+                
+                {/* Test User Button - Only show in development */}
+                {process.env.NODE_ENV === 'development' && (
+                  <button
+                    type="button"
+                    onClick={handleCreateTestUser}
+                    disabled={isLoading}
+                    className="w-full mt-3 px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
+                  >
+                    Create Test User (Dev Only)
+                  </button>
+                )}
               </form>
             )}
             
