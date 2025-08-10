@@ -10,15 +10,19 @@ import { Receipt, Eye, Check, X, Download } from 'lucide-react';
 
 interface PaymentVerification {
   id: string;
-  order_id: string;
-  buyer_id: string;
-  payment_amount: number;
-  esewa_transaction_id: string;
+  user_id: string;
+  plan_type: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  transaction_id: string;
+  sender_name: string;
   receipt_file_path: string;
   status: 'pending' | 'approved' | 'rejected';
+  admin_notes?: string;
   created_at: string;
   verified_at?: string;
-  admin_notes?: string;
+  verified_by?: string;
 }
 
 const PaymentVerificationManager = () => {
@@ -34,29 +38,16 @@ const PaymentVerificationManager = () => {
     fetchPaymentVerifications();
   }, []);
 
-  // Fetch payment verifications from invoices table
+  // Fetch payment verifications from payment_requests table
   const fetchPaymentVerifications = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('invoices')
+        .from('payment_requests')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // Map invoices to PaymentVerification type
-      const verifications: PaymentVerification[] = (data || []).map((inv: any) => ({
-        id: inv.id,
-        order_id: inv.id,
-        buyer_id: inv.user_id,
-        payment_amount: Number(inv.amount),
-        esewa_transaction_id: inv.items?.esewa_transaction_id || '',
-        receipt_file_path: inv.items?.receipt_file_path || '',
-        status: inv.status === 'paid' ? 'approved' : (inv.status === 'cancelled' ? 'rejected' : 'pending'),
-        created_at: inv.created_at,
-        verified_at: inv.paid_at,
-        admin_notes: inv.items?.admin_notes || ''
-      }));
-      setVerifications(verifications);
+      setVerifications(data || []);
     } catch (error) {
       console.error('Error fetching payment verifications:', error);
       toast({
@@ -70,48 +61,43 @@ const PaymentVerificationManager = () => {
   };
 
 
-  // Approve or reject payment by updating invoices table
+  // Approve or reject payment using RPC functions
   const handleVerifyPayment = async (verificationId: string, status: 'approved' | 'rejected') => {
     setProcessing(true);
     try {
-      // Map status to invoice status
-      let invoiceStatus = status === 'approved' ? 'paid' : 'cancelled';
-      // Fetch the current invoice to update items JSON
-      const { data: invoiceData, error: fetchError } = await supabase
-        .from('invoices')
-        .select('items')
-        .eq('id', verificationId)
-        .single();
-      if (fetchError) throw fetchError;
-      let items = invoiceData?.items || {};
-      if (typeof items === 'string') {
-        try {
-          items = JSON.parse(items);
-        } catch {
-          items = {};
-        }
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error('Authentication required');
+
+      let success = false;
+      if (status === 'approved') {
+        const { data, error } = await supabase.rpc('approve_payment_and_create_subscription', {
+          payment_request_id: verificationId,
+          admin_user_id: user.id,
+          admin_notes: adminNotes || null
+        });
+        if (error) throw error;
+        success = data;
+      } else {
+        const { data, error } = await supabase.rpc('reject_payment', {
+          payment_request_id: verificationId,
+          admin_user_id: user.id,
+          admin_notes: adminNotes || null
+        });
+        if (error) throw error;
+        success = data;
       }
-      if (typeof items !== 'object' || Array.isArray(items)) {
-        items = {};
+
+      if (success) {
+        toast({
+          title: 'Success',
+          description: `Payment ${status} successfully`,
+        });
+        setSelectedVerification(null);
+        setAdminNotes('');
+        fetchPaymentVerifications();
+      } else {
+        throw new Error(`Failed to ${status} payment`);
       }
-      items.admin_notes = adminNotes || '';
-      const { error } = await supabase
-        .from('invoices')
-        .update({
-          status: invoiceStatus,
-          paid_at: status === 'approved' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString(),
-          items
-        })
-        .eq('id', verificationId);
-      if (error) throw error;
-      toast({
-        title: 'Success',
-        description: `Payment ${status} successfully`,
-      });
-      setSelectedVerification(null);
-      setAdminNotes('');
-      fetchPaymentVerifications();
     } catch (error) {
       console.error('Error verifying payment:', error);
       toast({
@@ -125,15 +111,17 @@ const PaymentVerificationManager = () => {
   };
 
 
-  // View receipt by opening the file from Supabase Storage (if available)
+  // View receipt by opening the file from Supabase Storage
   const viewReceipt = async (receiptPath: string) => {
     try {
       if (!receiptPath) {
         toast({ title: 'No receipt', description: 'No receipt file available.' });
         return;
       }
-      // Generate a public URL for the receipt file
-      const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(receiptPath, 60);
+      // Generate a signed URL for the receipt file
+      const { data, error } = await supabase.storage
+        .from('payment-receipts')
+        .createSignedUrl(receiptPath, 60);
       if (error || !data?.signedUrl) throw error || new Error('No signed URL');
       window.open(data.signedUrl, '_blank');
     } catch (error) {
@@ -192,10 +180,10 @@ const PaymentVerificationManager = () => {
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Receipt className="h-5 w-5 text-gray-500" />
-                      <span className="font-medium">Order {verification.order_id}</span>
-                    </div>
+                                      <div className="flex items-center space-x-2">
+                    <Receipt className="h-5 w-5 text-gray-500" />
+                    <span className="font-medium">Payment {verification.id.slice(0, 8)}</span>
+                  </div>
                     <Badge className={getStatusColor(verification.status)}>
                       {verification.status}
                     </Badge>
@@ -203,12 +191,20 @@ const PaymentVerificationManager = () => {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
+                      <span className="text-gray-600">Plan:</span>
+                      <span className="font-medium">{verification.plan_type}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-600">Amount:</span>
-                      <span className="font-medium">Rs. {verification.payment_amount}</span>
+                      <span className="font-medium">{verification.currency} {verification.amount}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Transaction ID:</span>
-                      <span className="font-mono text-xs">{verification.esewa_transaction_id}</span>
+                      <span className="font-mono text-xs">{verification.transaction_id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sender:</span>
+                      <span>{verification.sender_name}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Submitted:</span>
@@ -272,29 +268,41 @@ const PaymentVerificationManager = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-medium mb-2">Order Information</h3>
+                  <h3 className="font-medium mb-2">Payment Information</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Order ID:</span>
-                      <span>{selectedVerification.order_id}</span>
+                      <span className="text-gray-600">Payment ID:</span>
+                      <span>{selectedVerification.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Buyer ID:</span>
-                      <span className="font-mono text-xs">{selectedVerification.buyer_id}</span>
+                      <span className="text-gray-600">User ID:</span>
+                      <span className="font-mono text-xs">{selectedVerification.user_id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Plan:</span>
+                      <span className="font-medium">{selectedVerification.plan_type}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Amount:</span>
-                      <span className="font-medium">Rs. {selectedVerification.payment_amount}</span>
+                      <span className="font-medium">{selectedVerification.currency} {selectedVerification.amount}</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-medium mb-2">eSewa Details</h3>
+                  <h3 className="font-medium mb-2">Payment Details</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Transaction ID:</span>
-                      <span className="font-mono text-xs">{selectedVerification.esewa_transaction_id}</span>
+                      <span className="font-mono text-xs">{selectedVerification.transaction_id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sender Name:</span>
+                      <span>{selectedVerification.sender_name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Payment Method:</span>
+                      <span>{selectedVerification.payment_method}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Submitted:</span>

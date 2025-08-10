@@ -56,6 +56,11 @@ import MarketplaceProductViewPage from '@/pages/MarketplaceProductViewPage';
 // Admin Pages
 import AdminPanel from '@/pages/AdminPanel';
 
+// Payment and Subscription Pages
+import SubscriptionPage from '@/pages/SubscriptionPage';
+import CheckoutPageWrapper from '@/pages/CheckoutPageWrapper';
+import PaymentStatusPageWrapper from '@/pages/PaymentStatusPageWrapper';
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -88,6 +93,11 @@ function App() {
               <Route path="/referral" element={<ReferralPage />} />
               <Route path="/marketplace" element={<MarketplacePage />} />
               <Route path="/marketplace/:id" element={<MarketplaceProductViewPage />} />
+              
+              {/* Payment and Subscription Routes */}
+              <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="/checkout" element={<CheckoutPageWrapper />} />
+              <Route path="/payment-status" element={<PaymentStatusPageWrapper />} />
 
               {/* Protected Student Routes */}
               <Route path="/dashboard" element={
