@@ -59,6 +59,9 @@ export const transformSubscriptionPlan = (dbPlan: any): SubscriptionPlan => ({
             typeof dbPlan.features === 'string' ? JSON.parse(dbPlan.features) : []
 });
 
+// Alternative name for backward compatibility
+export const transformDatabasePlan = transformSubscriptionPlan;
+
 export const transformPaymentRequest = (dbPayment: any): PaymentRequest => ({
   ...dbPayment,
   status: dbPayment.status as 'pending' | 'approved' | 'rejected'
