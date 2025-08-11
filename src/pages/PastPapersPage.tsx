@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { NepalAdsFloater } from '@/components/ads/NepalAdsFloater';
 import PremiumSubscription from '@/components/PremiumSubscription';
 import { CreditCard } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
 
 const PastPapersPage = () => {
   const [papers, setPapers] = useState<PastPaper[]>([]);
@@ -16,13 +18,15 @@ const PastPapersPage = () => {
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
-  const [isPremium, setIsPremium] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
+  
+  // Use proper subscription system
+  const { user } = useAuth();
+  const { hasActiveSubscription, loading: subscriptionLoading } = useSubscription();
+  const isPremium = hasActiveSubscription();
 
   useEffect(() => {
-    // Check if user has premium status
-    const userSubscription = localStorage.getItem('userSubscription');
-    setIsPremium(userSubscription === 'premium');
+    // No need to check localStorage - use proper subscription system
     
     const loadPapers = async () => {
       try {
