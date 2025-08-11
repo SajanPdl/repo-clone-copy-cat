@@ -60,6 +60,8 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
               <Route path="/ads" element={<AdvertisementManager />} />
               <Route path="/ads/campaigns" element={<AdCampaignManager />} />
+              {/* Absolute path variant to ensure direct navigation works */}
+              <Route path="/admin/ads/campaigns" element={<AdCampaignManager />} />
               <Route path="/queries" element={<QueriesManager />} />
               <Route path="/settings" element={<AdminSettings />} />
               <Route path="/setup-helper" element={<AdminSetupHelper />} />
