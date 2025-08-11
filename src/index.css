@@ -174,7 +174,7 @@
 /* Fix for sidebar overlapping with navbar */
 .sidebar-container {
   @apply fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-40;
-  margin-top: 64px; /* Adjust this value based on your navbar height */
+  margin-top: 64px; /* Match navbar height (h-16 = 64px) */
 }
 
 .sidebar-overlay {
@@ -201,10 +201,16 @@
   }
 }
 
-/* Ensure navbar stays on top */
+/* Ensure navbar stays on top - Updated for actual navbar height */
 .navbar {
   @apply fixed top-0 left-0 right-0 z-50 bg-white shadow-md;
-  height: 64px; /* Fixed navbar height */
+  height: 64px; /* Fixed navbar height (h-16) */
+}
+
+/* Alternative navbar class for existing components */
+.nav-fixed {
+  @apply fixed top-0 left-0 right-0 z-50;
+  height: 64px; /* h-16 = 64px */
 }
 
 /* Sidebar navigation items */
@@ -248,4 +254,22 @@
 
 .z-content {
   z-index: 100;
+}
+
+/* Additional fixes for existing navbar */
+nav.bg-white.dark\\:bg-gray-900.shadow-lg.fixed.top-0.left-0.right-0.z-50 {
+  height: 64px; /* Ensure consistent height */
+}
+
+/* Content spacing for pages with sidebar */
+.content-with-sidebar {
+  @apply pt-16; /* Top padding for navbar */
+  @apply lg:ml-64; /* Left margin for sidebar on desktop */
+}
+
+/* Mobile content spacing */
+@media (max-width: 1024px) {
+  .content-with-sidebar {
+    @apply ml-0; /* No left margin on mobile */
+  }
 }
