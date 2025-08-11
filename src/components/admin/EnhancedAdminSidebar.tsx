@@ -20,7 +20,9 @@ import {
   Menu,
   X,
   ClipboardCheck,
-  Wallet
+  Wallet,
+  Info,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
