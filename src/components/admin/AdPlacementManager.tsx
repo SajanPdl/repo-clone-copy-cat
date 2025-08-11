@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,13 +13,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AdSlot from '@/components/ads/AdSlot';
 import AnimatedWrapper from '@/components/ui/animated-wrapper';
 
 interface Advertisement {
@@ -196,14 +191,31 @@ const AdPlacementManager = () => {
     }
   };
 
-  const positions = [
+  const [areas, setAreas] = useState<string[]>(['header','content','sidebar','footer']);
+  const [newArea, setNewArea] = useState('');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('admin_ad_areas');
+    if (saved) {
+      try { setAreas(JSON.parse(saved)); } catch { /* ignore */ }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('admin_ad_areas', JSON.stringify(areas));
+  }, [areas]);
+
+  const positions = useMemo(() => [
     { value: 'header', label: 'Header' },
     { value: 'sidebar', label: 'Sidebar' },
     { value: 'content', label: 'Content Area' },
     { value: 'footer', label: 'Footer' },
     { value: 'popup', label: 'Popup' },
-    { value: 'banner', label: 'Banner' }
-  ];
+    { value: 'banner', label: 'Banner' },
+    ...areas
+      .filter(a => !['header','sidebar','content','footer','popup','banner'].includes(a))
+      .map(a => ({ value: a, label: a }))
+  ], [areas]);
 
   const adTypes = [
     { value: 'banner', label: 'Banner Ad' },
@@ -215,6 +227,52 @@ const AdPlacementManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Quick Areas management */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Advertisement Areas Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {areas.map((area) => (
+              <div key={area} className="border rounded-lg p-4">
+                <div className="font-semibold capitalize mb-1">{area === 'content' ? 'Content Area' : area}</div>
+                <div className="text-sm text-gray-500 mb-3">
+                  {area==='header' && 'Top of every page'}
+                  {area==='sidebar' && 'Right sidebar on content pages'}
+                  {area==='content' && 'Between content sections'}
+                  {area==='footer' && 'Bottom of every page'}
+                  {!['header','sidebar','content','footer'].includes(area) && 'Custom area'}
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => { resetForm(); setFormData(prev=>({ ...prev, position: area })); setIsCreateDialogOpen(true); }}>Add Ad</Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">Preview</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Preview: {area}</DialogTitle>
+                      </DialogHeader>
+                      <div className={`${area==='sidebar'?'max-w-sm':''}`}>
+                        {/* Campaign-based preview through AdSlot; map content->inline */}
+                        <AdSlot placement={(area==='content'?'inline':area) as any} />
+                        <div className="text-xs text-gray-400 mt-2">Campaigns</div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 mt-4">
+            <Input placeholder="New area key (e.g., hero, pdf_top)" value={newArea} onChange={(e)=>setNewArea(e.target.value)} className="max-w-sm" />
+            <Button onClick={()=>{ const key = newArea.trim().toLowerCase(); if(!key) return; if(!areas.includes(key)) setAreas([...areas, key]); setNewArea(''); }}>Add New Ad Area</Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
