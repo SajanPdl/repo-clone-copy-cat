@@ -9,6 +9,7 @@ import { NepalAdsFloater } from '@/components/ads/NepalAdsFloater';
 import PremiumSubscription from '@/components/PremiumSubscription';
 import { CreditCard } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useNavigate } from 'react-router-dom';
 
 const PastPapersPage = () => {
   const [papers, setPapers] = useState<PastPaper[]>([]);
@@ -18,6 +19,7 @@ const PastPapersPage = () => {
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
   // Subscription is determined from backend via hook; no localStorage fallbacks
+  const navigate = useNavigate();
   const { isPremiumUser, loading: subscriptionLoading } = useSubscription();
   const isPremium = isPremiumUser();
   const [showSubscription, setShowSubscription] = useState(false);
@@ -73,7 +75,7 @@ const PastPapersPage = () => {
             
             {!subscriptionLoading && !isPremium && (
               <Button 
-                onClick={() => setShowSubscription(true)}
+                onClick={() => navigate('/subscription')}
                 className="bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90 flex items-center gap-2"
               >
                 <CreditCard size={16} />
@@ -214,7 +216,7 @@ const PastPapersPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.year}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{paper.board}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {(isPremium || !paper.isPremiumPaper) ? (
+                                   {(isPremium || !paper.isPremiumPaper) ? (
                                     <Link 
                                       to={`/content/past-paper/${paper.slug}`}
                                       className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -223,7 +225,7 @@ const PastPapersPage = () => {
                                     </Link>
                                   ) : (
                                     <button 
-                                      onClick={() => setShowSubscription(true)}
+                                      onClick={() => navigate('/subscription')}
                                       className="text-amber-600 hover:text-amber-800 dark:text-amber-500 dark:hover:text-amber-400"
                                     >
                                       Upgrade

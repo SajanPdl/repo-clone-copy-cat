@@ -40,13 +40,8 @@ const SubscriptionManager = () => {
       // Fetch all user subscriptions with plan details
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .select(`
-          *,
-          subscription_plans!inner (
-            plan_code,
-            name
-          )
-        `)
+        .select(`id, user_id, status, starts_at, expires_at, created_at, updated_at, 
+                 subscription_plans:plan_id ( plan_code, name )`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -54,8 +49,8 @@ const SubscriptionManager = () => {
       // Transform data to include plan details and calculate days remaining
       const transformedData: SubscriptionWithPlan[] = (data || []).map((sub: any) => ({
         ...sub,
-        plan_code: sub.subscription_plans.plan_code,
-        plan_name: sub.subscription_plans.name,
+        plan_code: sub.subscription_plans?.plan_code,
+        plan_name: sub.subscription_plans?.name,
         days_remaining: Math.max(0, Math.floor((new Date(sub.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
       }));
 
