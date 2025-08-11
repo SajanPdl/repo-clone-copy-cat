@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { NepalAdsFloater } from '@/components/ads/NepalAdsFloater';
 import PremiumSubscription from '@/components/PremiumSubscription';
 import { CreditCard } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const PastPapersPage = () => {
   const [papers, setPapers] = useState<PastPaper[]>([]);
@@ -16,14 +17,12 @@ const PastPapersPage = () => {
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
-  const [isPremium, setIsPremium] = useState(false);
+  // Subscription is determined from backend via hook; no localStorage fallbacks
+  const { isPremiumUser, loading: subscriptionLoading } = useSubscription();
+  const isPremium = isPremiumUser();
   const [showSubscription, setShowSubscription] = useState(false);
 
   useEffect(() => {
-    // Check if user has premium status
-    const userSubscription = localStorage.getItem('userSubscription');
-    setIsPremium(userSubscription === 'premium');
-    
     const loadPapers = async () => {
       try {
         setLoading(true);
@@ -72,7 +71,7 @@ const PastPapersPage = () => {
               </p>
             </div>
             
-            {!isPremium && (
+            {!subscriptionLoading && !isPremium && (
               <Button 
                 onClick={() => setShowSubscription(true)}
                 className="bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90 flex items-center gap-2"
@@ -82,7 +81,7 @@ const PastPapersPage = () => {
               </Button>
             )}
             
-            {isPremium && (
+            {!subscriptionLoading && isPremium && (
               <div className="bg-gradient-to-r from-[#DC143C] to-[#003893] p-0.5 rounded">
                 <div className="bg-white dark:bg-gray-900 px-4 py-1 rounded-sm">
                   <span className="bg-gradient-to-r from-[#DC143C] to-[#003893] bg-clip-text text-transparent font-medium">
