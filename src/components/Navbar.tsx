@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import UpgradeCTA from '@/components/cta/UpgradeCTA';
 
 const Navbar = () => {
 
@@ -256,6 +257,10 @@ const Navbar = () => {
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
+        </div>
+        {/* Low-profile CTA under navbar on mobile */}
+        <div className="md:hidden py-2">
+          <UpgradeCTA variant="banner" dismissibleKey="navbar_mobile_banner" />
         </div>
 
         {/* Mobile Navigation Menu */}

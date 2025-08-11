@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import UpgradeCTA from '@/components/cta/UpgradeCTA';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -688,6 +689,11 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
           </div>
         </div>
 
+        {/* Upgrade CTA */}
+        <div className="p-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <UpgradeCTA variant="banner" dismissibleKey="enhanced_pdf_top" />
+        </div>
+
         {/* View Mode Toggle */}
         <div className="flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <div className="flex bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -785,6 +791,11 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
               </>
             )}
           </div>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="p-2 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+          <UpgradeCTA variant="banner" dismissibleKey="enhanced_pdf_bottom" />
         </div>
 
         {/* Keyboard Shortcuts Help */}

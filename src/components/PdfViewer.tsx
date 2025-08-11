@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AdPlacement from '@/components/ads/AdPlacement';
+import UpgradeCTA from '@/components/cta/UpgradeCTA';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -148,8 +149,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         </div>
       </div>
 
-      {/* Ad Placement */}
+      {/* Upgrade CTA + Ad Placement */}
       <div className="p-2 bg-gray-100 border-b">
+        <UpgradeCTA variant="banner" dismissibleKey="pdf_top_banner" />
         <AdPlacement position="content" />
       </div>
 
@@ -186,8 +188,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         </Document>
       </div>
 
-      {/* Bottom Ad Placement */}
+      {/* Bottom CTA + Ad Placement */}
       <div className="p-2 bg-gray-100 border-t">
+        <UpgradeCTA variant="banner" dismissibleKey="pdf_bottom_banner" />
         <AdPlacement position="footer" />
       </div>
 
