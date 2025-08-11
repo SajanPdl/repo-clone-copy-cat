@@ -2,7 +2,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { fetchAds, createAd, updateAd, deleteAd, toggleAdStatus, Ad } from '@/utils/adsUtils';
 import { toast } from '@/components/ui/use-toast';
-import { useSubscription } from '@/hooks/useSubscription';
 
 // Types for our ads configuration
 type AdType = 'sponsor' | 'adsterra' | 'adsense';
@@ -15,6 +14,7 @@ interface AdsContextType {
   removeAd: (id: string) => void;
   getAdsByPosition: (position: AdPosition) => Ad[];
   isUserPremium: boolean;
+  setIsUserPremium: (isPremium: boolean) => void;
   isLoading: boolean;
   refreshAds: () => Promise<void>;
 }
@@ -48,15 +48,15 @@ const initialAds: Ad[] = [
 
 export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [ads, setAds] = useState<Ad[]>([]);
+  const [isUserPremium, setIsUserPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Use proper subscription system
-  const { hasActiveSubscription } = useSubscription();
-  const isUserPremium = hasActiveSubscription();
 
   // Load ads from database on mount
   useEffect(() => {
     loadAdsFromDatabase();
+    
+    const premiumStatus = localStorage.getItem('user_premium') === 'true';
+    setIsUserPremium(premiumStatus);
   }, []);
 
   // Load ads from the database
@@ -154,6 +154,12 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return ads.filter(ad => ad.position === position && ad.active);
   };
 
+  // Set user premium status
+  const handleSetPremium = (isPremium: boolean) => {
+    setIsUserPremium(isPremium);
+    localStorage.setItem('user_premium', isPremium.toString());
+  };
+
   return (
     <AdsContext.Provider 
       value={{ 
@@ -163,6 +169,7 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         removeAd, 
         getAdsByPosition,
         isUserPremium,
+        setIsUserPremium: handleSetPremium,
         isLoading,
         refreshAds
       }}

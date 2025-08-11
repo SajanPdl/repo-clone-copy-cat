@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, X, CreditCard, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSubscription } from '@/hooks/useSubscription';
 import {
   Dialog,
   DialogContent,
@@ -44,10 +43,6 @@ export const PremiumSubscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti'>('esewa');
   const [processing, setProcessing] = useState(false);
-  
-  // Use proper subscription system
-  const { hasActiveSubscription } = useSubscription();
-  const isPremium = hasActiveSubscription();
   
   const plans: PricingPlan[] = [
     {
@@ -113,7 +108,9 @@ export const PremiumSubscription = () => {
     navigate('/subscription');
   };
   
-  // Premium status is now handled by useSubscription hook above
+  // Check if user has premium subscription
+  const userSubscription = localStorage.getItem('userSubscription');
+  const isPremium = userSubscription === 'premium';
   
   return (
     <div className="py-12">

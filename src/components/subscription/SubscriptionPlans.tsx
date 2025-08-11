@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +21,9 @@ const SubscriptionPlans = () => {
 
   useEffect(() => {
     fetchPlans();
-  }, [fetchPlans]);
+  }, []);
 
-  const fetchPlans = useCallback(async () => {
+  const fetchPlans = async () => {
     try {
       setLoading(true);
       
@@ -48,7 +48,7 @@ const SubscriptionPlans = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  };
 
   const handleSelectPlan = (planCode: string) => {
     if (!user) {

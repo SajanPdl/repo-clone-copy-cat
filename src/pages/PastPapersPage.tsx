@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, Eye, Star, Lock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useSubscription } from '@/hooks/useSubscription';
-import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Link } from 'react-router-dom';
 import { fetchPastPapers } from '@/utils/queryUtils';
 import { PastPaper } from '@/utils/queryUtils';
+import { Button } from '@/components/ui/button';
 import { NepalAdsFloater } from '@/components/ads/NepalAdsFloater';
+import PremiumSubscription from '@/components/PremiumSubscription';
+import { CreditCard } from 'lucide-react';
 
 const PastPapersPage = () => {
   const [papers, setPapers] = useState<PastPaper[]>([]);
@@ -22,15 +16,13 @@ const PastPapersPage = () => {
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
+  const [isPremium, setIsPremium] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
-  
-  // Use proper subscription system
-  const { user } = useAuth();
-  const { hasActiveSubscription, loading: subscriptionLoading } = useSubscription();
-  const isPremium = hasActiveSubscription();
 
   useEffect(() => {
-    // No need to check localStorage - use proper subscription system
+    // Check if user has premium status
+    const userSubscription = localStorage.getItem('userSubscription');
+    setIsPremium(userSubscription === 'premium');
     
     const loadPapers = async () => {
       try {
@@ -85,7 +77,7 @@ const PastPapersPage = () => {
                 onClick={() => setShowSubscription(true)}
                 className="bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90 flex items-center gap-2"
               >
-                <Lock size={16} />
+                <CreditCard size={16} />
                 Upgrade to Premium
               </Button>
             )}
@@ -110,7 +102,7 @@ const PastPapersPage = () => {
               >
                 Back to Past Papers
               </Button>
-              <SubscriptionPlans />
+              <PremiumSubscription />
             </div>
           ) : (
             <>

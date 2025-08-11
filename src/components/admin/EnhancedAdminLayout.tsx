@@ -16,7 +16,6 @@ import MarketplaceManager from './MarketplaceManager';
 import MerchManager from './MerchManager';
 import PaymentVerificationManager from './PaymentVerificationManager';
 import SubscriptionManager from './SubscriptionManager';
-import SubscriptionPlanManager from './SubscriptionPlanManager';
 import AdvertisementManager from './AdvertisementManager';
 import QueriesManager from './QueriesManager';
 import AdminSettings from './AdminSettings';
@@ -53,7 +52,6 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/merch" element={<MerchManager />} />
               <Route path="/payment-verification" element={<PaymentVerificationManager />} />
               <Route path="/subscriptions" element={<SubscriptionManager />} />
-              <Route path="/subscription-plans" element={<SubscriptionPlanManager />} />
               <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
               <Route path="/ads" element={<AdvertisementManager />} />
               <Route path="/queries" element={<QueriesManager />} />
