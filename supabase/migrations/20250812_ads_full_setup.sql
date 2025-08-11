@@ -22,14 +22,22 @@ $$;
 grant execute on function public.is_admin(uuid) to authenticated;
 
 -- ===========================================
--- STORAGE BUCKET for ad images + RLS
--- ===========================================
-select storage.create_bucket('ad-images', public => true);
+-- Create bucket in a portable way across Storage versions
+do $$
+begin
+  insert into storage.buckets (id, name, public)
+  values ('ad-images', 'ad-images', true);
+exception
+  when unique_violation then
+    null;
+end $$;
 
-create policy if not exists "public read ad-images" on storage.objects
+drop policy if exists "public read ad-images" on storage.objects;
+create policy "public read ad-images" on storage.objects
 for select using (bucket_id = 'ad-images');
 
-create policy if not exists "admin write ad-images" on storage.objects
+drop policy if exists "admin write ad-images" on storage.objects;
+create policy "admin write ad-images" on storage.objects
 for all using (public.is_admin(auth.uid()) and bucket_id = 'ad-images')
 with check (public.is_admin(auth.uid()) and bucket_id = 'ad-images');
 
