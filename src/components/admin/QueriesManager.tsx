@@ -15,7 +15,8 @@ import {
   MessageSquare, 
   CheckCircle,
   Circle,
-  Calendar
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,6 +134,18 @@ const QueriesManager = () => {
         description: "Failed to send reply. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+  
+  const handleDeleteQuery = async (id: number) => {
+    if (!window.confirm('Delete this query? This cannot be undone.')) return;
+    try {
+      const { error } = await supabase.from('user_queries').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Deleted', description: 'The query has been removed.' });
+      refetch();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete query.', variant: 'destructive' });
     }
   };
   
@@ -254,13 +267,22 @@ const QueriesManager = () => {
                             </>
                           )}
                           {query.status === 'closed' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleReplyClick(query)}
-                            >
-                              View
-                            </Button>
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleReplyClick(query)}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteQuery(query.id)}
+                              >
+                                Delete
+                              </Button>
+                            </>
                           )}
                         </div>
                       </TableCell>
