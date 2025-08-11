@@ -1,5 +1,4 @@
--- RPCs to manage slot assignments (reorder/remove) for the DnD builder
-
+-- RPCs to manage slot assignments (reorder/remove)
 create or replace function public.update_slot_assignment_order(p_slot_id uuid, p_campaign_id uuid, p_rotation_index int)
 returns void
 language plpgsql
@@ -32,5 +31,3 @@ end;
 $$;
 
 grant execute on function public.remove_slot_assignment(uuid, uuid) to authenticated;
-
-

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, RefreshCw, Plus, Trash2 } from 'lucide-react';
+import { Save, RefreshCw, Plus, Trash2, MoreHorizontal, ArrowUp, ArrowDown, X } from 'lucide-react';
 
 type SlotVM = {
   slot_id?: string;
@@ -40,6 +40,10 @@ const AdsLayoutBuilder: React.FC = () => {
   const [selectedSlotKey, setSelectedSlotKey] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const layoutIdRef = useRef<string | null>(null);
+  const [draggingCampaignId, setDraggingCampaignId] = useState<string | null>(null);
+  const [hoveredSlotKey, setHoveredSlotKey] = useState<string | null>(null);
+  const [slotAssignments, setSlotAssignments] = useState<Record<string, {campaign_id:string,name:string,rotation_index:number}[]>>({});
+  const [libraryFilter, setLibraryFilter] = useState<{q:string; placement:string|undefined}>({ q:'', placement: undefined });
 
   const cols = useMemo(() => COLS_BY_DEVICE[device], [device]);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -193,6 +197,7 @@ useEffect(() => { loadLayout(); }, [loadLayout]);
 
   const startAssignCampaignDrag = (e: React.DragEvent, campaignId: string) => {
     e.dataTransfer.setData('text/campaign-id', campaignId);
+    setDraggingCampaignId(campaignId);
   };
 
   const onDropOnSlot = async (e: React.DragEvent, slot: SlotVM) => {
@@ -212,12 +217,67 @@ useEffect(() => { loadLayout(); }, [loadLayout]);
       const { error } = await supabase.rpc('assign_campaign_to_slot', { p_slot_id: match.slot_id, p_campaign_id: campaignId, p_rotation_index: 0 });
       if (error) throw error;
       toast({ title: 'Assigned', description: 'Campaign assigned to slot' });
+      setDraggingCampaignId(null);
+      setHoveredSlotKey(null);
+      await fetchAssignmentsForSlot(match.slot_id, slot.slot_key);
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
   };
 
   const selected = slots.find(s => s.slot_key === selectedSlotKey) || null;
+
+  // Load assignments for a given slot
+  const fetchAssignmentsForSlot = useCallback(async (slotId: string, slotKey: string) => {
+    const { data, error } = await supabase
+      .from('ad_slot_assignments')
+      .select('campaign_id, rotation_index, ad_campaigns!inner(name)')
+      .eq('slot_id', slotId)
+      .eq('is_active', true)
+      .order('rotation_index', { ascending: true });
+    if (!error) {
+      setSlotAssignments(prev => ({ ...prev, [slotKey]: (data || []).map((r:any)=>({ campaign_id:r.campaign_id, name:r.ad_campaigns.name, rotation_index:r.rotation_index })) }));
+    }
+  }, []);
+
+  // When a slot is selected, resolve its id and pull assignments
+  useEffect(() => {
+    (async () => {
+      if (!selected) return;
+      const { data } = await supabase.rpc('get_ad_layout', { p_page_key: pageKey, p_device: device });
+      const match = (data?.slots || []).find((s: any) => s.slot_key === selected.slot_key);
+      if (match?.slot_id) await fetchAssignmentsForSlot(match.slot_id, selected.slot_key);
+    })();
+  }, [selected, pageKey, device, fetchAssignmentsForSlot]);
+
+  const moveAssignment = async (slotKey: string, index: number, dir: -1 | 1) => {
+    const list = slotAssignments[slotKey] || [];
+    const newIndex = index + dir;
+    if (newIndex < 0 || newIndex >= list.length) return;
+    // swap rotation_index in DB using two calls
+    const { data } = await supabase.rpc('get_ad_layout', { p_page_key: pageKey, p_device: device });
+    const match = (data?.slots || []).find((s: any) => s.slot_key === slotKey);
+    if (!match?.slot_id) return;
+    const a = list[index];
+    const b = list[newIndex];
+    await supabase.rpc('update_slot_assignment_order', { p_slot_id: match.slot_id, p_campaign_id: a.campaign_id, p_rotation_index: newIndex });
+    await supabase.rpc('update_slot_assignment_order', { p_slot_id: match.slot_id, p_campaign_id: b.campaign_id, p_rotation_index: index });
+    await fetchAssignmentsForSlot(match.slot_id, slotKey);
+  };
+
+  const removeAssignment = async (slotKey: string, campaignId: string) => {
+    const { data } = await supabase.rpc('get_ad_layout', { p_page_key: pageKey, p_device: device });
+    const match = (data?.slots || []).find((s: any) => s.slot_key === slotKey);
+    if (!match?.slot_id) return;
+    await supabase.rpc('remove_slot_assignment', { p_slot_id: match.slot_id, p_campaign_id: campaignId });
+    await fetchAssignmentsForSlot(match.slot_id, slotKey);
+  };
+
+  const filteredCampaigns = campaigns.filter(c => {
+    const qok = libraryFilter.q ? c.name.toLowerCase().includes(libraryFilter.q.toLowerCase()) : true;
+    const pok = libraryFilter.placement ? c.placement === libraryFilter.placement : true;
+    return qok && pok;
+  });
 
   return (
     <div className="space-y-4">
@@ -268,6 +328,42 @@ useEffect(() => { loadLayout(); }, [loadLayout]);
                     <Input type="number" value={selected.y} onChange={e=>setSlots(prev=>prev.map(s=>s.slot_key===selected.slot_key?{...s,y:Number(e.target.value)}:s))} />
                     <Input type="number" value={selected.w} onChange={e=>setSlots(prev=>prev.map(s=>s.slot_key===selected.slot_key?{...s,w:Number(e.target.value)}:s))} />
                     <Input type="number" value={selected.h} onChange={e=>setSlots(prev=>prev.map(s=>s.slot_key===selected.slot_key?{...s,h:Number(e.target.value)}:s))} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label>Placement</Label>
+                      <Select value={selected.placement} onValueChange={(v)=>setSlots(prev=>prev.map(s=>s.slot_key===selected.slot_key?{...s,placement:v}:s))}>
+                        <SelectTrigger><SelectValue/></SelectTrigger>
+                        <SelectContent>
+                          {['header','footer','sidebar','inline','popup','pdf_sidebar','floater'].map(p=> (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Carousel Rotation (ms)</Label>
+                      <Input type="number" value={selected.config?.rotationMs || 5000} onChange={e=>setSlots(prev=>prev.map(s=>s.slot_key===selected.slot_key?{...s,config:{...s.config, rotationMs:Number(e.target.value)}}:s))}/>
+                    </div>
+                  </div>
+
+                  <div className="mt-2">
+                    <Label>Assigned Campaigns</Label>
+                    <div className="border rounded p-2 space-y-2">
+                      {(slotAssignments[selected.slot_key]||[]).map((a, idx) => (
+                        <div key={a.campaign_id} className="flex items-center justify-between border rounded p-2">
+                          <div className="text-sm">{idx+1}. {a.name}</div>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" onClick={()=>moveAssignment(selected.slot_key!, idx, -1)}><ArrowUp className="w-4 h-4"/></Button>
+                            <Button size="sm" variant="outline" onClick={()=>moveAssignment(selected.slot_key!, idx, 1)}><ArrowDown className="w-4 h-4"/></Button>
+                            <Button size="sm" variant="destructive" onClick={()=>removeAssignment(selected.slot_key!, a.campaign_id)}><X className="w-4 h-4"/></Button>
+                          </div>
+                        </div>
+                      ))}
+                      {(slotAssignments[selected.slot_key]||[]).length===0 && (
+                        <div className="text-xs text-gray-500">No campaigns assigned. Drag one from the right.</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -321,14 +417,24 @@ useEffect(() => { loadLayout(); }, [loadLayout]);
             {/* Campaign library */}
             <div className="lg:col-span-1">
               <Label>Active Campaigns</Label>
+              <div className="mt-2 flex items-center gap-2">
+                <Input placeholder="Search..." value={libraryFilter.q} onChange={(e)=>setLibraryFilter(prev=>({...prev, q:e.target.value}))} />
+                <Select value={libraryFilter.placement || 'all'} onValueChange={(v)=>setLibraryFilter(prev=>({...prev, placement: v==='all'? undefined : v}))}>
+                  <SelectTrigger className="w-36"><SelectValue placeholder="Placement"/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {['header','footer','sidebar','inline','popup','pdf_sidebar','floater'].map(p=> (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="mt-2 space-y-2 max-h-96 overflow-auto border rounded p-2 bg-white">
-                {campaigns.map(c => (
+                {filteredCampaigns.map(c => (
                   <div key={c.id} draggable onDragStart={(e)=>startAssignCampaignDrag(e, c.id)} className="p-2 border rounded hover:bg-gray-50 cursor-grab">
                     <div className="text-sm font-medium">{c.name}</div>
                     <div className="text-xs text-gray-500">{c.placement} • prio {c.priority}</div>
                   </div>
                 ))}
-                {campaigns.length===0 && <div className="text-xs text-gray-500">No active campaigns</div>}
+                {filteredCampaigns.length===0 && <div className="text-xs text-gray-500">No matching campaigns</div>}
               </div>
               <div className="text-xs text-gray-500 mt-2">Tip: Drag a campaign onto a slot to assign</div>
             </div>
