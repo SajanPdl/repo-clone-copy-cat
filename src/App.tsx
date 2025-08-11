@@ -26,6 +26,7 @@ import StudentMaterialUploadPage from "./pages/StudentMaterialUploadPage";
 
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
+import EmergencyAdminAccess from "./components/admin/EmergencyAdminAccess";
 import MarketplacePage from "./pages/MarketplacePage";
 import MarketplaceProductViewPage from "./pages/MarketplaceProductViewPage";
 import EventsPage from "./pages/EventsPage";
@@ -114,6 +115,9 @@ function App() {
                   <AdminPanel />
                 </ProtectedRoute>
               } />
+              
+              {/* Emergency Admin Access */}
+              <Route path="/emergency-admin" element={<EmergencyAdminAccess />} />
               
               {/* 404 Routes */}
               <Route path="/404" element={<NotFoundPage />} />

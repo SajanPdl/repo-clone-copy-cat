@@ -50,6 +50,8 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ collapsed, 
     { icon: Monitor, label: 'Advertisements', path: '/admin/ads' },
     { icon: MessageSquare, label: 'Queries', path: '/admin/queries' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
+    { icon: Info, label: 'Setup Helper', path: '/admin/setup-helper' },
+    { icon: AlertCircle, label: 'Diagnostic', path: '/admin/diagnostic' },
   ];
 
   const isActive = (path: string) => {

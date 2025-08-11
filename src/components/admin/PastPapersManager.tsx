@@ -68,6 +68,12 @@ const PastPapersManager = () => {
     e.preventDefault();
     
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
       const { data, error } = await supabase
         .from('past_papers')
         .insert([
@@ -77,12 +83,18 @@ const PastPapersManager = () => {
             year: parseInt(formData.year),
             grade: formData.grade,
             board: formData.board,
-            downloads: 0
+            downloads: 0,
+            author_id: userData.user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           }
         ])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Insert error:", error);
+        throw error;
+      }
       
       toast({
         title: "Success!",
@@ -100,24 +112,31 @@ const PastPapersManager = () => {
       });
       
       fetchPapers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding paper:', error);
       toast({
         title: "Error",
-        description: "Failed to add past paper",
+        description: error.message || "Failed to add past paper",
         variant: "destructive"
       });
     }
   };
 
   const handleDelete = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this past paper?")) return;
+    
     try {
+      console.log("Attempting to delete past paper with ID:", id);
+      
       const { error } = await supabase
         .from('past_papers')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
       
       toast({
         title: "Success",
@@ -125,11 +144,11 @@ const PastPapersManager = () => {
       });
       
       fetchPapers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting paper:', error);
       toast({
         title: "Error",
-        description: "Failed to delete past paper",
+        description: error.message || "Failed to delete past paper",
         variant: "destructive"
       });
     }

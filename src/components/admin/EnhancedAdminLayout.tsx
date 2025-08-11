@@ -20,6 +20,8 @@ import AdvertisementManager from './AdvertisementManager';
 import QueriesManager from './QueriesManager';
 import AdminSettings from './AdminSettings';
 import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
+import AdminSetupHelper from './AdminSetupHelper';
+import AdminDiagnostic from './AdminDiagnostic';
 
 interface EnhancedAdminLayoutProps {
   children?: React.ReactNode;
@@ -56,6 +58,8 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/ads" element={<AdvertisementManager />} />
               <Route path="/queries" element={<QueriesManager />} />
               <Route path="/settings" element={<AdminSettings />} />
+              <Route path="/setup-helper" element={<AdminSetupHelper />} />
+              <Route path="/diagnostic" element={<AdminDiagnostic />} />
             </Routes>
           )}
         </main>

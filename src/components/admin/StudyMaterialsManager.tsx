@@ -50,6 +50,11 @@ const StudyMaterialsManager = () => {
   const handleSaveMaterial = async (materialData: StudyMaterial) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
       if (editingMaterial?.id) {
         // Update existing material
         const { error } = await supabase
@@ -66,10 +71,15 @@ const StudyMaterialsManager = () => {
             tags: materialData.tags,
             featured_image: (materialData as any).featured_image,
             updated_at: new Date().toISOString(),
-            approval_status: materialData.approval_status || 'pending',
+            approval_status: materialData.approval_status || 'approved',
           })
           .eq('id', editingMaterial.id);
-        if (error) throw error;
+        
+        if (error) {
+          console.error("Update error:", error);
+          throw error;
+        }
+        
         toast({
           title: "Success",
           description: "Study material updated successfully."
@@ -89,19 +99,27 @@ const StudyMaterialsManager = () => {
             file_type: materialData.file_type,
             tags: materialData.tags,
             featured_image: (materialData as any).featured_image,
-            author_id: userData?.user?.id,
+            author_id: userData.user.id,
             downloads: 0,
             views: 0,
             rating: 0.0,
             is_featured: false,
             approval_status: 'approved',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           }]);
-        if (error) throw error;
+        
+        if (error) {
+          console.error("Insert error:", error);
+          throw error;
+        }
+        
         toast({
           title: "Success",
           description: "Study material created successfully."
         });
       }
+      
       setShowEditor(false);
       setEditingMaterial(null);
       fetchStudyMaterials();
@@ -119,12 +137,17 @@ const StudyMaterialsManager = () => {
     if (!window.confirm("Are you sure you want to delete this material?")) return;
 
     try {
+      console.log("Attempting to delete material with ID:", id);
+      
       const { error } = await supabase
         .from('study_materials')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
 
       toast({
         title: "Success",
