@@ -17,6 +17,8 @@ import MerchManager from './MerchManager';
 import PaymentVerificationManager from './PaymentVerificationManager';
 import SubscriptionManager from './SubscriptionManager';
 import AdsManager from './AdsManager';
+import TemplatesList from './templates/TemplatesList';
+import TemplateBuilder from './templates/TemplateBuilder';
 import QueriesManager from './QueriesManager';
 import AdminSettings from './AdminSettings';
 import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
@@ -58,6 +60,8 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/subscription-plans" element={<SubscriptionPlansManager />} />
               <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
               <Route path="/ads" element={<AdsManager />} />
+              <Route path="/ads/templates" element={<TemplatesList />} />
+              <Route path="/ads/templates/:templateId" element={<TemplateBuilder />} />
               <Route path="/queries" element={<QueriesManager />} />
               <Route path="/settings" element={<AdminSettings />} />
               <Route path="/setup-helper" element={<AdminSetupHelper />} />
