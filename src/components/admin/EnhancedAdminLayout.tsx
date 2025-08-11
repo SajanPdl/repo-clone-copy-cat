@@ -16,8 +16,7 @@ import MarketplaceManager from './MarketplaceManager';
 import MerchManager from './MerchManager';
 import PaymentVerificationManager from './PaymentVerificationManager';
 import SubscriptionManager from './SubscriptionManager';
-import AdvertisementManager from './AdvertisementManager';
-import AdCampaignManager from './AdCampaignManager';
+import AdsManager from './AdsManager';
 import QueriesManager from './QueriesManager';
 import AdminSettings from './AdminSettings';
 import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
@@ -58,10 +57,7 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/subscriptions" element={<SubscriptionManager />} />
               <Route path="/subscription-plans" element={<SubscriptionPlansManager />} />
               <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
-              <Route path="/ads" element={<AdvertisementManager />} />
-              <Route path="/ads/campaigns" element={<AdCampaignManager />} />
-              {/* Absolute path variant to ensure direct navigation works */}
-              <Route path="/admin/ads/campaigns" element={<AdCampaignManager />} />
+              <Route path="/ads" element={<AdsManager />} />
               <Route path="/queries" element={<QueriesManager />} />
               <Route path="/settings" element={<AdminSettings />} />
               <Route path="/setup-helper" element={<AdminSetupHelper />} />

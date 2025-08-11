@@ -157,10 +157,12 @@ const AdCampaignManager: React.FC = () => {
   const uploadCreativeImage = async (file: File) => {
     const ext = file.name.split('.').pop();
     const name = `creative-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('ad-images').upload(name, file, { upsert: true });
-    if (error) throw error;
-    const { data } = supabase.storage.from('ad-images').getPublicUrl(name);
-    return data.publicUrl as string;
+    // Ensure bucket exists and is public: handled by SQL policies earlier
+    const { data, error } = await supabase.storage.from('ad-images').upload(name, file, { upsert: false, cacheControl: '3600', contentType: file.type });
+    if (error && error.message && !error.message.includes('already exists')) throw error;
+    const { data: url } = supabase.storage.from('ad-images').getPublicUrl(name);
+    if (!url?.publicUrl) throw new Error('Failed to resolve public URL');
+    return url.publicUrl as string;
   };
 
   const addCreative = async (e: React.FormEvent) => {

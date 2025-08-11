@@ -92,11 +92,11 @@ const AdvertisementManager = () => {
 
       resetForm();
       fetchAds();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving ad:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save advertisement',
+        description: error?.message || 'Failed to save advertisement',
         variant: 'destructive'
       });
     }
@@ -128,11 +128,11 @@ const AdvertisementManager = () => {
       if (error) throw error;
       toast({ title: 'Success', description: 'Advertisement deleted successfully' });
       fetchAds();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting ad:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete advertisement',
+        description: error?.message || 'Failed to delete advertisement',
         variant: 'destructive'
       });
     }
@@ -151,13 +151,31 @@ const AdvertisementManager = () => {
         title: 'Success', 
         description: `Advertisement ${is_active ? 'activated' : 'deactivated'}` 
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating ad status:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update advertisement status',
+        description: error?.message || 'Failed to update advertisement status',
         variant: 'destructive'
       });
+    }
+  };
+
+  // Upload helper for legacy ads image
+  const uploadLegacyAdImage = async (file: File) => {
+    try {
+      const ext = file.name.split('.').pop();
+      const name = `legacy-ad-${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from('ad-images')
+        .upload(name, file, { upsert: true, cacheControl: '3600', contentType: file.type });
+      if (error && !(error as any)?.message?.includes('already exists')) throw error;
+      const { data: urlData } = supabase.storage.from('ad-images').getPublicUrl(name);
+      if (!urlData?.publicUrl) throw new Error('Failed to resolve public URL');
+      setFormData(prev => ({ ...prev, image_url: urlData.publicUrl }));
+      toast({ title: 'Image uploaded', description: 'Linked to advertisement.' });
+    } catch (err: any) {
+      toast({ title: 'Upload failed', description: err?.message || 'Could not upload image', variant: 'destructive' });
     }
   };
 
@@ -274,6 +292,10 @@ const AdvertisementManager = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                     placeholder="https://example.com/image.jpg"
                   />
+                  <div className="mt-2">
+                    <Label>Or Upload Image</Label>
+                    <Input type="file" accept="image/*" onChange={(e)=>{ const f=e.target.files?.[0]; if (f) uploadLegacyAdImage(f); }}/>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="link_url">Link URL</Label>
