@@ -73,16 +73,20 @@ const AdSlot: React.FC<AdSlotProps> = ({ placement, category = null, className =
     <div className={`relative overflow-hidden rounded border bg-white ${className}`}>
       {/* label */}
       <div className="absolute top-1 left-1 z-10 text-[10px] px-1.5 py-0.5 rounded bg-gray-900/80 text-white">Sponsored</div>
-      <button onClick={onClick} className="block w-full text-left">
-        {current.media_type === 'image' ? (
+      {current.media_type === 'image' && (
+        <button onClick={onClick} className="block w-full text-left">
           <img src={current.media_url} alt={current.title ?? 'Ad'} className="w-full h-auto object-cover transition-opacity duration-500" loading="lazy" />
-        ) : (
-          <div className="p-4">
-            <h4 className="font-semibold text-gray-900 mb-1">{current.title}</h4>
-            <p className="text-sm text-gray-600">{current.description}</p>
-          </div>
-        )}
-      </button>
+        </button>
+      )}
+      {current.media_type === 'html' && (
+        <div className="w-full" dangerouslySetInnerHTML={{ __html: current.media_url }} />
+      )}
+      {current.media_type !== 'image' && current.media_type !== 'html' && (
+        <button onClick={onClick} className="block w-full text-left p-4">
+          <h4 className="font-semibold text-gray-900 mb-1">{current.title}</h4>
+          <p className="text-sm text-gray-600">{current.description}</p>
+        </button>
+      )}
     </div>
   );
 };

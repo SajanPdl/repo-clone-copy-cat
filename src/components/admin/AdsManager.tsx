@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdCampaignManager from './AdCampaignManager';
 import AdvertisementManager from './AdvertisementManager';
-import AdsSlotAssignmentForm from './AdsSlotAssignmentForm';
 
 const AdsManager: React.FC = () => {
   return (
@@ -13,15 +12,11 @@ const AdsManager: React.FC = () => {
           <CardTitle>Advertisement Management</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="assignments">
+          <Tabs defaultValue="campaigns">
             <TabsList>
-              <TabsTrigger value="assignments">Slot Assignments</TabsTrigger>
               <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
               <TabsTrigger value="legacy">Legacy Ads</TabsTrigger>
             </TabsList>
-            <TabsContent value="assignments" className="mt-4">
-              <AdsSlotAssignmentForm />
-            </TabsContent>
             <TabsContent value="campaigns" className="mt-4">
               <AdCampaignManager />
             </TabsContent>

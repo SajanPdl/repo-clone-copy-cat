@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { RefreshCw, ArrowUp, ArrowDown, X, Plus } from 'lucide-react';
 import { fetchActiveAds, ActiveAdCreative } from '@/services/adsService';
+import AdSlot from '@/components/ads/AdSlot';
+import { supabase } from '@/integrations/supabase/client';
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
@@ -48,6 +50,8 @@ const AdsSlotAssignmentForm: React.FC = () => {
   const [previewCreatives, setPreviewCreatives] = useState<ActiveAdCreative[]>([]);
   const [previewIndex, setPreviewIndex] = useState(0);
   const previewTimerRef = useRef<number | null>(null);
+  const placementsAll: Array<'header'|'inline'|'sidebar'|'footer'|'floater'> = ['header','inline','sidebar','footer','floater'];
+  const [legacyPreview, setLegacyPreview] = useState<Record<string, any | null>>({});
 
   const selectedSlot: SlotVM | null = useMemo(
     () => slots.find(s => s.slot_key === selectedSlotKey) || null,
@@ -143,6 +147,24 @@ const AdsSlotAssignmentForm: React.FC = () => {
     }, 5000);
     return () => { if (previewTimerRef.current) window.clearInterval(previewTimerRef.current); };
   }, [previewCreatives]);
+
+  const loadLegacyPreview = useCallback(async () => {
+    const results: Record<string, any | null> = {};
+    for (const p of placementsAll) {
+      const pos = p === 'inline' ? 'content' : p; // legacy names
+      const { data } = await supabase
+        .from('advertisements')
+        .select('*')
+        .eq('position', pos)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      results[p] = (data && data.length > 0) ? data[0] : null;
+    }
+    setLegacyPreview(results);
+  }, []);
+
+  useEffect(() => { loadLegacyPreview(); }, [loadLegacyPreview]);
 
   const filteredCampaigns = useMemo(() => {
     const q = campaignFilter.q.toLowerCase();
@@ -339,6 +361,49 @@ const AdsSlotAssignmentForm: React.FC = () => {
             {selectedSlot && previewCreatives.length > 0 && (
               <PreviewCreative creative={previewCreatives[previewIndex]} />
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Placement Previews (All) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Placement Previews (Campaigns + Legacy)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {placementsAll.map((p) => (
+              <div key={p} className="border rounded p-3 bg-white">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium capitalize">{p}</div>
+                  <Button size="sm" variant="outline" onClick={() => { loadPreview(); loadLegacyPreview(); }}>
+                    <RefreshCw className="w-4 h-4 mr-2"/>Refresh
+                  </Button>
+                </div>
+                {/* Campaign-based preview */}
+                <div className={`mb-2 ${p==='sidebar' ? 'max-w-sm' : ''}`}>
+                  <AdSlot placement={p} />
+                </div>
+                {/* Legacy preview */}
+                <div className="text-xs text-gray-500 mb-1">Legacy</div>
+                <div className={`border rounded p-2 ${p==='sidebar' ? 'max-w-sm' : ''}`}>
+                  {legacyPreview[p] ? (
+                    <div>
+                      {legacyPreview[p].image_url && (
+                        <img src={legacyPreview[p].image_url} alt={legacyPreview[p].title} className="w-full h-auto rounded mb-2" />
+                      )}
+                      <div className="font-medium text-sm">{legacyPreview[p].title}</div>
+                      {legacyPreview[p].content && (
+                        <div className="text-xs text-gray-600 mt-1">{legacyPreview[p].content}</div>
+                      )}
+                      <div className="text-[10px] text-gray-400 mt-1">Advertisement</div>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-400">No legacy ad</div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

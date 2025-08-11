@@ -309,12 +309,13 @@ const AdCampaignManager: React.FC = () => {
                     <Input value={newCreative.title as string || ''} onChange={e=>setNewCreative({...newCreative, title:e.target.value})}/>
                   </div>
                   <div>
-                    <Label>Media Type</Label>
+                 <Label>Media Type</Label>
                     <Select value={newCreative.media_type||'image'} onValueChange={v=>setNewCreative({...newCreative, media_type: v as any})}>
                       <SelectTrigger><SelectValue/></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="image">Image</SelectItem>
                         <SelectItem value="html">HTML</SelectItem>
+                     <SelectItem value="html">External Code (AdSense/Adsterra)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -323,8 +324,8 @@ const AdCampaignManager: React.FC = () => {
                     <Textarea rows={2} value={newCreative.description as string || ''} onChange={e=>setNewCreative({...newCreative, description:e.target.value})}/>
                   </div>
                   <div>
-                    <Label>Media URL</Label>
-                    <Input value={newCreative.media_url as string || ''} onChange={e=>setNewCreative({...newCreative, media_url:e.target.value})} placeholder="https://..." />
+                    <Label>{newCreative.media_type==='html' ? 'HTML / Ad code' : 'Media URL'}</Label>
+                    <Textarea rows={newCreative.media_type==='html'? 6 : 2} value={newCreative.media_url as string || ''} onChange={e=>setNewCreative({...newCreative, media_url:e.target.value})} placeholder={newCreative.media_type==='html'? '<script>...AdSense / Adsterra code...</script>' : 'https://...'} />
                   </div>
                   <div>
                     <Label>Link URL</Label>

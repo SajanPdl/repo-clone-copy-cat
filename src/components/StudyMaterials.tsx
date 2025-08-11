@@ -8,6 +8,7 @@ import ContentPagination from './common/ContentPagination';
 import { fetchStudyMaterials, StudyMaterial } from '@/utils/queryUtils';
 import { filterMaterials } from '@/utils/studyMaterialsUtils';
 import AdPlacement from './ads/AdPlacement';
+import UpgradeCTA from '@/components/cta/UpgradeCTA';
 
 const StudyMaterials = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,8 +79,14 @@ const StudyMaterials = () => {
           </p>
         </div>
 
-        {/* Add content ad placement above filters */}
-        <AdPlacement position="content" className="mb-8" />
+        {/* Sponsored content block & ad above filters */}
+        <div className="mb-8 space-y-3">
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="text-xs text-gray-500 mb-1">Sponsored</div>
+            <UpgradeCTA variant="card" dismissibleKey="sponsored_materials_top" />
+          </div>
+          <AdPlacement position="content" />
+        </div>
 
         <MaterialsFilter 
           options={filterOptions}
@@ -132,14 +139,24 @@ const StudyMaterials = () => {
             )}
           </div>
           
-          {/* Sidebar with ads */}
+          {/* Sidebar with sponsored block + ads */}
           <div className="lg:w-1/4">
+            <div className="mb-4 border rounded-lg p-3 bg-white">
+              <div className="text-xs text-gray-500 mb-1">Sponsored</div>
+              <UpgradeCTA variant="card" dismissibleKey="sponsored_sidebar" />
+            </div>
             <AdPlacement position="sidebar" />
           </div>
         </div>
 
-        {/* Footer ad */}
-        <AdPlacement position="footer" className="mt-12" />
+        {/* Footer sponsored block + ad */}
+        <div className="mt-12 space-y-3">
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="text-xs text-gray-500 mb-1">Sponsored</div>
+            <UpgradeCTA variant="card" dismissibleKey="sponsored_materials_bottom" />
+          </div>
+          <AdPlacement position="footer" />
+        </div>
 
         <div className="text-center mt-12">
           <Button className="btn-primary scale-on-hover" asChild>
