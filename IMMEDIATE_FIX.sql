@@ -59,13 +59,11 @@ FROM premium_subscriptions;
 
 -- Step 8: Show what's in the old premium_subscriptions table
 SELECT 
+  id,
   user_id,
-  plan_type,
-  status,
-  expires_at,
-  created_at
+  created_at,
+  updated_at
 FROM premium_subscriptions
-ORDER BY created_at DESC
 LIMIT 10;
 
 -- Step 9: Check the new subscription system
