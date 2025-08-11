@@ -10,7 +10,6 @@ import { useSubscription } from '@/hooks/useSubscription';
 import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import './PastPapers.css';
 import { Link } from 'react-router-dom';
 import { fetchPastPapers } from '@/utils/queryUtils';
 import { PastPaper } from '@/utils/queryUtils';
