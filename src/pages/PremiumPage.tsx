@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import PremiumSubscription from '@/components/PremiumSubscription';
+import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
 
 const PremiumPage = () => {
   return (
@@ -10,7 +10,7 @@ const PremiumPage = () => {
       <Navbar />
       <main className="flex-grow py-8 w-full">
         <div className="container mx-auto px-4">
-          <PremiumSubscription />
+          <SubscriptionPlans />
         </div>
       </main>
       <Footer />
