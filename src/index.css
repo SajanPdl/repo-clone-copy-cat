@@ -133,3 +133,119 @@
     @apply block py-2 px-4 text-gray-800 dark:text-gray-200 hover:bg-purple-600/10 hover:text-purple-600 rounded-md transition-colors;
   }
 }
+
+/* Custom component classes */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg rounded-xl;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+}
+
+.floating-icon {
+  @apply fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 cursor-pointer z-50;
+}
+
+.interactive-card {
+  @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100;
+}
+
+.shimmer-effect {
+  @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-pulse;
+}
+
+.hover-link {
+  @apply text-gray-600 hover:text-purple-600 transition-colors duration-200;
+}
+
+.mobile-nav-link {
+  @apply block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-purple-600 transition-colors duration-200;
+}
+
+/* Fix for sidebar overlapping with navbar */
+.sidebar-container {
+  @apply fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-40;
+  margin-top: 64px; /* Adjust this value based on your navbar height */
+}
+
+.sidebar-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-30;
+}
+
+.main-content-with-sidebar {
+  @apply ml-64; /* Match sidebar width */
+  margin-top: 64px; /* Match navbar height */
+}
+
+/* Responsive sidebar adjustments */
+@media (max-width: 1024px) {
+  .sidebar-container {
+    @apply transform -translate-x-full transition-transform duration-300 ease-in-out;
+  }
+  
+  .sidebar-container.open {
+    @apply transform translate-x-0;
+  }
+  
+  .main-content-with-sidebar {
+    @apply ml-0;
+  }
+}
+
+/* Ensure navbar stays on top */
+.navbar {
+  @apply fixed top-0 left-0 right-0 z-50 bg-white shadow-md;
+  height: 64px; /* Fixed navbar height */
+}
+
+/* Sidebar navigation items */
+.sidebar-nav-item {
+  @apply flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 cursor-pointer;
+}
+
+.sidebar-nav-item.active {
+  @apply bg-purple-100 text-purple-600 border-r-2 border-purple-600;
+}
+
+.sidebar-nav-icon {
+  @apply w-5 h-5 mr-3;
+}
+
+.sidebar-section {
+  @apply mb-6;
+}
+
+.sidebar-section-title {
+  @apply text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2;
+}
+
+/* Ensure proper spacing for main content */
+.page-container {
+  @apply pt-16; /* Add top padding to account for fixed navbar */
+}
+
+/* Fix for any potential z-index conflicts */
+.z-navbar {
+  z-index: 1000;
+}
+
+.z-sidebar {
+  z-index: 900;
+}
+
+.z-overlay {
+  z-index: 800;
+}
+
+.z-content {
+  z-index: 100;
+}
