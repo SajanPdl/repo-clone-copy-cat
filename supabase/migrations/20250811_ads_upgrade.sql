@@ -25,6 +25,20 @@ create table if not exists public.ad_campaigns (
   updated_at timestamptz not null default now()
 );
 
+-- Extensions to support mediation, pacing, budgets and external networks
+alter table public.ad_campaigns
+  add column if not exists source text not null default 'internal', -- internal|adsterra|adsense|house
+  add column if not exists external_placement_id text,
+  add column if not exists budget_usd numeric,
+  add column if not exists pacing text default 'standard',
+  add column if not exists frequency_caps jsonb default '{}'::jsonb, -- {"per_session":1,"per_day":3}
+  add column if not exists objectives jsonb default '{}'::jsonb,   -- {"click":"cpc","view":"cpm","conv":"pro_upgrade"}
+  add column if not exists revenue_model text default 'cpm',       -- cpm|cpc|cpa
+  add column if not exists behavior_tags text[] default '{}';      -- e.g., {"physics","k12","search:vector"}
+
+create index if not exists idx_ad_campaigns_active on public.ad_campaigns(is_active, placement);
+create index if not exists idx_ad_campaigns_schedule on public.ad_campaigns(start_at, end_at);
+
 create table if not exists public.ad_creatives (
   id uuid primary key default gen_random_uuid(),
   campaign_id uuid not null references public.ad_campaigns(id) on delete cascade,

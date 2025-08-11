@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchActiveAds, logClick, logImpression, ActiveAdCreative } from '@/services/adsService';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 
 type AdSlotProps = {
   placement: 'header' | 'footer' | 'sidebar' | 'inline' | 'popup' | 'floater';
@@ -12,6 +13,7 @@ type AdSlotProps = {
 
 const AdSlot: React.FC<AdSlotProps> = ({ placement, category = null, className = '', rotateMs = 7000, maxAds = 5 }) => {
   const { user } = useAuth();
+  const { isPremiumUser } = useSubscription();
   const [ads, setAds] = useState<ActiveAdCreative[]>([]);
   const [index, setIndex] = useState(0);
   const rotateRef = useRef<number | null>(null);
@@ -22,17 +24,25 @@ const AdSlot: React.FC<AdSlotProps> = ({ placement, category = null, className =
     let cancelled = false;
     const load = async () => {
       try {
-        const data = await fetchActiveAds({ placement, userRole: 'admin', category, device, limit: maxAds });
+        if (isPremiumUser()) { setAds([]); return; }
+        const data = await fetchActiveAds({ placement, userRole: 'student', category, device, limit: maxAds });
         if (!cancelled) setAds(data);
       } catch (e) {
-        // ignore
+        // fallback: try external provider (Edge Function)
+        try {
+          const resp = await fetch(`/functions/v1/ads-external-adsterra?placement=${encodeURIComponent(placement)}&limit=${maxAds}`);
+          if (resp.ok) {
+            const ext = await resp.json();
+            if (!cancelled) setAds(ext);
+          }
+        } catch { /* ignore */ }
       }
     };
     load();
     return () => {
       cancelled = true;
     };
-  }, [placement, category, device, maxAds]);
+  }, [placement, category, device, maxAds, isPremiumUser]);
 
   useEffect(() => {
     if (ads.length <= 1) return;
@@ -51,7 +61,7 @@ const AdSlot: React.FC<AdSlotProps> = ({ placement, category = null, className =
     logImpression({ creativeId: current.creative_id, campaignId: current.campaign_id, userId: user?.id ?? null, device });
   }, [ads, index, user, device]);
 
-  const current = ads[index];
+  const current = isPremiumUser() ? undefined : ads[index];
   if (!current) return null;
 
   const onClick = () => {
