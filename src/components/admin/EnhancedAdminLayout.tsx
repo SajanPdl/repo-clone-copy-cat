@@ -22,6 +22,7 @@ import AdminSettings from './AdminSettings';
 import EnhancedWalletManagementPanel from './EnhancedWalletManagementPanel';
 import AdminSetupHelper from './AdminSetupHelper';
 import AdminDiagnostic from './AdminDiagnostic';
+import SubscriptionPlansManager from './SubscriptionPlansManager';
 
 interface EnhancedAdminLayoutProps {
   children?: React.ReactNode;
@@ -54,6 +55,7 @@ const EnhancedAdminLayout: React.FC<EnhancedAdminLayoutProps> = ({ children }) =
               <Route path="/merch" element={<MerchManager />} />
               <Route path="/payment-verification" element={<PaymentVerificationManager />} />
               <Route path="/subscriptions" element={<SubscriptionManager />} />
+              <Route path="/subscription-plans" element={<SubscriptionPlansManager />} />
               <Route path="/wallet-management" element={<EnhancedWalletManagementPanel />} />
               <Route path="/ads" element={<AdvertisementManager />} />
               <Route path="/queries" element={<QueriesManager />} />
