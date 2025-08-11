@@ -36,23 +36,50 @@ const SubscriptionManager = () => {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      
-      // Fetch all user subscriptions with plan details
-      const { data, error } = await supabase
+
+      // Step 1: fetch subscriptions (simple select, no joins to avoid PostgREST 400s)
+      const { data: subs, error: subsError } = await supabase
         .from('user_subscriptions')
-        .select(`id, user_id, status, starts_at, expires_at, created_at, updated_at, 
-                 subscription_plans:plan_id ( plan_code, name )`)
+        // Use wildcard to be compatible with both schemas (starts_at/expires_at vs start_date/end_date)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (subsError) throw subsError;
 
-      // Transform data to include plan details and calculate days remaining
-      const transformedData: SubscriptionWithPlan[] = (data || []).map((sub: any) => ({
-        ...sub,
-        plan_code: sub.subscription_plans?.plan_code,
-        plan_name: sub.subscription_plans?.name,
-        days_remaining: Math.max(0, Math.floor((new Date(sub.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-      }));
+      const subscriptionsRaw = subs || [];
+
+      // Step 2: fetch the plans referenced by these subscriptions
+      const planIds = Array.from(new Set(subscriptionsRaw.map((s: any) => s.plan_id).filter(Boolean)));
+      let planMap: Record<string, { plan_code: string; name: string }> = {};
+      if (planIds.length > 0) {
+        const { data: plans, error: plansError } = await supabase
+          .from('subscription_plans')
+          .select('id, plan_code, name')
+          .in('id', planIds);
+        if (plansError) throw plansError;
+        planMap = (plans || []).reduce((acc: any, p: any) => {
+          acc[p.id] = { plan_code: p.plan_code, name: p.name };
+          return acc;
+        }, {} as Record<string, { plan_code: string; name: string }>);
+      }
+
+      // Step 3: merge plan info and compute days remaining
+      const transformedData: SubscriptionWithPlan[] = subscriptionsRaw.map((sub: any) => {
+        const startsAt: string = sub.starts_at || sub.start_date || sub.created_at;
+        const expiresAt: string = sub.expires_at || sub.end_date || sub.updated_at;
+        const plan = planMap[sub.plan_id] || { plan_code: 'unknown', name: 'Unknown Plan' };
+        return {
+          ...sub,
+          plan_code: plan.plan_code,
+          plan_name: plan.name,
+          starts_at: startsAt,
+          expires_at: expiresAt,
+          days_remaining: Math.max(
+            0,
+            Math.floor((new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+          ),
+        } as SubscriptionWithPlan;
+      });
 
       setSubscriptions(transformedData);
     } catch (error) {
@@ -60,7 +87,7 @@ const SubscriptionManager = () => {
       toast({
         title: 'Error',
         description: 'Failed to load subscriptions',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);

@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface PlanFeature {
   name: string;
@@ -39,6 +40,7 @@ interface PricingPlan {
 
 export const PremiumSubscription = () => {
   const navigate = useNavigate();
+  const { userSubscription, isPremiumUser, loading: subLoading } = useSubscription();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti'>('esewa');
@@ -104,13 +106,10 @@ export const PremiumSubscription = () => {
   };
   
   const handleUpgradeClick = () => {
-    // Direct redirect to subscription page
     navigate('/subscription');
   };
   
-  // Check if user has premium subscription
-  const userSubscription = localStorage.getItem('userSubscription');
-  const isPremium = userSubscription === 'premium';
+  const isPremium = isPremiumUser();
   
   return (
     <div className="py-12">
@@ -167,21 +166,21 @@ export const PremiumSubscription = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button 
+              <Button
                 className={`w-full ${
-                  plan.name === "Premium" 
-                    ? "bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90"
-                    : ""
+                  plan.name === 'Premium'
+                    ? 'bg-gradient-to-r from-[#DC143C] to-[#003893] hover:opacity-90'
+                    : ''
                 }`}
-                variant={plan.name === "Free" ? "outline" : "default"}
-                disabled={(plan.name === "Free" && !isPremium) || (plan.name === "Premium" && isPremium)}
+                variant={plan.name === 'Free' ? 'outline' : 'default'}
+                disabled={(plan.name === 'Free' && !isPremium) || (plan.name === 'Premium' && isPremium)}
                 onClick={() => {
-                  if (plan.name === "Premium" && !isPremium) {
+                  if (plan.name === 'Premium' && !isPremium) {
                     handleUpgradeClick();
                   }
                 }}
               >
-                {isPremium && plan.name === "Premium" ? "Current Plan" : plan.buttonText}
+                {isPremium && plan.name === 'Premium' ? 'Current Plan' : plan.buttonText}
               </Button>
             </CardFooter>
           </Card>
