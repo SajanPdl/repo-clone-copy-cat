@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, Edit, Trash2, Plus, Upload } from 'lucide-react';
+import AdSlot from '@/components/ads/AdSlot';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface Advertisement {
@@ -391,6 +392,16 @@ const AdvertisementManager = () => {
           </Card>
         ))}
       </div>
+
+      {/* Live preview of header slot (campaign engine) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Live Preview: Header Slot</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdSlot placement="header" />
+        </CardContent>
+      </Card>
 
       {ads.length === 0 && (
         <div className="text-center py-12">
