@@ -118,6 +118,26 @@ function App() {
               
               {/* Emergency Admin Access */}
               <Route path="/emergency-admin" element={<EmergencyAdminAccess />} />
+              <Route path="/admin-emergency" element={<EmergencyAdminAccess />} />
+              <Route path="/fix-admin" element={<EmergencyAdminAccess />} />
+              
+              {/* Simple Test Route */}
+              <Route path="/test-admin" element={
+                <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
+                  <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+                    <div className="text-6xl mb-4">🚨</div>
+                    <h1 className="text-2xl font-bold text-red-600 mb-4">Emergency Admin Access</h1>
+                    <p className="text-gray-700 mb-6">
+                      If you can see this page, routing is working! This is a simple test component.
+                    </p>
+                    <div className="bg-blue-50 p-3 rounded border">
+                      <p className="text-sm text-blue-800">
+                        <strong>Current URL:</strong> {window.location.href}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              } />
               
               {/* 404 Routes */}
               <Route path="/404" element={<NotFoundPage />} />
