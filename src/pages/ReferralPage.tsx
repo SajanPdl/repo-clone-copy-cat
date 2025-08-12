@@ -1,23 +1,11 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import ReferralProgram from '@/components/referral/ReferralProgram';
 import Navbar from '@/components/Navbar';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const ReferralPage = () => {
-  const { user } = useAuth();
-  const { notifyPromoDiscount } = useNotificationTrigger();
-
-  useEffect(() => {
-    if (user) {
-      // Show referral welcome notification
-      notifyPromoDiscount('Referral Bonus', 'Earn rewards by inviting friends to join the platform!');
-    }
-  }, [user, notifyPromoDiscount]);
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

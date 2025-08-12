@@ -10,14 +10,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Heart, Share2, MessageCircle, MapPin, Calendar, Eye } from 'lucide-react';
 import GlobalHeader from '@/components/GlobalHeader';
 import { MarketplaceListing, incrementListingViews, fetchMarketplaceListings } from '@/utils/marketplaceUtils';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const MarketplaceProductViewPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { notifyPurchaseRequest } = useNotificationTrigger();
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -28,17 +26,6 @@ const MarketplaceProductViewPage = () => {
       incrementViews();
     }
   }, [id]);
-
-  // Show marketplace welcome notification on first visit
-  useEffect(() => {
-    if (user && listing) {
-      const hasVisited = localStorage.getItem(`marketplace_${id}_visited`);
-      if (!hasVisited) {
-        notifyPurchaseRequest(listing.title, 'Welcome to the marketplace!');
-        localStorage.setItem(`marketplace_${id}_visited`, 'true');
-      }
-    }
-  }, [user, listing, id, notifyPurchaseRequest]);
 
   const fetchListing = async () => {
     try {
@@ -72,17 +59,11 @@ const MarketplaceProductViewPage = () => {
     }
   };
 
-  const handleContact = async () => {
+  const handleContact = () => {
     if (!user) {
       navigate('/login');
       return;
     }
-    
-    // Send notification to seller
-    if (listing) {
-      await notifyPurchaseRequest(listing.title, user.email || 'Unknown User');
-    }
-    
     // Implement contact functionality
     toast({
       title: 'Contact Feature',

@@ -1,23 +1,11 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import DailyPlanner from '@/components/planner/DailyPlanner';
 import GlobalHeader from '@/components/GlobalHeader';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const PlannerPage = () => {
-  const { user } = useAuth();
-  const { notifyEventReminder } = useNotificationTrigger();
-
-  useEffect(() => {
-    if (user) {
-      // Show planner welcome notification
-      notifyEventReminder('Daily Planner', 'Plan your study sessions and track your progress!');
-    }
-  }, [user, notifyEventReminder]);
-
   return (
     <div className="min-h-screen bg-gray-50">
       <GlobalHeader />

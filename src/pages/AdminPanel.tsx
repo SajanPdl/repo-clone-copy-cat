@@ -1,23 +1,11 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import EnhancedAdminLayout from '@/components/admin/EnhancedAdminLayout';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const AdminPanel = () => {
   const { user, isAdmin, loading } = useAuth();
-  const { notifyAdminAnnouncement } = useNotificationTrigger();
-
-  useEffect(() => {
-    if (user && isAdmin) {
-      // Show admin welcome notification
-      notifyAdminAnnouncement(
-        'Admin Panel Access',
-        'Welcome to the admin panel. You have full access to manage the platform.'
-      );
-    }
-  }, [user, isAdmin, notifyAdminAnnouncement]);
 
   if (loading) {
     return (

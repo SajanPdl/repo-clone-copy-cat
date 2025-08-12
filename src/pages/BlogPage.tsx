@@ -1,11 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useState } from 'react';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import { Calendar, User, Tag, ArrowRight, Clock } from 'lucide-react';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 // Mock data for blog posts
 const initialPosts = [
@@ -92,22 +90,9 @@ const BlogPage = () => {
   const [posts, setPosts] = useState(initialPosts);
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useAuth();
-  const { notifyNewStudyMaterial } = useNotificationTrigger();
   
   const featuredPost = posts.find(post => post.featured);
   const regularPosts = posts.filter(post => !post.featured);
-
-  // Show welcome notification on first visit
-  useEffect(() => {
-    if (user) {
-      const hasVisited = localStorage.getItem('blog_visited');
-      if (!hasVisited) {
-        notifyNewStudyMaterial('Blog Section', 'Discover insightful articles and study tips!');
-        localStorage.setItem('blog_visited', 'true');
-      }
-    }
-  }, [user, notifyNewStudyMaterial]);
 
   const filterPosts = () => {
     return initialPosts.filter(post => {

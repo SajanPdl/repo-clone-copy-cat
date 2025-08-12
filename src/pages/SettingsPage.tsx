@@ -12,12 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const SettingsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { notifyAchievementUnlocked } = useNotificationTrigger();
   const [loading, setLoading] = useState(false);
   
   const [settings, setSettings] = useState({
@@ -58,9 +56,6 @@ const SettingsPage = () => {
         title: "Settings saved",
         description: "Your preferences have been updated successfully."
       });
-      
-      // Send notification
-      await notifyAchievementUnlocked('Settings Updated', 5);
     } catch (error) {
       toast({
         title: "Error",

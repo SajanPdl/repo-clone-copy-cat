@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 interface SearchResult {
   id: string;
@@ -29,8 +27,6 @@ interface SearchResult {
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const { user } = useAuth();
-  const { notifyNewStudyMaterial } = useNotificationTrigger();
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,17 +75,6 @@ const SearchPage = () => {
     
     testDatabase();
   }, []);
-
-  // Show search welcome notification on first visit
-  useEffect(() => {
-    if (user) {
-      const hasVisited = localStorage.getItem('search_visited');
-      if (!hasVisited) {
-        notifyNewStudyMaterial('Search Functionality', 'Find study materials, past papers, and more!');
-        localStorage.setItem('search_visited', 'true');
-      }
-    }
-  }, [user, notifyNewStudyMaterial]);
 
   useEffect(() => {
     console.log('SearchPage useEffect triggered, query:', query);

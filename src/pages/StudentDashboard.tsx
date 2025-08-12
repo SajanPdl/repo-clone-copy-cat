@@ -15,8 +15,6 @@ import AchievementCard from '@/components/dashboard/AchievementCard';
 import MarketplaceManager from '@/components/MarketplaceManager';
 import ProfileEditor from '@/components/ProfileEditor';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +46,6 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
   const location = useLocation();
-  const { notifyAchievementUnlocked, notifyProPlanExpiry } = useNotificationTrigger();
 
   // Bottom navigation items for mobile/tablet
   const bottomNavItems = [
@@ -69,15 +66,8 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (user) {
       loadDashboardData();
-      
-      // Show welcome notification on first visit
-      const hasVisited = localStorage.getItem('dashboard_visited');
-      if (!hasVisited) {
-        notifyAchievementUnlocked('First Visit', 10);
-        localStorage.setItem('dashboard_visited', 'true');
-      }
     }
-  }, [user, notifyAchievementUnlocked]);
+  }, [user]);
 
   const loadDashboardData = async () => {
     if (!user) return;

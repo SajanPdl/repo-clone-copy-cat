@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import { cn, formatDistanceToNow } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,7 +38,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     updatePreference,
     requestPermission,
     hasPermission
-  } = useNotificationContext();
+  } = useNotifications();
 
   // Close dropdown when clicking outside
   useEffect(() => {

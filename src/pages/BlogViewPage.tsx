@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchBlogPostBySlug } from '@/utils/queryUtils';
-import { useAuth } from '@/hooks/useAuth';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 interface BlogPost {
   id: number;
@@ -26,8 +24,6 @@ interface BlogPost {
 const BlogViewPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { notifyNewStudyMaterial } = useNotificationTrigger();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,17 +58,6 @@ const BlogViewPage = () => {
     };
     loadBlogPost();
   }, [slug]);
-
-  // Show blog welcome notification on first visit
-  useEffect(() => {
-    if (user && post) {
-      const hasVisited = localStorage.getItem(`blog_${slug}_visited`);
-      if (!hasVisited) {
-        notifyNewStudyMaterial(post.title, 'Blog Article');
-        localStorage.setItem(`blog_${slug}_visited`, 'true');
-      }
-    }
-  }, [user, post, slug, notifyNewStudyMaterial]);
 
   const createSlug = (title: string, id: number) => {
     return title.toLowerCase()

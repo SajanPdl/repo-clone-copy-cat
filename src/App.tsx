@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
-import { NotificationProvider } from "@/contexts/NotificationContext";
 import { NotificationManager } from "@/components/notifications/NotificationManager";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
@@ -59,12 +58,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SiteSettingsProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <NotificationManager position="top-right" maxNotifications={5} />
-            <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <NotificationManager position="top-right" maxNotifications={5} />
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/home" element={<HomePage />} />
@@ -147,9 +145,8 @@ function App() {
               <Route path="/404" element={<NotFoundPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-                      </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </SiteSettingsProvider>
     </QueryClientProvider>
   );

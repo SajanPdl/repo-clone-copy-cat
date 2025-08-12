@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');

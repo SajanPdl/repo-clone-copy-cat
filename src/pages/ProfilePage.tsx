@@ -1,26 +1,11 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import GlobalHeader from '@/components/GlobalHeader';
 import UserProfile from '@/components/UserProfile';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const ProfilePage = () => {
-  const { user } = useAuth();
-  const { notifyAchievementUnlocked } = useNotificationTrigger();
-
-  useEffect(() => {
-    if (user) {
-      // Show profile completion reminder
-      notifyAchievementUnlocked(
-        'Profile Management',
-        'Keep your profile updated to unlock more features and earn rewards!'
-      );
-    }
-  }, [user, notifyAchievementUnlocked]);
-
   return (
     <div className="min-h-screen bg-gray-50">
       <GlobalHeader />

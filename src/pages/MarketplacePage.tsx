@@ -12,13 +12,11 @@ import Navbar from '@/components/Navbar';
 import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { MarketplaceListing, fetchMarketplaceListings } from '@/utils/marketplaceUtils';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const MarketplacePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { notifyAdminAnnouncement } = useNotificationTrigger();
 
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [filteredListings, setFilteredListings] = useState<MarketplaceListing[]>([]);
@@ -43,15 +41,7 @@ const MarketplacePage = () => {
 
   useEffect(() => {
     fetchListings();
-    
-    // Show marketplace welcome notification
-    if (user) {
-      notifyAdminAnnouncement(
-        'Marketplace Open',
-        'Welcome to the marketplace! Find great deals on textbooks, notes, and more.'
-      );
-    }
-  }, [user, notifyAdminAnnouncement]);
+  }, []);
 
   useEffect(() => {
     applyFilters();

@@ -10,8 +10,6 @@ import PremiumSubscription from '@/components/PremiumSubscription';
 import { CreditCard } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const PastPapersPage = () => {
   const [papers, setPapers] = useState<PastPaper[]>([]);
@@ -25,8 +23,6 @@ const PastPapersPage = () => {
   const { isPremiumUser, loading: subscriptionLoading } = useSubscription();
   const isPremium = isPremiumUser();
   const [showSubscription, setShowSubscription] = useState(false);
-  const { user } = useAuth();
-  const { notifyProPlanExpiry } = useNotificationTrigger();
 
   useEffect(() => {
     const loadPapers = async () => {
@@ -50,17 +46,6 @@ const PastPapersPage = () => {
     
     loadPapers();
   }, [searchTerm, selectedGrade, selectedSubject, selectedYear]);
-
-  // Show welcome notification on first visit
-  useEffect(() => {
-    if (user) {
-      const hasVisited = localStorage.getItem('past_papers_visited');
-      if (!hasVisited) {
-        notifyProPlanExpiry(30); // Show upgrade reminder
-        localStorage.setItem('past_papers_visited', 'true');
-      }
-    }
-  }, [user, notifyProPlanExpiry]);
 
   // Filter options
   const grades = ['All', 'Grade 10', 'Grade 11', 'Grade 12'];
