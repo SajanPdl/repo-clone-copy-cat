@@ -267,7 +267,7 @@ const Navbar = () => {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 text-right">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {/* Mobile Search */}
               <div className="mb-4">
                 <form onSubmit={handleSearch}>
@@ -290,7 +290,7 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium text-right"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium text-left"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -308,7 +308,7 @@ const Navbar = () => {
                       <Link
                         key={feature.name}
                         to={feature.href}
-                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium flex items-center justify-end space-x-2"
+                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium flex items-center justify-start gap-2 text-left"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <feature.icon className="h-5 w-5" />
@@ -318,7 +318,7 @@ const Navbar = () => {
 
                     <Link
                       to="/profile"
-                      className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-right"
+                      className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-left"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Profile
@@ -327,7 +327,7 @@ const Navbar = () => {
                     {isAdmin && (
                       <Link
                         to="/admin"
-                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-right"
+                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-left"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Admin Panel
@@ -339,7 +339,7 @@ const Navbar = () => {
                         handleSignOut();
                         setIsMenuOpen(false);
                       }}
-                      className="text-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-right"
+                      className="text-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                     >
                       Sign Out
                     </button>
