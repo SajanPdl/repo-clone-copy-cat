@@ -1,10 +1,25 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const AboutUsPage = () => {
+  const { user } = useAuth();
+  const { notifyAdminAnnouncement } = useNotificationTrigger();
+
+  useEffect(() => {
+    if (user) {
+      // Show about us welcome notification
+      notifyAdminAnnouncement(
+        'About MeroAcademy',
+        'Learn more about our mission to democratize education!'
+      );
+    }
+  }, [user, notifyAdminAnnouncement]);
+
   return (
     <div className="min-h-screen w-full flex flex-col">
       <Navbar />

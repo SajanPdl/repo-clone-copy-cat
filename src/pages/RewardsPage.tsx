@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Gift, Coins, Star, Crown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 interface Reward {
   id: string;
@@ -21,6 +22,7 @@ interface Reward {
 
 const RewardsPage = () => {
   const { user } = useAuth();
+  const { notifyAchievementUnlocked } = useNotificationTrigger();
   const [userPoints, setUserPoints] = useState(1250); // Mock data
   const [rewards] = useState<Reward[]>([
     {
@@ -79,13 +81,28 @@ const RewardsPage = () => {
 
   const canRedeem = (pointsCost: number) => userPoints >= pointsCost;
 
-  const handleRedeem = (reward: Reward) => {
+  const handleRedeem = async (reward: Reward) => {
     if (canRedeem(reward.points_cost)) {
       setUserPoints(prev => prev - reward.points_cost);
+      
+      // Send notification
+      await notifyAchievementUnlocked(`Reward Redeemed: ${reward.name}`, reward.points_cost);
+      
       // In a real app, you would make an API call here
       alert(`Successfully redeemed: ${reward.name}`);
     }
   };
+
+  // Show welcome notification on first visit
+  useEffect(() => {
+    if (user) {
+      const hasVisited = localStorage.getItem('rewards_visited');
+      if (!hasVisited) {
+        notifyAchievementUnlocked('Rewards Center', 25);
+        localStorage.setItem('rewards_visited', 'true');
+      }
+    }
+  }, [user, notifyAchievementUnlocked]);
 
   return (
     <div className="min-h-screen bg-gray-50">

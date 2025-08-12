@@ -8,10 +8,14 @@ import { StudyMaterial, PastPaper } from '@/utils/queryUtils';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const ContentViewPage = () => {
   const { type, slug } = useParams<{ type: string; slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { notifyNewStudyMaterial } = useNotificationTrigger();
   const [content, setContent] = useState<StudyMaterial | PastPaper | null>(null);
   const [contentType, setContentType] = useState<'study-material' | 'past-paper' | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +75,17 @@ const ContentViewPage = () => {
 
     loadContent();
   }, [type, slug]);
+
+  // Show content welcome notification on first visit
+  useEffect(() => {
+    if (user && content) {
+      const hasVisited = localStorage.getItem(`content_${type}_${slug}_visited`);
+      if (!hasVisited) {
+        notifyNewStudyMaterial(content.title || 'Study Material', contentType || 'Content');
+        localStorage.setItem(`content_${type}_${slug}_visited`, 'true');
+      }
+    }
+  }, [user, content, type, slug, notifyNewStudyMaterial]);
 
   const handleBack = () => {
     if (contentType === 'study-material') {

@@ -7,6 +7,8 @@ import StudyMaterials from '@/components/StudyMaterials';
 import MaterialsFilter from '@/components/study-materials/MaterialsFilter';
 import AdPlacement from '@/components/ads/AdPlacement';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 interface StudyMaterial {
   id: number;
@@ -32,10 +34,23 @@ const StudyMaterialsPage = () => {
     category: searchParams.get('category') || '',
     search: searchParams.get('search') || ''
   });
+  const { user } = useAuth();
+  const { notifyNewStudyMaterial } = useNotificationTrigger();
 
   useEffect(() => {
     fetchMaterials();
   }, [filters]);
+
+  // Show welcome notification on first visit
+  useEffect(() => {
+    if (user) {
+      const hasVisited = localStorage.getItem('study_materials_visited');
+      if (!hasVisited) {
+        notifyNewStudyMaterial('Study Materials Library', 'Welcome to our comprehensive study materials collection!');
+        localStorage.setItem('study_materials_visited', 'true');
+      }
+    }
+  }, [user, notifyNewStudyMaterial]);
 
   const fetchMaterials = async () => {
     setLoading(true);

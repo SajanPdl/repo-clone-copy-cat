@@ -11,6 +11,8 @@ import ContactSection from '@/components/ContactSection';
 import MerchSection from '@/components/MerchSection';
 import AdPlacement from '@/components/ads/AdPlacement';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 interface StudyMaterial {
   id: number;
@@ -45,10 +47,23 @@ const HomePage = () => {
   const [studyMaterials, setStudyMaterials] = useState<StudyMaterial[]>([]);
   const [pastPapers, setPastPapers] = useState<PastPaper[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { notifyPromoDiscount } = useNotificationTrigger();
 
   useEffect(() => {
     fetchHomePageData();
   }, []);
+
+  // Show welcome notification on first visit
+  useEffect(() => {
+    if (user) {
+      const hasVisited = localStorage.getItem('homepage_visited');
+      if (!hasVisited) {
+        notifyPromoDiscount('Welcome Bonus', 'Get 20% off your first premium subscription!');
+        localStorage.setItem('homepage_visited', 'true');
+      }
+    }
+  }, [user, notifyPromoDiscount]);
 
   const fetchHomePageData = async () => {
     try {

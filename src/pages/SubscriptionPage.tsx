@@ -1,11 +1,23 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import SubscriptionWorkflow from '@/components/subscription/SubscriptionWorkflow';
 import Navbar from '@/components/Navbar';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const SubscriptionPage = () => {
+  const { user } = useAuth();
+  const { notifyPromoDiscount } = useNotificationTrigger();
+
+  useEffect(() => {
+    if (user) {
+      // Show subscription welcome notification
+      notifyPromoDiscount('Premium Features', 'Unlock unlimited access to study materials and premium features!');
+    }
+  }, [user, notifyPromoDiscount]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

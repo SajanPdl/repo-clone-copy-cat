@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFileToStorage } from '@/utils/fileUploadUtils';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 
 const StudentMaterialUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { notifyNewStudyMaterial } = useNotificationTrigger();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [file, setFile] = useState<File | null>(null);
@@ -107,6 +109,9 @@ const StudentMaterialUpload = () => {
         title: 'Upload successful!',
         description: 'Your material has been submitted for review. You will be notified once it is approved.',
       });
+
+      // Send notification
+      await notifyNewStudyMaterial(formData.title, formData.subject);
 
       // Reset form
       setFormData({

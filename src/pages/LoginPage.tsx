@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Lock, User, LogIn, EyeOff, Eye, UserPlus, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, user, loading } = useAuth();
+  const { notifyAdminAnnouncement } = useNotificationTrigger();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -32,6 +34,14 @@ const LoginPage = () => {
       navigate('/');
     }
   }, [user, loading, navigate]);
+
+  // Show login welcome notification
+  useEffect(() => {
+    notifyAdminAnnouncement(
+      'Welcome to MeroAcademy',
+      'Sign in to access your personalized learning experience!'
+    );
+  }, [notifyAdminAnnouncement]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;

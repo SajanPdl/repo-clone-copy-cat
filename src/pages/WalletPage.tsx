@@ -1,11 +1,23 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/StudentSidebar';
 import SellerWallet from '@/components/wallet/SellerWallet';
 import Navbar from '@/components/Navbar';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const WalletPage = () => {
+  const { user } = useAuth();
+  const { notifyPaymentApproved } = useNotificationTrigger();
+
+  useEffect(() => {
+    if (user) {
+      // Show wallet welcome notification
+      notifyPaymentApproved(0, 'Welcome to your wallet!');
+    }
+  }, [user, notifyPaymentApproved]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

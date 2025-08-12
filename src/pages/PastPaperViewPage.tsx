@@ -12,6 +12,7 @@ import { addStudentActivity } from '@/utils/studentDashboardUtils';
 import GlobalHeader from '@/components/GlobalHeader';
 import Footer from '@/components/Footer';
 import EnhancedPdfViewer from '@/components/EnhancedPdfViewer';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 import {
   Download,
   Eye,
@@ -45,6 +46,7 @@ const PastPaperViewPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { notifyNewStudyMaterial } = useNotificationTrigger();
   const [paper, setPaper] = useState<PastPaper | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -54,6 +56,17 @@ const PastPaperViewPage = () => {
       fetchPaper();
     }
   }, [id]);
+
+  // Show past paper welcome notification on first visit
+  useEffect(() => {
+    if (user && paper) {
+      const hasVisited = localStorage.getItem(`past_paper_${id}_visited`);
+      if (!hasVisited) {
+        notifyNewStudyMaterial(paper.title, paper.subject);
+        localStorage.setItem(`past_paper_${id}_visited`, 'true');
+      }
+    }
+  }, [user, paper, id, notifyNewStudyMaterial]);
 
   const fetchPaper = async () => {
     if (!id) return;

@@ -6,9 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/hooks/useAuth';
+import { useNotificationTrigger } from '@/hooks/useNotificationTrigger';
 
 const ContactPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { notifyAdminAnnouncement } = useNotificationTrigger();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,7 +30,7 @@ const ContactPage = () => {
     }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
     
@@ -35,6 +39,14 @@ const ContactPage = () => {
       title: "Message Sent!",
       description: "Thank you for your message. We'll get back to you shortly.",
     });
+    
+    // Send notification
+    if (user) {
+      await notifyAdminAnnouncement(
+        'Contact Form Submitted',
+        `New message from ${formData.name}: ${formData.subject}`
+      );
+    }
     
     // Reset form
     setFormData({
@@ -46,6 +58,20 @@ const ContactPage = () => {
       requestType: 'general'
     });
   };
+
+  // Show welcome notification on first visit
+  React.useEffect(() => {
+    if (user) {
+      const hasVisited = localStorage.getItem('contact_visited');
+      if (!hasVisited) {
+        notifyAdminAnnouncement(
+          'Contact Support',
+          'Need help? Our support team is here to assist you!'
+        );
+        localStorage.setItem('contact_visited', 'true');
+      }
+    }
+  }, [user, notifyAdminAnnouncement]);
 
   return (
     <div className="min-h-screen flex flex-col">
