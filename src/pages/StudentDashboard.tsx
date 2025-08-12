@@ -14,6 +14,7 @@ import LevelProgress from '@/components/dashboard/LevelProgress';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 import MarketplaceManager from '@/components/MarketplaceManager';
 import ProfileEditor from '@/components/ProfileEditor';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +30,6 @@ import {
   Calendar,
   User,
   Settings,
-  Bell,
   LogOut,
   Home,
   FileText,
@@ -269,9 +269,7 @@ const StudentDashboard = () => {
               </div>
               
               <div className="flex items-center gap-1 sm:gap-2">
-                <Button variant="ghost" size="icon" className="tap-target">
-                  <Bell className="h-5 w-5" />
-                </Button>
+                <NotificationBell />
                 <Button variant="ghost" size="icon" className="tap-target">
                   <User className="h-5 w-5" />
                 </Button>
