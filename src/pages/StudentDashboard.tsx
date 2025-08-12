@@ -229,35 +229,35 @@ const StudentDashboard = () => {
         <StudentSidebar />
         
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between px-4 py-3">
+          <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between px-3 sm:px-4 py-3">
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                     Welcome back, {user.email?.split('@')[0] || 'Student'}!
                   </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                     {stats?.profile?.level || 'Fresh Contributor'} • {stats?.profile?.points || 0} points
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Button variant="ghost" size="icon" className="tap-target">
                   <Bell className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="tap-target">
                   <User className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="tap-target">
                   <LogOut className="h-5 w-5" />
                 </Button>
               </div>
             </div>
           </header>
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-3 sm:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>

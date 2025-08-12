@@ -75,7 +75,7 @@ export function StudentSidebar() {
 
   return (
     <Sidebar
-      className={isCollapsed ? "w-14" : "w-60"}
+      className={`${isCollapsed ? "w-14" : "w-60"} md:w-60`}
       variant="sidebar"
     >
       <SidebarContent>

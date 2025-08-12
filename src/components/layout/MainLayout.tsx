@@ -19,12 +19,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <UpgradeCTA variant="banner" dismissibleKey="main_header_banner" />
         </div>
         <Navbar />
-        <main className="flex-1 flex">
-          <div className="hidden lg:block w-64 p-4 space-y-3">
+        <main className="flex-1 flex flex-col lg:flex-row">
+          <div className="hidden lg:block w-64 p-4 space-y-3 sticky top-16 self-start">
             <AdPlacement position="sidebar" />
             <UpgradeCTA variant="card" dismissibleKey="sidebar_card" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {children}
             <div className="px-4 py-4">
               <UpgradeCTA variant="card" dismissibleKey="content_card" />

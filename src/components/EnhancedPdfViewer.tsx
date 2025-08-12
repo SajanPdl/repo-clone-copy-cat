@@ -92,6 +92,9 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
   const { hasActiveSubscription, isPremiumUser } = useSubscription();
   const containerRef = useRef<HTMLDivElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [viewportHeight, setViewportHeight] = useState<number>(typeof window !== 'undefined' ? window.innerHeight : 768);
 
   // Check if user can download based on subscription
   const canDownload = allowDownload && (hasActiveSubscription() || isPremiumUser());
@@ -113,6 +116,12 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
     const pagesToPreload = Math.min(3, numPages);
     for (let i = 1; i <= pagesToPreload; i++) {
       setLoadedPages(prev => new Set([...prev, i]));
+    }
+    // Auto-fit scale on small screens
+    if (viewportWidth < 640) {
+      const containerWidth = pdfContainerRef.current?.clientWidth ?? viewportWidth;
+      const fitted = Math.min(1.6, Math.max(0.8, containerWidth / 800));
+      setScale(fitted);
     }
   };
 
@@ -302,6 +311,19 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
+
+  useEffect(() => {
+    // Track viewport for mobile layout and iOS 100vh fix
+    const updateViewport = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -535,7 +557,7 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         }`}
       >
         {/* Enhanced Toolbar */}
-        <div className="flex flex-wrap items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 gap-2 md:gap-4 overflow-x-auto">
+        <div className="flex flex-wrap items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 gap-2 md:gap-4 overflow-x-auto">
           {/* Navigation Controls */}
           <div className="flex items-center space-x-1 md:space-x-2">
             <Tooltip>
@@ -684,7 +706,7 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
               placeholder="Search in document..."
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-32 md:w-48"
+              className="w-28 sm:w-32 md:w-48"
             />
           </div>
         </div>
@@ -719,13 +741,25 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         {/* PDF Content */}
         <div 
           ref={pdfContainerRef}
-          className="pdf-content overflow-auto bg-gray-100 dark:bg-gray-900 flex justify-center p-4"
+          className="pdf-content overflow-auto bg-gray-100 dark:bg-gray-900 flex justify-center p-2 sm:p-4"
           style={{ 
-            height: `${height}px`,
-            maxHeight: `${height}px`,
-            minHeight: `${Math.min(height, 400)}px`,
+            height: viewportWidth < 640 && !isFullscreen ? `calc((var(--vh, 1vh) * 100) - 200px)` : `${height}px`,
+            maxHeight: viewportWidth < 640 && !isFullscreen ? `calc((var(--vh, 1vh) * 100) - 200px)` : `${height}px`,
+            minHeight: viewportWidth < 640 && !isFullscreen ? '360px' : `${Math.min(height, 400)}px`,
             overflowY: 'auto',
             overflowX: 'hidden'
+          }}
+          onTouchStart={(e) => { touchStartXRef.current = e.changedTouches[0].clientX; }}
+          onTouchEnd={(e) => {
+            const start = touchStartXRef.current;
+            if (start == null) return;
+            const end = e.changedTouches[0].clientX;
+            const delta = end - start;
+            const threshold = 60;
+            if (Math.abs(delta) > threshold) {
+              if (delta < 0) { goToNextPage(); } else { goToPrevPage(); }
+            }
+            touchStartXRef.current = null;
           }}
         >
           {isLoading && (
@@ -796,6 +830,27 @@ const EnhancedPdfViewer: React.FC<EnhancedPdfViewerProps> = ({
         {/* Bottom CTA */}
         <div className="p-2 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
           <UpgradeCTA variant="banner" dismissibleKey="enhanced_pdf_bottom" />
+        </div>
+
+        {/* Mobile bottom controls */}
+        <div className="sm:hidden sticky bottom-0 inset-x-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
+          <div className="flex items-center justify-around p-2">
+            <Button variant="ghost" size="sm" onClick={goToPrevPage} disabled={pageNumber <= 1} className="tap-target">
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={zoomOut} className="tap-target">
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-sm w-12 text-center">{Math.round(scale * 100)}%</span>
+              <Button variant="outline" size="sm" onClick={zoomIn} className="tap-target">
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={goToNextPage} disabled={pageNumber >= numPages} className="tap-target">
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Keyboard Shortcuts Help */}

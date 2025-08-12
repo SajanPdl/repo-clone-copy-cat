@@ -52,11 +52,12 @@ const MaterialsFilter: React.FC<MaterialsFilterProps> = ({
           </div>
         </div>
         
-        <div className="flex gap-4 flex-wrap justify-center">
+        {/* Mobile-first: full-width stacked selects; switch to inline on md+ */}
+        <div className="grid grid-cols-1 gap-3 w-full md:w-auto md:flex md:gap-4 md:flex-wrap md:justify-center">
           <select
             value={selectedGrade}
             onChange={(e) => onGradeChange(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md"
+            className="w-full md:w-auto px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md tap-target"
           >
             {safeOptions.grades.map(grade => (
               <option key={grade} value={grade}>{grade}</option>
@@ -66,7 +67,7 @@ const MaterialsFilter: React.FC<MaterialsFilterProps> = ({
           <select
             value={selectedSubject}
             onChange={(e) => onSubjectChange(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md"
+            className="w-full md:w-auto px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md tap-target"
           >
             {safeOptions.subjects.map(subject => (
               <option key={subject} value={subject}>{subject}</option>
@@ -76,7 +77,7 @@ const MaterialsFilter: React.FC<MaterialsFilterProps> = ({
           <select
             value={selectedCategory}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md"
+            className="w-full md:w-auto px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-edu-purple dark:focus:border-edu-purple focus:ring-1 focus:ring-edu-purple/20 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 transition-all duration-300 hover:shadow-md tap-target"
           >
             {safeOptions.categories.map(category => (
               <option key={category} value={category}>{category}</option>

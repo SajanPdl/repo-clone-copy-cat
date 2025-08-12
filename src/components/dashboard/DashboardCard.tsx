@@ -34,7 +34,8 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       whileHover={{ y: -5, scale: 1.02 }}
       className="group"
     >
-      <Card className={`relative overflow-hidden bg-gradient-to-r ${gradient} text-white border-none shadow-lg hover:shadow-xl transition-all duration-300`}>
+      <Card className={`relative overflow-hidden bg-gradient-to-r ${gradient} text-white border-none shadow-lg hover:shadow-xl transition-all duration-300`}
+        role="region" aria-label={`${title} card`}>
         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors duration-300" />
         <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-white/90">
@@ -49,7 +50,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           </motion.div>
         </CardHeader>
         <CardContent className="relative">
-          <div className="text-2xl font-bold text-white mb-2">
+          <div className="text-3xl sm:text-2xl font-bold text-white mb-2">
             {value}
           </div>
           {description && (

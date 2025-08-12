@@ -41,13 +41,13 @@ const LevelProgress: React.FC<LevelProgressProps> = ({ level, points }) => {
             {level}
           </Badge>
           <div className="text-right">
-            <p className="text-2xl font-bold">{points}</p>
+            <p className="text-2xl sm:text-3xl font-bold">{points}</p>
             <p className="text-xs text-gray-500">XP Points</p>
           </div>
         </div>
         
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span>Progress to {config.nextLevel}</span>
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3" />

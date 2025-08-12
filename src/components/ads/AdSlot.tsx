@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 
 type AdSlotProps = {
-  placement: 'header' | 'footer' | 'sidebar' | 'inline' | 'popup' | 'floater';
+  placement: 'header' | 'footer' | 'sidebar' | 'inline' | 'popup' | 'floater' | string;
   category?: string | null;
   className?: string;
   rotateMs?: number;
@@ -70,7 +70,8 @@ const AdSlot: React.FC<AdSlotProps> = ({ placement, category = null, className =
   };
 
   return (
-    <div className={`relative overflow-hidden rounded border bg-white ${className}`}>
+    <div className={`relative overflow-hidden rounded border bg-white ${className}`}
+         role="region" aria-label="Advertisement">
       {/* label */}
       <div className="absolute top-1 left-1 z-10 text-[10px] px-1.5 py-0.5 rounded bg-gray-900/80 text-white">Sponsored</div>
       {current.media_type === 'image' && (

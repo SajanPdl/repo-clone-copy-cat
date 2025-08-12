@@ -36,6 +36,16 @@
     --ring: 263 60% 47%;
 
     --radius: 0.75rem;
+
+    /* Fluid type scale */
+    --step--2: clamp(0.70rem, 0.73rem + -0.09vw, 0.67rem);
+    --step--1: clamp(0.88rem, 0.86rem + 0.08vw, 0.94rem);
+    --step-0: clamp(1.00rem, 0.96rem + 0.22vw, 1.13rem);
+    --step-1: clamp(1.13rem, 1.06rem + 0.39vw, 1.35rem);
+    --step-2: clamp(1.27rem, 1.16rem + 0.61vw, 1.62rem);
+    --step-3: clamp(1.42rem, 1.25rem + 0.89vw, 1.94rem);
+    --step-4: clamp(1.60rem, 1.33rem + 1.25vw, 2.33rem);
+    --step-5: clamp(1.80rem, 1.40rem + 1.69vw, 2.80rem);
   }
 
   .dark {
@@ -81,11 +91,20 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Poppins', sans-serif;
+    font-size: var(--step-0);
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5 {
     font-family: 'Playfair Display', serif;
+    line-height: 1.25;
   }
+
+  h1 { font-size: var(--step-5); }
+  h2 { font-size: var(--step-4); }
+  h3 { font-size: var(--step-3); }
+  h4 { font-size: var(--step-2); }
+  h5 { font-size: var(--step-1); }
 }
 
 @layer components {
@@ -132,4 +151,11 @@
   .mobile-nav-link {
     @apply block py-2 px-4 text-gray-800 dark:text-gray-200 hover:bg-edu-purple/10 hover:text-edu-purple rounded-md transition-colors;
   }
+
+  /* Touch target sizing */
+  .tap-target { min-height: 44px; min-width: 44px; }
+
+  /* Utility to hide scrollbars on mobile where needed */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
