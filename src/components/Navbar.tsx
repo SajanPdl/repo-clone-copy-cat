@@ -47,6 +47,7 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Home', href: '/' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Study Materials', href: '/study-materials' },
     { name: 'Past Papers', href: '/past-papers' },
     { name: 'Marketplace', href: '/marketplace' },
@@ -266,7 +267,7 @@ const Navbar = () => {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 text-right">
               {/* Mobile Search */}
               <div className="mb-4">
                 <form onSubmit={handleSearch}>
@@ -289,7 +290,7 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium text-right"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -300,14 +301,14 @@ const Navbar = () => {
                 <>
                   <div className="border-t pt-4 mt-4">
                     <div className="px-3 py-2">
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">{user.email}</p>
                     </div>
                     
                     {studentFeatures.map((feature) => (
                       <Link
                         key={feature.name}
                         to={feature.href}
-                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium flex items-center space-x-2"
+                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium flex items-center justify-end space-x-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <feature.icon className="h-5 w-5" />
@@ -317,7 +318,7 @@ const Navbar = () => {
 
                     <Link
                       to="/profile"
-                      className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium"
+                      className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-right"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Profile
@@ -326,7 +327,7 @@ const Navbar = () => {
                     {isAdmin && (
                       <Link
                         to="/admin"
-                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium"
+                        className="text-gray-700 dark:text-gray-300 block px-3 py-2 rounded-md text-base font-medium text-right"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Admin Panel
@@ -338,7 +339,7 @@ const Navbar = () => {
                         handleSignOut();
                         setIsMenuOpen(false);
                       }}
-                      className="text-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                      className="text-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-right"
                     >
                       Sign Out
                     </button>

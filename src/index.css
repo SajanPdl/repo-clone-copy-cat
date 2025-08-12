@@ -46,6 +46,15 @@
     --step-3: clamp(1.42rem, 1.25rem + 0.89vw, 1.94rem);
     --step-4: clamp(1.60rem, 1.33rem + 1.25vw, 2.33rem);
     --step-5: clamp(1.80rem, 1.40rem + 1.69vw, 2.80rem);
+    /* Sidebar theme (for mobile drawer and desktop) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 263 60% 47%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 263 60% 47%;
   }
 
   .dark {
@@ -76,6 +85,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 263 60% 60%;
+
+    /* Sidebar theme (dark) */
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 263 60% 60%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 263 60% 60%;
   }
 }
 

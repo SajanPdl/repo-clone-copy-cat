@@ -259,7 +259,7 @@ const StudentDashboard = () => {
 
           <main className="flex-1 p-3 sm:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 sticky top-[56px] z-30 bg-white dark:bg-gray-800 border-b">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
                 <TabsTrigger value="profile">Profile</TabsTrigger>

@@ -9,7 +9,7 @@ const Hero = () => {
   
 
   return (
-    <section className="relative pt-24 pb-40 overflow-hidden">
+    <section className="relative pt-20 sm:pt-24 pb-24 sm:pb-40 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-hero-pattern animate-bg-shift opacity-30"></div>
       
@@ -53,21 +53,21 @@ const Hero = () => {
       </div>
       
       <div className="container mx-auto px-4 relative">
-        <div className="flex flex-col lg:flex-row items-center gap-8">
+        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
           {/* Left content - Text and Search */}
           <div className="lg:w-1/2 text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 gradient-text leading-tight animate-fade-in">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 gradient-text leading-tight animate-fade-in">
               Your Gateway to Educational Excellence
             </h1>
-            <p className="text-xl text-gray-700 dark:text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 animate-fade-in">
+            <p className="text-base sm:text-xl text-gray-700 dark:text-gray-300 mb-6 sm:mb-10 max-w-2xl mx-auto lg:mx-0 animate-fade-in">
               Access comprehensive study materials, past papers, notes, and educational resources to excel in your academic journey.
             </p>
             
-            <div className="mb-10 animate-fade-in">
+            <div className="mb-6 sm:mb-10 animate-fade-in">
               <SearchBar className="max-w-2xl mx-auto lg:mx-0" />
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-in">
               <Button asChild className="btn-primary group">
                 <Link to="/study-materials" className="flex items-center">
                   <BookOpen className="mr-2 h-5 w-5 group-hover:animate-bounce-subtle" />
@@ -84,7 +84,7 @@ const Hero = () => {
           </div>
           
           {/* Right content - Mobile App Preview */}
-          <div className="lg:w-1/2 mt-10 lg:mt-0 animate-fade-in">
+          <div className="lg:w-1/2 mt-8 lg:mt-0 animate-fade-in">
             <div className="relative mx-auto" style={{ maxWidth: '380px' }}>
               {/* Phone frame */}
               <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
@@ -250,8 +250,8 @@ const Hero = () => {
       </div>
       
       {/* Stats/featured numbers */}
-      <div className="container mx-auto px-4 mt-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 mt-12 sm:mt-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
           <div className="glass-card interactive-card p-6 text-center">
             <h3 className="text-3xl md:text-4xl font-bold text-[#DC143C] mb-2">10K+</h3>
             <p className="text-gray-600 dark:text-gray-400">Study Materials</p>
