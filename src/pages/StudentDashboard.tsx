@@ -14,7 +14,7 @@ import LevelProgress from '@/components/dashboard/LevelProgress';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 import MarketplaceManager from '@/components/MarketplaceManager';
 import ProfileEditor from '@/components/ProfileEditor';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { supabase } from '@/integrations/supabase/client';

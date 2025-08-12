@@ -1,430 +1,568 @@
-import notificationManager from '@/components/notifications/NotificationManager';
-import { notificationService } from '@/services/notificationService';
+import notificationService from '@/services/notificationService';
+import { notificationManager } from '@/components/notifications/NotificationManager';
 
-// Notification trigger utilities for different app events
+// Enhanced notification trigger functions with all requested features
 
 export class NotificationTriggers {
-  // Study Material Notifications
+  // Study Materials Notifications
   static async notifyNewStudyMaterial(
     userId: string,
-    materialTitle: string,
-    subject: string,
-    grade: string,
-    uploaderName: string
+    materialData: {
+      id: string;
+      title: string;
+      subject: string;
+      thumbnail_url?: string;
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
-      'study_alert',
-      'New Study Material Available',
-      `New ${subject} material for Grade ${grade} has been uploaded by ${uploaderName}`,
-      {
-        material_title: materialTitle,
-        subject,
-        grade,
-        uploader: uploaderName
-      },
-      'normal'
+      'study_material_added',
+      '📚 New Study Material Available',
+      `"${materialData.title}" has been added to ${materialData.subject}`,
+      materialData,
+      'normal',
+      'study',
+      materialData.thumbnail_url,
+      `/study-materials/${materialData.id}`,
+      'View Material'
     );
 
-    // Show toast notification
-    notificationManager.info(
-      'New Study Material',
-      `New ${subject} material for Grade ${grade} is now available!`,
-      {
-        priority: 'normal',
-        actionLabel: 'View Material',
-        onAction: () => {
-          // Navigate to study materials page
-          window.location.href = '/study-materials';
+    if (notificationId) {
+      notificationManager.add({
+        title: '📚 New Study Material',
+        description: `"${materialData.title}" has been added to ${materialData.subject}`,
+        variant: 'default',
+        action: {
+          label: 'View Material',
+          onClick: () => window.open(`/study-materials/${materialData.id}`, '_blank')
         }
-      }
+      });
+    }
+  }
+
+  // Payment & Wallet Notifications
+  static async notifyPaymentApproved(
+    userId: string,
+    paymentData: {
+      id: string;
+      amount: number;
+      method: string;
+      description: string;
+    }
+  ) {
+    const notificationId = await notificationService.createNotification(
+      userId,
+      'payment_approved',
+      '💰 Payment Approved',
+      `Your payment of Rs. ${paymentData.amount} via ${paymentData.method} has been approved`,
+      paymentData,
+      'high',
+      'payment',
+      undefined,
+      `/wallet/transactions/${paymentData.id}`,
+      'View Transaction'
     );
+
+    if (notificationId) {
+      notificationManager.add({
+        title: '💰 Payment Approved',
+        description: `Your payment of Rs. ${paymentData.amount} via ${paymentData.method} has been approved`,
+        variant: 'default',
+        action: {
+          label: 'View Transaction',
+          onClick: () => window.open(`/wallet/transactions/${paymentData.id}`, '_blank')
+        }
+      });
+    }
+  }
+
+  static async notifyWithdrawalApproved(
+    userId: string,
+    withdrawalData: {
+      id: string;
+      amount: number;
+      account: string;
+      method: string;
+    }
+  ) {
+    const notificationId = await notificationService.createNotification(
+      userId,
+      'withdrawal_approved',
+      '✅ Withdrawal Approved',
+      `Your withdrawal request of Rs. ${withdrawalData.amount} has been approved and sent to your ${withdrawalData.method} account`,
+      withdrawalData,
+      'high',
+      'payment',
+      undefined,
+      `/wallet/withdrawals/${withdrawalData.id}`,
+      'View Wallet'
+    );
+
+    if (notificationId) {
+      notificationManager.add({
+        title: '✅ Withdrawal Approved',
+        description: `Your withdrawal request of Rs. ${withdrawalData.amount} has been approved and sent to your ${withdrawalData.method} account`,
+        variant: 'default',
+        action: {
+          label: 'View Wallet',
+          onClick: () => window.open(`/wallet/withdrawals/${withdrawalData.id}`, '_blank')
+        }
+      });
+    }
   }
 
   // Marketplace Notifications
   static async notifyBookSold(
     userId: string,
-    bookTitle: string,
-    price: number,
-    buyerName: string
+    saleData: {
+      id: string;
+      book_title: string;
+      buyer_name: string;
+      amount: number;
+      product_image?: string;
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
-      'marketplace_update',
-      'Book Sold!',
-      `Congratulations! Your book "${bookTitle}" has been sold for ₹${price}`,
-      {
-        book_title: bookTitle,
-        price,
-        buyer: buyerName
-      },
-      'high'
+      'book_sold',
+      '🛒 Book Sold!',
+      `"${saleData.book_title}" has been sold to ${saleData.buyer_name} for Rs. ${saleData.amount}`,
+      saleData,
+      'high',
+      'marketplace',
+      saleData.product_image,
+      `/marketplace/sales/${saleData.id}`,
+      'View Sale'
     );
 
-    // Show toast notification
-    notificationManager.success(
-      'Book Sold!',
-      `Your book "${bookTitle}" has been sold for ₹${price}`,
-      {
-        priority: 'high',
-        actionLabel: 'View Sale',
-        onAction: () => {
-          // Navigate to marketplace sales
-          window.location.href = '/marketplace';
+    if (notificationId) {
+      notificationManager.add({
+        title: '🛒 Book Sold!',
+        description: `"${saleData.book_title}" has been sold to ${saleData.buyer_name} for Rs. ${saleData.amount}`,
+        variant: 'default',
+        action: {
+          label: 'View Sale',
+          onClick: () => window.open(`/marketplace/sales/${saleData.id}`, '_blank')
         }
-      }
-    );
+      });
+    }
   }
 
-  static async notifyPurchaseRequest(
+  static async notifyOrderStatus(
     userId: string,
-    bookTitle: string,
-    buyerName: string,
-    offerPrice: number
+    orderData: {
+      id: string;
+      status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+      product_title: string;
+      seller_name: string;
+      product_image?: string;
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const statusMessages = {
+      pending: 'Your order is being processed',
+      confirmed: 'Your order has been confirmed',
+      shipped: 'Your order has been shipped',
+      delivered: 'Your order has been delivered',
+      cancelled: 'Your order has been cancelled'
+    };
+
+    const statusIcons = {
+      pending: '⏳',
+      confirmed: '✅',
+      shipped: '📦',
+      delivered: '🎉',
+      cancelled: '❌'
+    };
+
+    const notificationId = await notificationService.createNotification(
       userId,
-      'marketplace_update',
-      'New Purchase Request',
-      `${buyerName} wants to buy "${bookTitle}" for ₹${offerPrice}`,
-      {
-        book_title: bookTitle,
-        buyer: buyerName,
-        offer_price: offerPrice
-      },
-      'normal'
+      'order_status_update',
+      `${statusIcons[orderData.status]} Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
+      `${statusMessages[orderData.status]} for "${orderData.product_title}" from ${orderData.seller_name}`,
+      orderData,
+      orderData.status === 'delivered' ? 'high' : 'normal',
+      'orders',
+      orderData.product_image,
+      `/marketplace/orders/${orderData.id}`,
+      'View Order'
     );
 
-    // Show toast notification
-    notificationManager.info(
-      'New Purchase Request',
-      `${buyerName} wants to buy "${bookTitle}" for ₹${offerPrice}`,
-      {
-        priority: 'normal',
-        actionLabel: 'Review Request',
-        onAction: () => {
-          // Navigate to purchase requests
-          window.location.href = '/marketplace';
+    if (notificationId) {
+      notificationManager.add({
+        title: `${statusIcons[orderData.status]} Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
+        description: `${statusMessages[orderData.status]} for "${orderData.product_title}" from ${orderData.seller_name}`,
+        variant: orderData.status === 'cancelled' ? 'destructive' : 'default',
+        action: {
+          label: 'View Order',
+          onClick: () => window.open(`/marketplace/orders/${orderData.id}`, '_blank')
         }
-      }
-    );
-  }
-
-  // Payment Notifications
-  static async notifyPaymentApproved(
-    userId: string,
-    amount: number,
-    paymentMethod: string
-  ) {
-    // Create database notification
-    await notificationService.createNotification(
-      userId,
-      'payment',
-      'Payment Approved',
-      `Your payment of ₹${amount} has been approved and credited to your wallet`,
-      {
-        amount,
-        payment_method: paymentMethod
-      },
-      'high'
-    );
-
-    // Show toast notification
-    notificationManager.success(
-      'Payment Approved',
-      `Your payment of ₹${amount} has been approved!`,
-      {
-        priority: 'high',
-        actionLabel: 'View Wallet',
-        onAction: () => {
-          // Navigate to wallet
-          window.location.href = '/wallet';
-        }
-      }
-    );
-  }
-
-  static async notifyPaymentRejected(
-    userId: string,
-    amount: number,
-    reason: string
-  ) {
-    // Create database notification
-    await notificationService.createNotification(
-      userId,
-      'payment',
-      'Payment Rejected',
-      `Your payment of ₹${amount} was rejected: ${reason}`,
-      {
-        amount,
-        reason
-      },
-      'high'
-    );
-
-    // Show toast notification
-    notificationManager.error(
-      'Payment Rejected',
-      `Your payment of ₹${amount} was rejected: ${reason}`,
-      {
-        priority: 'high',
-        actionLabel: 'Try Again',
-        onAction: () => {
-          // Navigate to checkout
-          window.location.href = '/checkout';
-        }
-      }
-    );
+      });
+    }
   }
 
   // Event Notifications
   static async notifyEventReminder(
     userId: string,
-    eventName: string,
-    eventTime: Date,
-    eventLocation: string
+    eventData: {
+      id: string;
+      title: string;
+      start_time: string;
+      location?: string;
+      event_image?: string;
+    }
   ) {
-    const timeUntil = this.getTimeUntil(eventTime);
-    
-    // Create database notification
-    await notificationService.createNotification(
+    const startTime = new Date(eventData.start_time);
+    const timeUntil = Math.floor((startTime.getTime() - Date.now()) / (1000 * 60)); // minutes
+
+    const notificationId = await notificationService.createNotification(
       userId,
       'event_reminder',
-      `Event Reminder: ${eventName}`,
-      `Don't forget! ${eventName} is starting ${timeUntil} at ${eventLocation}`,
-      {
-        event_name: eventName,
-        event_time: eventTime.toISOString(),
-        event_location: eventLocation,
-        time_until: timeUntil
-      },
-      'normal'
+      '📅 Event Reminder',
+      `"${eventData.title}" starts in ${timeUntil} minutes${eventData.location ? ` at ${eventData.location}` : ''}`,
+      eventData,
+      'high',
+      'events',
+      eventData.event_image,
+      `/events/${eventData.id}`,
+      'Join Event'
     );
 
-    // Show toast notification
-    notificationManager.warning(
-      'Event Reminder',
-      `${eventName} is starting ${timeUntil}`,
-      {
-        priority: 'normal',
-        actionLabel: 'View Event',
-        onAction: () => {
-          // Navigate to events
-          window.location.href = '/events';
+    if (notificationId) {
+      notificationManager.add({
+        title: '📅 Event Reminder',
+        description: `"${eventData.title}" starts in ${timeUntil} minutes${eventData.location ? ` at ${eventData.location}` : ''}`,
+        variant: 'default',
+        action: {
+          label: 'Join Event',
+          onClick: () => window.open(`/events/${eventData.id}`, '_blank')
         }
-      }
-    );
+      });
+    }
   }
 
-  // Achievement Notifications
+  // Achievement & Gamification Notifications
   static async notifyAchievementUnlocked(
     userId: string,
-    achievementName: string,
-    achievementDescription: string,
-    pointsEarned: number
+    achievementData: {
+      id: string;
+      title: string;
+      description: string;
+      points: number;
+      badge_image?: string;
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
-      'achievement',
-      `Achievement Unlocked: ${achievementName}`,
-      `Congratulations! You've earned the ${achievementName} achievement and ${pointsEarned} points!`,
-      {
-        achievement_name: achievementName,
-        achievement_description: achievementDescription,
-        points_earned: pointsEarned
-      },
-      'high'
+      'achievement_unlocked',
+      '🏆 Achievement Unlocked!',
+      `You've earned "${achievementData.title}" and ${achievementData.points} points!`,
+      achievementData,
+      'high',
+      'ai',
+      achievementData.badge_image,
+      `/profile/achievements/${achievementData.id}`,
+      'View Achievement'
     );
 
-    // Show toast notification
-    notificationManager.success(
-      'Achievement Unlocked!',
-      `You've earned the ${achievementName} achievement!`,
-      {
-        priority: 'high',
-        actionLabel: 'View Achievement',
-        onAction: () => {
-          // Navigate to achievements
-          window.location.href = '/dashboard/achievements';
+    if (notificationId) {
+      notificationManager.add({
+        title: '🏆 Achievement Unlocked!',
+        description: `You've earned "${achievementData.title}" and ${achievementData.points} points!`,
+        variant: 'default',
+        action: {
+          label: 'View Achievement',
+          onClick: () => window.open(`/profile/achievements/${achievementData.id}`, '_blank')
         }
-      }
-    );
+      });
+    }
   }
 
-  // System Notifications
+  // Subscription Notifications
   static async notifyProPlanExpiry(
     userId: string,
-    expiryDate: Date,
-    daysUntilExpiry: number
+    subscriptionData: {
+      plan_name: string;
+      expires_at: string;
+      days_remaining: number;
+    }
   ) {
-    const urgency = daysUntilExpiry <= 3 ? 'urgent' : daysUntilExpiry <= 7 ? 'high' : 'normal';
-    
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
-      'system_alert',
-      'Pro Plan Expiring Soon',
-      `Your Pro plan will expire on ${expiryDate.toLocaleDateString()}. Renew now to continue enjoying premium features!`,
-      {
-        expiry_date: expiryDate.toISOString(),
-        days_until_expiry: daysUntilExpiry
-      },
-      urgency
+      'pro_plan_expiry',
+      '⚠️ Pro Plan Expiring Soon',
+      `Your ${subscriptionData.plan_name} plan expires in ${subscriptionData.days_remaining} days`,
+      subscriptionData,
+      'urgent',
+      'payment',
+      undefined,
+      '/subscription',
+      'Renew Plan'
     );
 
-    // Show toast notification
-    const notificationType = urgency === 'urgent' ? 'error' : urgency === 'high' ? 'warning' : 'info';
-    const message = urgency === 'urgent' 
-      ? `Your Pro plan expires in ${daysUntilExpiry} days!` 
-      : `Your Pro plan expires on ${expiryDate.toLocaleDateString()}`;
-
-    notificationManager[notificationType](
-      'Pro Plan Expiring Soon',
-      message,
-      {
-        priority: urgency,
-        actionLabel: 'Renew Now',
-        onAction: () => {
-          // Navigate to subscription page
-          window.location.href = '/subscription';
+    if (notificationId) {
+      notificationManager.add({
+        title: '⚠️ Pro Plan Expiring Soon',
+        description: `Your ${subscriptionData.plan_name} plan expires in ${subscriptionData.days_remaining} days`,
+        variant: 'destructive',
+        action: {
+          label: 'Renew Plan',
+          onClick: () => window.open('/subscription', '_blank')
         }
-      }
-    );
+      });
+    }
   }
 
-  // Promotion Notifications
+  // Promotional Notifications
   static async notifyPromoDiscount(
     userId: string,
-    discountPercent: number,
-    promoCode: string,
-    validUntil: Date
+    promoData: {
+      code: string;
+      discount_percent: number;
+      valid_until: string;
+      applicable_items?: string[];
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
-      'promotion',
-      `Special Discount: ${discountPercent}% Off`,
-      `Limited time offer! Get ${discountPercent}% off on Pro plan upgrade. Use code: ${promoCode}. Valid until ${validUntil.toLocaleDateString()}`,
-      {
-        discount_percent: discountPercent,
-        promo_code: promoCode,
-        valid_until: validUntil.toISOString()
-      },
-      'normal'
+      'promo_discount',
+      '🎉 Special Discount!',
+      `Use code "${promoData.code}" for ${promoData.discount_percent}% off${promoData.applicable_items ? ` on ${promoData.applicable_items.join(', ')}` : ''}`,
+      promoData,
+      'normal',
+      'ads',
+      undefined,
+      '/marketplace',
+      'Shop Now'
     );
 
-    // Show toast notification
-    notificationManager.info(
-      'Special Discount!',
-      `Get ${discountPercent}% off on Pro plan upgrade. Use code: ${promoCode}`,
-      {
-        priority: 'normal',
-        actionLabel: 'Get Discount',
-        onAction: () => {
-          // Navigate to subscription page
-          window.location.href = '/subscription';
+    if (notificationId) {
+      notificationManager.add({
+        title: '🎉 Special Discount!',
+        description: `Use code "${promoData.code}" for ${promoData.discount_percent}% off${promoData.applicable_items ? ` on ${promoData.applicable_items.join(', ')}` : ''}`,
+        variant: 'default',
+        action: {
+          label: 'Shop Now',
+          onClick: () => window.open('/marketplace', '_blank')
         }
-      }
-    );
+      });
+    }
   }
 
   // Admin Announcements
   static async notifyAdminAnnouncement(
     userId: string,
-    title: string,
-    message: string,
-    priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
+    announcementData: {
+      title: string;
+      message: string;
+      priority: 'low' | 'normal' | 'high' | 'urgent';
+      action_url?: string;
+      action_text?: string;
+    }
   ) {
-    // Create database notification
-    await notificationService.createNotification(
+    const notificationId = await notificationService.createNotification(
       userId,
       'admin_announcement',
-      `Announcement: ${title}`,
-      message,
-      {
-        title,
-        message
-      },
-      priority
+      announcementData.title,
+      announcementData.message,
+      announcementData,
+      announcementData.priority,
+      'messages',
+      undefined,
+      announcementData.action_url,
+      announcementData.action_text
     );
 
-    // Show toast notification based on priority
-    const notificationType = priority === 'urgent' ? 'error' : 
-                           priority === 'high' ? 'warning' : 'info';
-
-    notificationManager[notificationType](
-      `Announcement: ${title}`,
-      message,
-      {
-        priority,
-        actionLabel: 'View Details',
-        onAction: () => {
-          // Could navigate to announcements page or show modal
-          console.log('Announcement clicked:', title);
-        }
-      }
-    );
-  }
-
-  // Utility function to get time until event
-  private static getTimeUntil(eventTime: Date): string {
-    const now = new Date();
-    const diff = eventTime.getTime() - now.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (days > 0) {
-      return `in ${days} day${days > 1 ? 's' : ''}`;
-    } else if (hours > 0) {
-      return `in ${hours} hour${hours > 1 ? 's' : ''}`;
-    } else if (minutes > 0) {
-      return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
-    } else {
-      return 'now';
+    if (notificationId) {
+      notificationManager.add({
+        title: announcementData.title,
+        description: announcementData.message,
+        variant: announcementData.priority === 'urgent' ? 'destructive' : 'default',
+        action: announcementData.action_url && announcementData.action_text ? {
+          label: announcementData.action_text,
+          onClick: () => window.open(announcementData.action_url!, '_blank')
+        } : undefined
+      });
     }
   }
 
-  // Bulk notification for multiple users
+  // Bulk Notifications with Smart Grouping
   static async notifyMultipleUsers(
     userIds: string[],
-    typeName: string,
-    title: string,
-    message: string,
-    data: any = {},
-    priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
+    notificationData: {
+      type: string;
+      title: string;
+      message: string;
+      category: string;
+      priority: 'low' | 'normal' | 'high' | 'urgent';
+      group_id?: string;
+      action_url?: string;
+      action_text?: string;
+    }
   ) {
     const promises = userIds.map(userId =>
-      notificationService.createNotification(userId, typeName, title, message, data, priority)
+      notificationService.createNotification(
+        userId,
+        notificationData.type,
+        notificationData.title,
+        notificationData.message,
+        notificationData,
+        notificationData.priority,
+        notificationData.category,
+        undefined,
+        notificationData.action_url,
+        notificationData.action_text,
+        undefined,
+        notificationData.group_id
+      )
     );
 
-    try {
-      await Promise.all(promises);
-      console.log(`Sent ${userIds.length} notifications`);
-    } catch (error) {
-      console.error('Error sending bulk notifications:', error);
+    const results = await Promise.allSettled(promises);
+    const successCount = results.filter(result => result.status === 'fulfilled').length;
+
+    console.log(`Sent notifications to ${successCount}/${userIds.length} users`);
+    return successCount;
+  }
+
+  // AI Assistant Notifications
+  static async notifyAITip(
+    userId: string,
+    tipData: {
+      tip_type: 'study' | 'productivity' | 'health' | 'motivation';
+      title: string;
+      content: string;
+      related_content_url?: string;
+    }
+  ) {
+    const tipIcons = {
+      study: '📚',
+      productivity: '⚡',
+      health: '💪',
+      motivation: '🔥'
+    };
+
+    const notificationId = await notificationService.createNotification(
+      userId,
+      'ai_tip',
+      `${tipIcons[tipData.tip_type]} AI Study Tip`,
+      tipData.title,
+      tipData,
+      'low',
+      'ai',
+      undefined,
+      tipData.related_content_url,
+      'Learn More'
+    );
+
+    if (notificationId) {
+      notificationManager.add({
+        title: `${tipIcons[tipData.tip_type]} AI Study Tip`,
+        description: tipData.title,
+        variant: 'default',
+        action: tipData.related_content_url ? {
+          label: 'Learn More',
+          onClick: () => window.open(tipData.related_content_url!, '_blank')
+        } : undefined
+      });
     }
   }
 
-  // Test notification (for development)
-  static testNotification(type: 'success' | 'error' | 'warning' | 'info' = 'info') {
-    notificationManager[type](
-      'Test Notification',
-      'This is a test notification to verify the system is working correctly.',
-      {
-        priority: 'normal',
-        actionLabel: 'Test Action',
-        onAction: () => {
-          console.log('Test notification action clicked');
-        }
-      }
+  // Test Notification (for development)
+  static async testNotification(userId: string) {
+    const testData = {
+      id: 'test-' + Date.now(),
+      title: 'Test Notification',
+      message: 'This is a test notification to verify the system is working correctly.',
+      category: 'messages',
+      priority: 'normal' as const
+    };
+
+    const notificationId = await notificationService.createNotification(
+      userId,
+      'test_notification',
+      testData.title,
+      testData.message,
+      testData,
+      testData.priority,
+      testData.category,
+      undefined,
+      '/notifications',
+      'View All'
     );
+
+    if (notificationId) {
+      notificationManager.add({
+        title: testData.title,
+        description: testData.message,
+        variant: 'default',
+        action: {
+          label: 'View All',
+          onClick: () => window.open('/notifications', '_blank')
+        }
+      });
+    }
+
+    return notificationId;
+  }
+
+  // Urgent System Notifications
+  static async notifySystemAlert(
+    userId: string,
+    alertData: {
+      type: 'maintenance' | 'security' | 'update' | 'error';
+      title: string;
+      message: string;
+      action_url?: string;
+      action_text?: string;
+    }
+  ) {
+    const alertIcons = {
+      maintenance: '🔧',
+      security: '🔒',
+      update: '🔄',
+      error: '⚠️'
+    };
+
+    const notificationId = await notificationService.createNotification(
+      userId,
+      'system_alert',
+      `${alertIcons[alertData.type]} ${alertData.title}`,
+      alertData.message,
+      alertData,
+      'urgent',
+      'messages',
+      undefined,
+      alertData.action_url,
+      alertData.action_text
+    );
+
+    if (notificationId) {
+      notificationManager.add({
+        title: `${alertIcons[alertData.type]} ${alertData.title}`,
+        description: alertData.message,
+        variant: 'destructive',
+        action: alertData.action_url && alertData.action_text ? {
+          label: alertData.action_text,
+          onClick: () => window.open(alertData.action_url!, '_blank')
+        } : undefined
+      });
+    }
   }
 }
 
-// Export for use in components
-export default NotificationTriggers;
+// Export individual functions for backward compatibility
+export const {
+  notifyNewStudyMaterial,
+  notifyPaymentApproved,
+  notifyWithdrawalApproved,
+  notifyBookSold,
+  notifyOrderStatus,
+  notifyEventReminder,
+  notifyAchievementUnlocked,
+  notifyProPlanExpiry,
+  notifyPromoDiscount,
+  notifyAdminAnnouncement,
+  notifyMultipleUsers,
+  notifyAITip,
+  testNotification,
+  notifySystemAlert
+} = NotificationTriggers;

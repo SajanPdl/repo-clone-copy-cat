@@ -72,36 +72,45 @@ ALTER TABLE public.notification_templates ENABLE ROW LEVEL SECURITY;
 
 -- 7. Create RLS policies
 -- Notification types: readable by all authenticated users
+DROP POLICY IF EXISTS "Notification types are viewable by authenticated users" ON public.notification_types;
 CREATE POLICY "Notification types are viewable by authenticated users" ON public.notification_types
   FOR SELECT USING (auth.role() = 'authenticated');
 
 -- Notifications: users can only see their own notifications
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
 CREATE POLICY "Users can view own notifications" ON public.notifications
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Users can update their own notifications (mark as read, archive)
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
 CREATE POLICY "Users can update own notifications" ON public.notifications
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- Admins can manage all notifications
+DROP POLICY IF EXISTS "Admins can manage all notifications" ON public.notifications;
 CREATE POLICY "Admins can manage all notifications" ON public.notifications
   FOR ALL USING (public.is_admin(auth.uid()));
 
 -- User preferences: users can manage their own preferences
+DROP POLICY IF EXISTS "Users can view own notification preferences" ON public.user_notification_preferences;
 CREATE POLICY "Users can view own notification preferences" ON public.user_notification_preferences
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage own notification preferences" ON public.user_notification_preferences;
 CREATE POLICY "Users can manage own notification preferences" ON public.user_notification_preferences
   FOR ALL USING (auth.uid() = user_id);
 
 -- Admins can view all preferences
+DROP POLICY IF EXISTS "Admins can view all notification preferences" ON public.user_notification_preferences;
 CREATE POLICY "Admins can view all notification preferences" ON public.user_notification_preferences
   FOR SELECT USING (public.is_admin(auth.uid()));
 
 -- Templates: readable by all authenticated users, manageable by admins
+DROP POLICY IF EXISTS "Templates are viewable by authenticated users" ON public.notification_templates;
 CREATE POLICY "Templates are viewable by authenticated users" ON public.notification_templates
   FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can manage templates" ON public.notification_templates;
 CREATE POLICY "Admins can manage templates" ON public.notification_templates
   FOR ALL USING (public.is_admin(auth.uid()));
 
@@ -296,6 +305,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_notifications_updated_at ON public.notifications;
 CREATE TRIGGER update_notifications_updated_at
   BEFORE UPDATE ON public.notifications
   FOR EACH ROW

@@ -71,19 +71,19 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-lg fixed top-0 left-0 right-0 z-50 supports-[backdrop-filter]:backdrop-blur-md/80">
-      <div className="container mx-auto px-0 sm:px-4 lg:px-6">
+      <div className="container mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+            <Link to="/" className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
               {settings.logo_url ? (
-                <img src={settings.logo_url} alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-cover rounded" />
+                <img src={settings.logo_url} alt="Logo" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-cover rounded" />
               ) : (
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-xs sm:text-sm">ES</span>
                 </div>
               )}
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {settings.site_name || 'EduSanskriti'}
               </span>
             </Link>
@@ -123,7 +123,7 @@ const Navbar = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 lg:space-x-3">
             {user ? (
               <>
                 {/* Student Features - Hidden on small screens */}
@@ -147,18 +147,18 @@ const Navbar = () => {
                   onClick={() => navigate('/marketplace')}
                   variant="ghost"
                   size="icon"
-                  className="relative w-8 h-8 sm:w-9 sm:h-9"
+                  className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9"
                 >
-                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center p-0">
+                  <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                  <Badge className="absolute -top-0.5 -right-0.5 h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center p-0">
                     0
                   </Badge>
                 </Button>
 
                 {/* Notifications - Compact on mobile */}
-                <Button variant="ghost" size="icon" className="relative w-8 h-8 sm:w-9 sm:h-9">
-                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0">
+                <Button variant="ghost" size="icon" className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9">
+                  <Bell className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                  <Badge className="absolute -top-0.5 -right-0.5 h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0">
                     0
                   </Badge>
                 </Button>
@@ -188,9 +188,9 @@ const Navbar = () => {
                 {/* Profile Menu - Compact on mobile */}
                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1 w-8 h-8 sm:w-auto sm:h-auto">
-                      <User className="h-4 w-4" />
-                      <span className="max-w-20 truncate hidden sm:inline">{user.email}</span>
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-1 w-7 h-7 sm:w-8 sm:h-8 lg:w-auto lg:h-auto">
+                      <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="max-w-20 truncate hidden lg:inline">{user.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -256,10 +256,10 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden tap-target w-8 h-8 sm:w-9 sm:h-9 ml-1"
+              className="md:hidden tap-target w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 ml-0.5"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMenuOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
             </Button>
           </div>
         </div>

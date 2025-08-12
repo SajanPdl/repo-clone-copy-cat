@@ -189,14 +189,8 @@ export const useNotifications = (): UseNotificationsReturn => {
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);
     
-    // Show toast notification
-    if (window.toast) {
-      window.toast({
-        title: notification.title,
-        description: notification.message,
-        variant: notification.priority === 'urgent' ? 'destructive' : 'default'
-      });
-    }
+    // Note: Toast notifications should be handled by individual components
+    // using the useToast hook when needed
   }, []);
 
   const handleNotificationUpdate = useCallback((updatedNotification: AppNotification) => {

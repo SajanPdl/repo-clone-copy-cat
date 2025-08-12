@@ -44,6 +44,7 @@ import ReferralPage from "./pages/ReferralPage";
 import RewardsPage from "./pages/RewardsPage";
 import WalletPage from "./pages/WalletPage";
 import SettingsPage from "./pages/SettingsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 import StudyAssistantPage from "./pages/StudyAssistantPage";
 import PlannerPage from "./pages/PlannerPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -90,6 +91,7 @@ function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/notifications/settings" element={<NotificationSettingsPage />} />
               <Route path="/study-assistant" element={<StudyAssistantPage />} />
               <Route path="/planner" element={<PlannerPage />} />
               <Route path="/search" element={<SearchPage />} />
