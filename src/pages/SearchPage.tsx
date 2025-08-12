@@ -29,6 +29,7 @@ const SearchPage = () => {
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     category: '',
@@ -36,89 +37,202 @@ const SearchPage = () => {
     type: 'all',
     sortBy: 'relevance'
   });
+  const [dbStatus, setDbStatus] = useState<{connected: boolean, tables: string[]}>({connected: false, tables: []});
+
+  // Test database connection and table existence
+  useEffect(() => {
+    const testDatabase = async () => {
+      try {
+        console.log('Testing database connection...');
+        
+        // Test basic connection
+        const { data, error } = await supabase.from('study_materials').select('id').limit(1);
+        if (error) {
+          console.error('Database connection error:', error);
+          setDbStatus({connected: false, tables: []});
+        } else {
+          console.log('Database connected successfully');
+          setDbStatus({connected: true, tables: ['study_materials']});
+        }
+        
+        // Test other tables
+        const tables = ['past_papers', 'marketplace_items', 'blog_posts'];
+        for (const table of tables) {
+          try {
+            const { error: tableError } = await supabase.from(table).select('id').limit(1);
+            if (!tableError) {
+              setDbStatus(prev => ({...prev, tables: [...prev.tables, table]}));
+            }
+          } catch (e) {
+            console.log(`Table ${table} not accessible:`, e);
+          }
+        }
+      } catch (error) {
+        console.error('Database test failed:', error);
+        setDbStatus({connected: false, tables: []});
+      }
+    };
+    
+    testDatabase();
+  }, []);
 
   useEffect(() => {
+    console.log('SearchPage useEffect triggered, query:', query);
     if (query) {
       performSearch();
+    } else {
+      console.log('No query provided, showing default state');
+      setResults([]);
+      setLoading(false);
     }
   }, [query, filters]);
 
   const performSearch = async () => {
     if (!query.trim()) return;
     
+    console.log('Starting search for:', query);
     setLoading(true);
+    setError(null); // Clear any previous errors
+    
     try {
       const results: SearchResult[] = [];
       
       // Search study materials
       if (filters.type === 'all' || filters.type === 'study_material') {
-        const { data: materials } = await supabase
-          .from('study_materials')
-          .select('id, title, description, slug, category, grade, created_at, featured_image')
-          .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-          .eq('approval_status', 'approved')
-          .limit(20);
-        
-        if (materials) {
-          results.push(...materials.map(m => ({
-            ...m,
-            type: 'study_material' as const,
-            thumbnail_url: m.featured_image
-          })));
+        console.log('Searching study materials...');
+        try {
+          let queryBuilder = supabase
+            .from('study_materials')
+            .select('id, title, description, slug, category, grade, created_at, featured_image')
+            .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+            .limit(20);
+          
+          // Try to filter by approval_status if the column exists
+          try {
+            const { data: materials, error: materialsError } = await queryBuilder.eq('approval_status', 'approved');
+            if (materialsError) {
+              console.log('approval_status column not found, searching without approval filter...');
+              // Fallback: search without approval filter
+              const { data: materialsFallback, error: fallbackError } = await queryBuilder;
+              if (fallbackError) {
+                console.error('Study materials search fallback error:', fallbackError);
+              } else {
+                console.log('Study materials found (fallback):', materialsFallback?.length || 0);
+                if (materialsFallback) {
+                  results.push(...materialsFallback.map(m => ({
+                    ...m,
+                    type: 'study_material' as const,
+                    thumbnail_url: m.featured_image
+                  })));
+                }
+              }
+            } else {
+              console.log('Study materials found:', materials?.length || 0);
+              if (materials) {
+                results.push(...materials.map(m => ({
+                  ...m,
+                  type: 'study_material' as const,
+                  thumbnail_url: m.featured_image
+                })));
+              }
+            }
+          } catch (e) {
+            console.log('approval_status filter failed, searching without it...');
+            const { data: materialsFallback, error: fallbackError } = await queryBuilder;
+            if (fallbackError) {
+              console.error('Study materials search fallback error:', fallbackError);
+            } else {
+              console.log('Study materials found (fallback):', materialsFallback?.length || 0);
+              if (materialsFallback) {
+                results.push(...materialsFallback.map(m => ({
+                  ...m,
+                  type: 'study_material' as const,
+                  thumbnail_url: m.featured_image
+                })));
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Study materials search failed:', e);
         }
       }
       
       // Search past papers
       if (filters.type === 'all' || filters.type === 'past_paper') {
-        const { data: papers } = await supabase
+        console.log('Searching past papers...');
+        const { data: papers, error: papersError } = await supabase
           .from('past_papers')
           .select('id, title, description, slug, category, grade, created_at, thumbnail_url')
           .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
           .limit(20);
         
-        if (papers) {
-          results.push(...papers.map(p => ({
-            ...p,
-            type: 'past_paper' as const
-          })));
+        if (papersError) {
+          console.error('Past papers search error:', papersError);
+        } else {
+          console.log('Past papers found:', papers?.length || 0);
+          if (papers) {
+            results.push(...papers.map(p => ({
+              ...p,
+              type: 'past_paper' as const
+            })));
+          }
         }
       }
       
       // Search marketplace items
       if (filters.type === 'all' || filters.type === 'marketplace') {
-        const { data: items } = await supabase
-          .from('marketplace_items')
-          .select('id, title, description, slug, category, price, created_at, thumbnail_url')
-          .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-          .eq('status', 'active')
-          .limit(20);
-        
-        if (items) {
-          results.push(...items.map(i => ({
-            ...i,
-            type: 'marketplace' as const
-          })));
+        console.log('Searching marketplace items...');
+        try {
+          const { data: items, error: itemsError } = await supabase
+            .from('marketplace_items')
+            .select('id, title, description, slug, category, price, created_at, thumbnail_url')
+            .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+            .eq('status', 'active')
+            .limit(20);
+          
+          if (itemsError) {
+            console.error('Marketplace items search error:', itemsError);
+            // Skip marketplace search if table doesn't exist
+          } else {
+            console.log('Marketplace items found:', items?.length || 0);
+            if (items) {
+              results.push(...items.map(i => ({
+                ...i,
+                type: 'marketplace' as const
+              })));
+            }
+          }
+        } catch (e) {
+          console.log('Marketplace items table not accessible, skipping...');
         }
       }
       
       // Search blog posts
       if (filters.type === 'all' || filters.type === 'blog') {
-        const { data: posts } = await supabase
+        console.log('Searching blog posts...');
+        const { data: posts, error: postsError } = await supabase
           .from('blog_posts')
           .select('id, title, excerpt, slug, category, created_at, featured_image')
           .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
           .eq('status', 'published')
           .limit(20);
         
-        if (posts) {
-          results.push(...posts.map(p => ({
-            ...p,
-            type: 'blog' as const,
-            description: p.excerpt,
-            thumbnail_url: p.featured_image
-          })));
+        if (postsError) {
+          console.error('Blog posts search error:', postsError);
+        } else {
+          console.log('Blog posts found:', posts?.length || 0);
+          if (posts) {
+            results.push(...posts.map(p => ({
+              ...p,
+              type: 'blog' as const,
+              description: p.excerpt,
+              thumbnail_url: p.featured_image
+            })));
+          }
         }
       }
+      
+      console.log('Total results before filtering:', results.length);
       
       // Apply filters
       let filteredResults = results;
@@ -138,6 +252,7 @@ const SearchPage = () => {
         filteredResults.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       }
       
+      console.log('Final filtered results:', filteredResults.length);
       setResults(filteredResults);
     } catch (error) {
       console.error('Search error:', error);
@@ -242,6 +357,39 @@ const SearchPage = () => {
               <p className="text-gray-600">
                 Showing results for: <span className="font-semibold">"{query}"</span>
               </p>
+            )}
+
+            {/* Debug Information */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Debug Info:</h3>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p>Database Connected: {dbStatus.connected ? '✅ Yes' : '❌ No'}</p>
+                  <p>Available Tables: {dbStatus.tables.join(', ') || 'None'}</p>
+                  <p>Current Query: {query || 'None'}</p>
+                  <p>Results Count: {results.length}</p>
+                  <p>Loading State: {loading ? 'Yes' : 'No'}</p>
+                </div>
+                
+                {/* Test Search Button */}
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSearchParams({ q: 'test' })}
+                    className="mr-2"
+                  >
+                    Test Search "test"
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSearchParams({ q: 'mathematics' })}
+                  >
+                    Test Search "mathematics"
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -431,10 +579,28 @@ const SearchPage = () => {
               ) : (
                 <div className="text-center py-12">
                   <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Start searching</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Search</h3>
+                  <p className="text-gray-600 mb-6">
                     Enter a search term above to find study materials, past papers, marketplace items, and blog posts.
                   </p>
+                  
+                  {/* Quick Search Suggestions */}
+                  <div className="max-w-md mx-auto">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Popular searches:</h4>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {['mathematics', 'science', 'english', 'grade 10', 'past papers', 'study notes'].map((term) => (
+                        <Button
+                          key={term}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSearchParams({ q: term })}
+                          className="text-xs"
+                        >
+                          {term}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

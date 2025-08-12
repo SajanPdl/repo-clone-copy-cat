@@ -47,7 +47,6 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Home', href: '/' },
-    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Study Materials', href: '/study-materials' },
     { name: 'Past Papers', href: '/past-papers' },
     { name: 'Marketplace', href: '/marketplace' },
@@ -72,19 +71,19 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-lg fixed top-0 left-0 right-0 z-50 supports-[backdrop-filter]:backdrop-blur-md/80">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-3">
+          <div className="flex items-center flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
               {settings.logo_url ? (
-                <img src={settings.logo_url} alt="Logo" className="w-8 h-8 object-cover rounded" />
+                <img src={settings.logo_url} alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-cover rounded" />
               ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">ES</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xs sm:text-sm">ES</span>
                 </div>
               )}
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {settings.site_name || 'EduSanskriti'}
               </span>
             </Link>
@@ -124,10 +123,10 @@ const Navbar = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
             {user ? (
               <>
-                {/* Student Features */}
+                {/* Student Features - Hidden on small screens */}
                 <div className="hidden lg:flex items-center space-x-2">
                   {studentFeatures.slice(0, 3).map((feature) => (
                     <Button
@@ -143,28 +142,28 @@ const Navbar = () => {
                   ))}
                 </div>
 
-                {/* Marketplace Actions */}
+                {/* Marketplace Actions - Compact on mobile */}
                 <Button
                   onClick={() => navigate('/marketplace')}
                   variant="ghost"
                   size="icon"
-                  className="relative"
+                  className="relative w-8 h-8 sm:w-9 sm:h-9"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center p-0">
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center p-0">
                     0
                   </Badge>
                 </Button>
 
-                {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0">
+                {/* Notifications - Compact on mobile */}
+                <Button variant="ghost" size="icon" className="relative w-8 h-8 sm:w-9 sm:h-9">
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0">
                     0
                   </Badge>
                 </Button>
 
-                {/* Create Listing Button */}
+                {/* Create Listing Button - Hidden on small screens */}
                 <Button
                   onClick={() => navigate('/marketplace')}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hidden md:flex"
@@ -174,7 +173,7 @@ const Navbar = () => {
                   Create
                 </Button>
 
-                {/* Admin Panel Button */}
+                {/* Admin Panel Button - Hidden on small screens */}
                 {isAdmin && (
                   <Button
                     variant="outline"
@@ -186,17 +185,21 @@ const Navbar = () => {
                   </Button>
                 )}
 
-                {/* Profile Menu */}
-                <DropdownMenu>
+                {/* Profile Menu - Compact on mobile */}
+                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-1 w-8 h-8 sm:w-auto sm:h-auto">
                       <User className="h-4 w-4" />
-                      <span className="max-w-24 truncate hidden sm:inline">{user.email}</span>
+                      <span className="max-w-20 truncate hidden sm:inline">{user.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                     <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                       <User className="mr-2 h-4 w-4" />
+                       Dashboard
+                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
                       <User className="mr-2 h-4 w-4" />
                       Profile
@@ -230,32 +233,33 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <div className="flex space-x-2">
+              <div className="flex space-x-1 sm:space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/login')}
+                  className="text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Sign In
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => navigate('/register')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Join Now
                 </Button>
               </div>
             )}
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button - Ensure it's always visible */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden tap-target"
+              className="md:hidden tap-target w-8 h-8 sm:w-9 sm:h-9 ml-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>

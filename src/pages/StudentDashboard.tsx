@@ -17,6 +17,7 @@ import ProfileEditor from '@/components/ProfileEditor';
 import { fetchDashboardStats, DashboardStats } from '@/utils/studentDashboardUtils';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BookOpen,
   Download,
@@ -29,7 +30,11 @@ import {
   User,
   Settings,
   Bell,
-  LogOut
+  LogOut,
+  Home,
+  FileText,
+  Store,
+  Menu
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -39,6 +44,24 @@ const StudentDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Bottom navigation items for mobile/tablet
+  const bottomNavItems = [
+    { title: 'Home', icon: Home, path: '/' },
+    { title: 'Study Materials', icon: BookOpen, path: '/study-materials' },
+    { title: 'Past Papers', icon: FileText, path: '/past-papers' },
+    { title: 'Marketplace', icon: Store, path: '/marketplace' },
+    { title: 'Events', icon: Calendar, path: '/events' },
+    { title: 'Profile', icon: User, path: '/profile' },
+  ];
+
+  const isActiveBottomNav = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
 
   useEffect(() => {
     if (user) {
@@ -232,7 +255,9 @@ const StudentDashboard = () => {
           <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between px-3 sm:px-4 py-3">
               <div className="flex items-center gap-3">
-                <SidebarTrigger />
+                <SidebarTrigger className="lg:hidden">
+                  <Menu className="h-5 w-5" />
+                </SidebarTrigger>
                 <div>
                   <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                     Welcome back, {user.email?.split('@')[0] || 'Student'}!
@@ -257,7 +282,7 @@ const StudentDashboard = () => {
             </div>
           </header>
 
-          <main className="flex-1 p-3 sm:p-6">
+          <main className="flex-1 p-3 sm:p-6 pb-24 lg:pb-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 sticky top-[56px] z-30 bg-white dark:bg-gray-800 border-b">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -271,6 +296,36 @@ const StudentDashboard = () => {
               </div>
             </Tabs>
           </main>
+
+          {/* Bottom Navigation for Mobile/Tablet */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg pb-safe" role="navigation" aria-label="Bottom navigation">
+            <div className="flex items-center justify-around py-2 px-1 max-w-md mx-auto">
+              {bottomNavItems.map((item) => (
+                <button
+                  key={item.title}
+                  onClick={() => navigate(item.path)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(item.path);
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all duration-200 rounded-lg mx-1 group ${
+                    isActiveBottomNav(item.path)
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 scale-105'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                  aria-label={`Navigate to ${item.title}`}
+                  aria-current={isActiveBottomNav(item.path) ? 'page' : undefined}
+                >
+                  <item.icon className={`h-5 w-5 mb-1 transition-transform duration-200 ${
+                    isActiveBottomNav(item.path) ? 'scale-110' : 'group-hover:scale-105'
+                  }`} />
+                  <span className="text-xs font-medium truncate max-w-full leading-tight">{item.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>

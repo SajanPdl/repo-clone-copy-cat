@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import useSearchSuggestions from '@/hooks/use-search-suggestions';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -21,6 +22,7 @@ const SearchBar = ({
   category = 'all'
 }: SearchBarProps) => {
   const isControlled = value !== undefined && onChange !== undefined;
+  const navigate = useNavigate();
   
   const [localQuery, setLocalQuery] = useState('');
   
@@ -74,7 +76,10 @@ const SearchBar = ({
     if (onSearch) {
       onSearch(currentQuery || '');
     } else {
-      console.log('Search query:', currentQuery);
+      // Default: navigate to the global search page
+      if ((currentQuery || '').trim()) {
+        navigate(`/search?q=${encodeURIComponent(currentQuery!.trim())}`);
+      }
     }
     
     hideSuggestions();
