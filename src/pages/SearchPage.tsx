@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SearchResult {
@@ -325,10 +324,8 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <main className="pt-20 pb-8">
+    <MainLayout>
+      <main className="pt-6 pb-12">
         <div className="container mx-auto px-4">
           {/* Search Header */}
           <div className="mb-8">
@@ -607,9 +604,7 @@ const SearchPage = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
-    </div>
+    </MainLayout>
   );
 };
 

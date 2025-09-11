@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Heart, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import Navbar from '@/components/Navbar';
+import MainLayout from '@/components/layout/MainLayout';
 import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import { MarketplaceListing, fetchMarketplaceListings } from '@/utils/marketplaceUtils';
@@ -119,18 +119,16 @@ const MarketplacePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+      <MainLayout>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading marketplace listings...</div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <MainLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -252,7 +250,7 @@ const MarketplacePage = () => {
           />
         )}
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

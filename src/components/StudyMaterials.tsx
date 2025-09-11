@@ -10,7 +10,11 @@ import { filterMaterials } from '@/utils/studyMaterialsUtils';
 import AdPlacement from './ads/AdPlacement';
 import UpgradeCTA from '@/components/cta/UpgradeCTA';
 
-const StudyMaterials = () => {
+interface StudyMaterialsProps {
+  showHeader?: boolean;
+}
+
+const StudyMaterials = ({ showHeader = true }: StudyMaterialsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("All");
   const [selectedSubject, setSelectedSubject] = useState("All");
@@ -72,12 +76,14 @@ const StudyMaterials = () => {
   return (
     <section id="study-materials" className="py-20 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Study Materials</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Access comprehensive study materials organized by grade, subject, and topic to enhance your learning experience.
-          </p>
-        </div>
+        {showHeader && (
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Study Materials</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Access comprehensive study materials organized by grade, subject, and topic to enhance your learning experience.
+            </p>
+          </div>
+        )}
 
         {/* Sponsored content block & ad above filters */}
         <div className="mb-8 space-y-3">

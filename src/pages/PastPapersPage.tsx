@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/layout/MainLayout';
 import { fetchPastPapers } from '@/utils/queryUtils';
 import { PastPaper } from '@/utils/queryUtils';
 import { Button } from '@/components/ui/button';
@@ -60,10 +59,8 @@ const PastPapersPage = () => {
   });
   
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow pt-20 pb-16">
+    <MainLayout>
+      <main className="pt-6 pb-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
             <div>
@@ -333,10 +330,8 @@ const PastPapersPage = () => {
           )}
         </div>
       </main>
-      
       {!isPremium && !showSubscription && <NepalAdsFloater />}
-      <Footer />
-    </div>
+    </MainLayout>
   );
 };
 
