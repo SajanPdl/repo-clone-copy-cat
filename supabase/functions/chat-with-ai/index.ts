@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,6 +16,16 @@ serve(async (req) => {
 
   try {
     const { messages, mode } = await req.json();
+    
+    console.log('Received request:', { messages, mode });
+
+    // Check if API key is available
+    if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY is not set');
+      throw new Error('GEMINI_API_KEY environment variable is not set');
+    }
+    
+    console.log('API key is available, length:', geminiApiKey.length);
 
     const systemPrompts = {
       chat: "You are a helpful AI study assistant. Provide clear, educational responses to help students learn. Be encouraging and thorough in your explanations.",
@@ -26,32 +36,45 @@ serve(async (req) => {
 
     const systemPrompt = systemPrompts[mode as keyof typeof systemPrompts] || systemPrompts.chat;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Combine all messages into a single prompt for Gemini
+    const conversationText = messages.map((msg: any) => 
+      `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+    ).join('\n\n');
+    
+    const fullPrompt = `${systemPrompt}\n\n${conversationText}`;
+    
+    console.log('Sending request to Gemini with prompt length:', fullPrompt.length);
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        },
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    console.log('Gemini API response:', JSON.stringify(data, null, 2));
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      throw new Error('Invalid response format from Gemini API');
+    }
+    
+    const aiResponse = data.candidates[0].content.parts[0].text;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

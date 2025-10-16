@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { NotificationManager } from "@/components/notifications/NotificationManager";
+import ChatBot from "@/components/ChatBot";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -63,6 +64,7 @@ function App() {
           <Toaster />
           <Sonner />
           <NotificationManager position="top-right" maxNotifications={5} />
+          <ChatBot />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />

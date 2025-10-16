@@ -15,7 +15,7 @@ const FloatingAIButton = () => {
       navigate('/login');
       return;
     }
-    navigate('/ai-assistant');
+    navigate('/study-assistant');
   };
 
   const handleChatBot = () => {
